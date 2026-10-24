@@ -266,6 +266,12 @@ const launch = new URLSearchParams(location.search).has("art-review")
   : start();
 launch.catch((error) => {
   console.error(error);
-  document.querySelector("#notice")!.textContent =
+  let errorNotice = document.querySelector<HTMLElement>("#notice");
+  if (!errorNotice) {
+    errorNotice = document.createElement("div");
+    errorNotice.id = "notice";
+    document.querySelector("#hud")?.appendChild(errorNotice);
+  }
+  errorNotice.textContent =
     "Не удалось запустить 3D-сцену. Обновите страницу или проверьте WebGL.";
 });
