@@ -64,6 +64,9 @@ export class FaceRig extends T.Group {
   readonly crosses: T.Group[] = [];
   readonly spirals: T.Mesh[] = [];
   readonly stunWhites: T.Mesh[] = [];
+  private sculptedBrows = new T.Group();
+  private browPose = -1;
+  private faceLift = 0;
   private brow: T.Mesh<T.BufferGeometry, T.ShaderMaterial>;
   private mouth: T.Mesh<T.BufferGeometry, T.ShaderMaterial>;
   private unhinged = 0;
@@ -167,7 +170,10 @@ export class FaceRig extends T.Group {
     this.brow = this.patch(0, 0.64, 1.05, 0.32, atlas.brows[0]);
     this.brow.material.uniforms.feature.value = 1;
     this.brow.name = "brows";
+    this.brow.visible = false;
     this.add(this.brow);
+    this.sculptedBrows.name = "sculpted-brows";
+    this.add(this.sculptedBrows);
     this.mouth = this.patch(0, -0.40, 0.88, 0.48, atlas.mouths[0]);
     this.mouth.name = "mouth";
     this.add(this.mouth);
@@ -209,6 +215,8 @@ export class FaceRig extends T.Group {
     this.add(this.smileStroke);
   }
   private surface(x: number, y: number, offset = 0.02) {
+    // Compact triangular assembly, independent of the rolling body.
+    y = y * 0.75 - 0.08;
     return new T.Vector3(
       x,
       y,
@@ -245,11 +253,8 @@ export class FaceRig extends T.Group {
       vertexShader:
         "varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}",
       fragmentShader: `uniform sampler2D map;uniform vec4 rect;uniform float open;uniform float mirror;uniform float flipY;uniform float feature;varying vec2 vUv;
-  void main(){if(vUv.y>open || open<.015)discard;vec2 uv=vec2(mix(vUv.x,1.-vUv.x,mirror),mix(vUv.y,1.-vUv.y,flipY));vec2 tc=rect.xy+uv*rect.zw;vec4 c=texture2D(map,tc);vec2 d=vec2(2./1448.,2./1086.);float coverage=min(min(texture2D(map,tc+d).a,texture2D(map,tc-d).a),min(texture2D(map,tc+vec2(d.x,-d.y)).a,texture2D(map,tc+vec2(-d.x,d.y)).a));c.a=min(c.a,coverage);if(c.a<.35){
-    if(feature>.5&&feature<1.5){vec2 e=vec2(7./1448.,7./1086.);float rim=max(max(texture2D(map,tc+vec2(e.x,0.)).a,texture2D(map,tc-vec2(e.x,0.)).a),max(texture2D(map,tc+vec2(0.,e.y)).a,texture2D(map,tc-vec2(0.,e.y)).a));if(rim<.5)discard;c=vec4(.50,.40,.28,rim*.4);}
-    else discard;
-  }
-  bool rimPixel=c.a<.66&&feature>.5&&feature<1.5;
+  void main(){if(vUv.y>open || open<.015)discard;vec2 uv=vec2(mix(vUv.x,1.-vUv.x,mirror),mix(vUv.y,1.-vUv.y,flipY));vec2 tc=rect.xy+uv*rect.zw;vec4 c=texture2D(map,tc);vec2 d=vec2(2./1448.,2./1086.);float coverage=min(min(texture2D(map,tc+d).a,texture2D(map,tc-d).a),min(texture2D(map,tc+vec2(d.x,-d.y)).a,texture2D(map,tc+vec2(-d.x,d.y)).a));c.a=min(c.a,coverage);if(c.a<.35)discard;
+  bool rimPixel=false;
   float l=dot(c.rgb,vec3(.2126,.7152,.0722));
   if(rimPixel){}else if(feature<.5){
     float white=smoothstep(.16,.64,l);
@@ -347,7 +352,7 @@ export class FaceRig extends T.Group {
     this.mouth.material.uniforms.feature.value = pose.mouth === 0 ? 3 : 2;
     this.mouth.visible = pose.mouth !== 0;
     this.smileStroke.visible = pose.mouth === 0;
-    this.smileRim.visible = pose.mouth === 0;
+    this.smileRim.visible = false;
     if (this.smileStroke.userData.frown !== (expression === "irritated")) {
       this.smileStroke.userData.frown = expression === "irritated";
       const points = [];
@@ -380,19 +385,54 @@ export class FaceRig extends T.Group {
     }
     this.mouth.material.uniforms.flipY.value =
       expression === "irritated" ? 1 : 0;
-    const b = this.brow.geometry.attributes.position;
-    // Small asymmetric motion stays on the sphere, without rotating a plane off its surface.
-    const dy = Math.sin(t * 1.73 + Math.sin(t * 0.81)) * 0.006;
-    for (let i = 0; i < b.count; i++) {
-      const y =
-        0.64 +
-        (this.brow.geometry.attributes.uv.getY(i) - 0.5) *
-          this.brow.userData.height +
-        dy;
-      const x = b.getX(i);
-      b.setY(i, y);
-      b.setZ(i, this.surface(x, y).z);
+    this.brow.visible = false;
+    this.updateBrows(pose.brow);
+    const lift = expression === "proud" ? -0.13
+      : expression === "delighted" ? -0.08
+      : expression === "irritated" || expression === "rage" ? 0.12 : 0;
+    this.faceLift = T.MathUtils.lerp(this.faceLift, lift, 1 - Math.exp(-dt * 12));
+    // Rotating the whole assembly keeps every part attached to the sphere.
+    this.rotation.x += this.faceLift;
+  }
+  private updateBrows(pose: number) {
+    if (this.browPose === pose) return;
+    this.browPose = pose;
+    for (const child of [...this.sculptedBrows.children]) {
+      const mesh = child as T.Mesh<T.BufferGeometry, T.Material>;
+      mesh.geometry.dispose();
+      mesh.material.dispose();
+      this.sculptedBrows.remove(mesh);
     }
-    b.needsUpdate = true;
+    for (let side = 0; side < 2; side++) {
+      const shape = new T.Shape();
+      // Broad outer shoulder, rounded crest, tapered expressive inner tip.
+      shape.moveTo(0, 0);
+      shape.bezierCurveTo(-0.03, 0.09, 0.12, 0.23, 0.25, 0.22);
+      shape.bezierCurveTo(0.40, 0.20, 0.47, 0.08, 0.59, 0.02);
+      shape.bezierCurveTo(0.63, -0.01, 0.59, -0.11, 0.53, -0.10);
+      shape.bezierCurveTo(0.36, -0.07, 0.17, 0.03, 0, 0);
+      const geometry = new T.ExtrudeGeometry(shape, {
+        depth: 0.025, bevelEnabled: true, bevelSize: 0.014,
+        bevelThickness: 0.014, bevelSegments: 2, curveSegments: 16, steps: 1,
+      });
+      const p = geometry.attributes.position;
+      const slope = pose === 2 ? -0.32 : pose === 3 ? 0.25
+        : pose === 1 ? (side === 0 ? -0.24 : 0.18) : 0;
+      for (let i = 0; i < p.count; i++) {
+        const u = p.getX(i),
+          x = (side === 0 ? -1 : 1) * (0.64 - u),
+          y = 0.53 + p.getY(i) + slope * (u / 0.60 - 0.5),
+          v = this.surface(x, y, 0.035 + p.getZ(i));
+        p.setXYZ(i, v.x, v.y, v.z);
+      }
+      geometry.computeVertexNormals();
+      const material = new T.MeshStandardMaterial({
+        color: 0x42201b, roughness: 0.48, emissive: 0x32150f,
+        emissiveIntensity: 0.45, side: T.DoubleSide,
+      });
+      const brow = new T.Mesh(geometry, material);
+      brow.name = "expressive-brow-" + side;
+      this.sculptedBrows.add(brow);
+    }
   }
 }

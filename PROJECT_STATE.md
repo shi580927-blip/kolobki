@@ -68,3 +68,6 @@ FaceRig использует отдельные RGBA-глаза, пару бро
 Узор корпуса смягчён, материал получает слабую собственную подсветку и мягкое заполнение. Небо и трава светлее; seed, физика, управление и камера сохранены. Галерея: обычный `?art-review` и контровое освещение `?art-review&lighting=shadow`.
 
 Проверка: 17 тестов и production-build; локальный Chromium/Playwright — 12 поз на свету/в тёмном освещении, закрытые глаза, запуск игры, сбор кольца/reset, вращение камеры/release/preset без ошибок JS. Проверены скриншоты. В одинаковой области глаз количество светлых пикселей составило 1718/1714 (свет/тень), тёплых 623/617; это лишь проверка сохранения цвета в данном рендере, не пользовательская оценка и не мобильный бенчмарк.
+
+### dev.7 — face construction and patterns
+Approved concept direction implemented as alpha geometry: larger sculpted brows, compact lower face, whole-face expressive tilt, fine small motifs without stripes. Skin seeds retained. Read-only gallery shows all twelve poses in normal and shadow lighting. This is not a final commercial art acceptance. Real phone performance remains unverified.

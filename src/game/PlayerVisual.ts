@@ -15,23 +15,35 @@ export class PlayerVisual extends T.Group {
     c.fillStyle = skin.color;
     c.fillRect(0, 0, 512, 512);
     c.fillStyle = new T.Color(skin.accent)
-      .lerp(new T.Color(skin.color), 0.24)
+      .lerp(new T.Color(skin.color), 0.48)
       .getStyle();
     const r = randomFrom(skin.seed + 1);
-    if (skin.pattern === "stripes") {
-      for (let x = 0; x < 512; x += 64) c.fillRect(x, 0, 24, 512);
-    } else
-      for (let i = 0; i < 70; i++) {
-        const x = r() * 512,
-          y = r() * 512;
+    // Seeded jittered grid: small motifs, no stripe bands or large bald patches.
+    for (let row = 0; row < 16; row++) {
+      for (let col = 0; col < 20; col++) {
+        const x = (col + 0.25 + r() * 0.5) * 512 / 20,
+          y = (row + 0.25 + r() * 0.5) * 512 / 16,
+          size = 3.5 + r() * 2.5;
+        c.save();
+        c.translate(x, y);
+        c.rotate((r() - 0.5) * 0.8);
         c.beginPath();
         if (skin.pattern === "hearts") {
-          c.moveTo(x, y + 6);
-          c.bezierCurveTo(x - 25, y - 8, x - 14, y - 25, x, y - 10);
-          c.bezierCurveTo(x + 14, y - 25, x + 25, y - 8, x, y + 6);
-        } else c.ellipse(x, y, 7 + r() * 7, 9 + r() * 6, 0, 0, Math.PI * 2);
+          c.moveTo(0, size);
+          c.bezierCurveTo(-size * 2, -size * 0.2, -size, -size * 1.5, 0, -size * 0.5);
+          c.bezierCurveTo(size, -size * 1.5, size * 2, -size * 0.2, 0, size);
+        } else if (skin.pattern === "petals") {
+          for (let j = 0; j < 4; j++) {
+            const a = j * Math.PI / 2;
+            c.moveTo(Math.cos(a) * size * 0.5, Math.sin(a) * size * 0.5);
+            c.ellipse(Math.cos(a) * size * 0.5, Math.sin(a) * size * 0.5,
+              size * 0.65, size * 0.65, 0, 0, Math.PI * 2);
+          }
+        } else c.ellipse(0, 0, size, size * (0.8 + r() * 0.4), 0, 0, Math.PI * 2);
         c.fill();
+        c.restore();
       }
+    }
     const texture = new T.CanvasTexture(canvas);
     texture.colorSpace = T.SRGBColorSpace;
     texture.anisotropy = 4;

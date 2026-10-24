@@ -85,3 +85,15 @@ test("face course preserves last heading at rest", () => {
   assert.equal(headingFromVelocity(0, 0, 1.3), 1.3);
   assert.equal(headingFromVelocity(2, 0, 0), Math.PI / 2);
 });
+
+test("saved seed keeps identity while all patterns use small motifs", () => {
+  const patterns = new Set<string>();
+  for (let seed = 0; seed < 100; seed++) {
+    const skin = skinFrom(seed);
+    assert.equal(skin.seed, seed);
+    assert.deepEqual(skin, skinFrom(seed));
+    assert.notEqual(skin.pattern, "stripes");
+    patterns.add(skin.pattern);
+  }
+  assert.equal(patterns.size, 3);
+});

@@ -2,7 +2,7 @@ export interface Skin {
   seed: number;
   color: string;
   accent: string;
-  pattern: "dots" | "stripes" | "hearts";
+  pattern: "dots" | "petals" | "hearts";
   mood: "sly" | "grumpy" | "worried";
 }
 export function randomFrom(seed: number) {
@@ -31,7 +31,7 @@ export function skinFrom(seed: number): Skin {
     seed,
     color: palette[0],
     accent: palette[variant < 0.65 ? 1 : 2],
-    pattern: (["dots", "stripes", "hearts"] as const)[Math.floor(r() * 3)],
+    pattern: (["dots", "petals", "hearts"] as const)[Math.floor(r() * 3)],
     mood: (["sly", "grumpy", "worried"] as const)[Math.floor(r() * 3)],
   };
 }

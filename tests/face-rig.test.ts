@@ -85,3 +85,29 @@ test("mouth stays below both eyes with a visible gap for every expression and im
     }
   }
 });
+
+test("sculpted brows stay on sphere, reuse geometry, and face tilts as one assembly", () => {
+  const face = new FaceRig(new FaceState("sly", () => 0.5), "#389fae");
+  face.reviewExpression = "irritated";
+  face.update(1, 0);
+  assert.ok(face.rotation.x > 0.1);
+  const brows = face.getObjectByName("sculpted-brows")!;
+  assert.equal(brows.children.length, 2);
+  const first = (brows.children[0] as Mesh).geometry;
+  face.update(0.016, 0);
+  assert.equal((brows.children[0] as Mesh).geometry, first);
+  for (const expression of EXPRESSIONS) {
+    face.reviewExpression = expression;
+    face.update(1, 0);
+    for (const child of brows.children) {
+      const p = (child as Mesh).geometry.attributes.position;
+      for (let i = 0; i < p.count; i++) {
+        const radius = Math.hypot(p.getX(i), p.getY(i), p.getZ(i));
+        assert.ok(radius >= 1 && radius < 1.09);
+      }
+    }
+  }
+  face.reviewExpression = "proud";
+  face.update(1, 0);
+  assert.ok(face.rotation.x < -0.1);
+});

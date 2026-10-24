@@ -38,3 +38,9 @@
 - Restored eye dominance relative to the mouth; raised eye line and lowered and limited the mouth.
 - Reserved at least 0.08 sphere radii between eye and mouth geometry in all 12 poses; regression test includes impact.
 - Original reference artwork remains the visual target, not a claim of final atlas quality.
+
+## 0.1.0-dev.7 — compact expressive face and gentle patterns
+- Chunky independent curved 3D brows replace thin atlas brows; no pale outline.
+- Compact lower face assembly tilts up/down with expression, independently of body rolling.
+- Fine seeded dots, hearts and petals replace broad stripes without rerolling identity.
+- Environment art and final visual approval remain pending; controls/physics unchanged.
