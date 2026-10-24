@@ -1,5 +1,8 @@
-name: Manual alpha Pages deploy
-on: workflow_dispatch
+name: Alpha Pages deploy
+on:
+  workflow_dispatch:
+  push:
+    branches: [feature/alpha-0.1]
 permissions:
   contents: read
   pages: write
