@@ -90,3 +90,6 @@ All three user layouts retained exactly in src/face/approved-layout.json from cu
 
 ### dev.8 — approved faces integrated into gameplay
 Main player and HUD now share approved three-expression sprite rig. Jump/ring: happy; dash: grumpy; physical major impact: temporary crossed-eye stun and orientation reaction, then persistent base. Exact user layout retained, brows above eyes/lids, body quaternion independent. Existing mood worried temporarily renders happy pending an approved worried pose; stored mood/seed retained. Only three approved expressions, not complete v03 animation set. Physical landing transition verified through real keyboard input in local Chromium; phone hardware unverified.
+
+### Latest calibration — layout (5)
+User's exact latest JSON now drives gameplay/HUD/sample/editor defaults; happy unchanged, sly/grumpy repositioned and resized. Event rules unchanged. Next: agree explicit emotion/event/duration/priority/consequence/recovery table; do not treat provisional three-pose event mapping as final design.
