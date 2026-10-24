@@ -11,14 +11,14 @@ export async function loadAnimationAtlas(){
 type Feature=T.Mesh<T.BufferGeometry,T.ShaderMaterial>;
 export class AnimatedAtlasRig extends T.Group {
  readonly clock=new AnimationClock();readonly combo:ComboAnimationClock;readonly poses:Record<string,T.Group>={};
- private readonly parts:Record<string,Feature[]>={};private readonly lids:Record<string,T.Group>={};private trails:T.Group[]=[];
+ private readonly parts:Record<string,Feature[]>={};private readonly lids:Record<string,T.Group>={};private trails:T.Group[]=[];readonly dazedStars=new T.Group();
  target='neutral';base='sly';time=0;forcedBlink=false;gaze:'auto'|'center'|'left'|'right'='auto';private blinkStart=-1;private nextBlink=2.6;
  constructor(readonly atlas:AnimationAtlas,textures:T.Texture[]){super();this.combo=new ComboAnimationClock(atlas.combo.orbitSeconds,atlas.combo.turns,atlas.combo.dizzySeconds,atlas.combo.recoverSeconds);
  for(const [name,pose] of Object.entries(atlas.poses)){
   const group=new T.Group();this.poses[name]=group;this.parts[name]=[];this.add(group);
   for(const part of pose.parts){const page=atlas.pages[part.page??pose.page],r=part.rect;
-   const material=new T.ShaderMaterial({transparent:true,depthWrite:false,side:T.DoubleSide,uniforms:{map:{value:textures[part.page??pose.page]},rect:{value:new T.Vector4(r[0]/page.width,1-(r[1]+r[3])/page.height,r[2]/page.width,r[3]/page.height)},opacity:{value:1},open:{value:1},kind:{value:part.channel==='brow'?1:part.channel==='eye'?2:0},separate:{value:0},trim:{value:name==='unhinged'&&part.id==='study-brow-0'?1:0}},vertexShader:'varying vec2 vUv;varying vec2 surfaceXY;void main(){vUv=uv;surfaceXY=position.xy;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',fragmentShader:`uniform sampler2D map;uniform vec4 rect;uniform float opacity;uniform float open;uniform float kind;uniform float separate;uniform float trim;varying vec2 vUv;varying vec2 surfaceXY;
-   void main(){if(trim>.5&&vUv.x>.92&&vUv.y<.50)discard;if(length(surfaceXY)>.99||open<.015||vUv.y>open)discard;vec2 tc=rect.xy+vUv*rect.zw;vec4 c=texture2D(map,tc);vec2 edge=vec2(1./${page.width}.,1./${page.height}.);float a=min(c.a,min(texture2D(map,tc+edge).a,texture2D(map,tc-edge).a));if(a<.94)discard;
+   const material=new T.ShaderMaterial({transparent:true,depthWrite:false,side:T.DoubleSide,uniforms:{map:{value:textures[part.page??pose.page]},rect:{value:new T.Vector4(r[0]/page.width,1-(r[1]+r[3])/page.height,r[2]/page.width,r[3]/page.height)},gazeOffset:{value:new T.Vector2()},opacity:{value:1},open:{value:1},kind:{value:part.channel==='brow'?1:part.channel==='eye'?2:0},separate:{value:0},trim:{value:name==='unhinged'&&part.id==='study-brow-0'?1:0}},vertexShader:'varying vec2 vUv;varying vec2 surfaceXY;void main(){vUv=uv;surfaceXY=position.xy;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',fragmentShader:`uniform sampler2D map;uniform vec4 rect;uniform vec2 gazeOffset;uniform float opacity;uniform float open;uniform float kind;uniform float separate;uniform float trim;varying vec2 vUv;varying vec2 surfaceXY;
+   void main(){if(trim>.5&&vUv.x>.92&&vUv.y<.50)discard;if(length(surfaceXY)>.99||open<.015||vUv.y>open)discard;vec2 eyeUv=vUv-gazeOffset*(1.-smoothstep(.20,.46,distance(vUv,vec2(.5))));vec2 tc=rect.xy+eyeUv*rect.zw;vec4 c=texture2D(map,tc);vec2 edge=vec2(1./${page.width}.,1./${page.height}.);float a=min(c.a,min(texture2D(map,tc+edge).a,texture2D(map,tc-edge).a));if(a<.94)discard;
    if(separate>.5&&kind>.5&&kind<1.5&&c.r<c.g*1.23)discard;
    if(separate>.5&&kind>1.5&&vUv.y>.72&&c.r>c.g*1.5&&c.g<.3)discard;
    gl_FragColor=vec4(c.rgb,opacity);
@@ -31,6 +31,10 @@ export class AnimatedAtlasRig extends T.Group {
  }
  // Ghosts are the same independent features, without a body or backing surface.
  for(let i=0;i<atlas.combo.trailCopies;i++){const trail=this.poses.unhinged.clone(true);trail.traverse(o=>{if(o instanceof T.Mesh){o.material=o.material.clone();if(o.material instanceof T.ShaderMaterial)o.material.uniforms.opacity.value=.22/(i+1);else o.material.opacity=.22/(i+1);}});this.trails.push(trail);this.add(trail);trail.visible=false;}
+ // Provisional stars are geometry, independent of the face atlas and its silhouette.
+ const starShape=new T.Shape();for(let i=0;i<10;i++){const a=Math.PI/2+i*Math.PI/5,r=i%2?.045:.10;const x=Math.cos(a)*r,y=Math.sin(a)*r;if(i===0)starShape.moveTo(x,y);else starShape.lineTo(x,y);}starShape.closePath();
+ const starGeometry=new T.ShapeGeometry(starShape);
+ for(let i=0;i<3;i++){const star=new T.Mesh(starGeometry,new T.MeshBasicMaterial({color:0xffd54a,side:T.DoubleSide,transparent:true,depthWrite:false}));star.renderOrder=35;this.dazedStars.add(star);}this.dazedStars.name='dazed-stars';this.add(this.dazedStars);
  this.update(0);
  }
  play(name:string){if(!this.atlas.poses[name])throw Error('Unknown expression');this.target=name;this.clock.play(this.atlas.clips[name]);}
@@ -48,7 +52,8 @@ export class AnimatedAtlasRig extends T.Group {
   group.visible=opacity>.005;if(!group.visible)continue;group.rotation.set(0,0,0);
   const blink=this.atlas.poses[key].blink&&this.combo.phase!=='ORBIT'?this.blink:0;
   for(const part of this.parts[key]){const source=part.userData.part as AtlasPart,kind=source.channel;
-   if(source.variants){const direction=this.gaze==='auto'?(['center','left','center','right'] as const)[Math.floor(this.time/1.3)%4]:this.gaze;const r=source.variants[direction],page=this.atlas.pages[source.page!];part.material.uniforms.rect.value.set(r[0]/page.width,1-(r[1]+r[3])/page.height,r[2]/page.width,r[3]/page.height);}
+   if(source.variants){const direction=key==='shocked'||key==='dazed'?'center':this.gaze==='auto'?(['center','left','center','right'] as const)[Math.floor(this.time/1.3)%4]:this.gaze;const r=source.variants[direction],page=this.atlas.pages[source.page!];part.material.uniforms.rect.value.set(r[0]/page.width,1-(r[1]+r[3])/page.height,r[2]/page.width,r[3]/page.height);}
+   part.material.uniforms.gazeOffset.value.set(key==='dazed'&&kind==='eye'?Math.cos(this.time*5)*.035:0,key==='dazed'&&kind==='eye'?Math.sin(this.time*5)*.025:0);
    part.material.uniforms.opacity.value=opacity;part.material.uniforms.open.value=kind==='eye'?1-blink:1;part.visible=!(kind==='eye'&&blink>=.985);
    const micro=this.clock.phase==='HOLD'&&key===this.target?Math.sin(this.time*3.1)*.006:0;
    const clip=this.atlas.clips[key] as ClipTiming&{tracks?:Record<string,number[]>};
@@ -61,6 +66,9 @@ export class AnimatedAtlasRig extends T.Group {
   this.lids[key].visible=blink>.82;this.lids[key].traverse(o=>{if(o instanceof T.Mesh)(o.material as T.MeshBasicMaterial).opacity=opacity;});
   if(this.combo.phase==='ORBIT'){group.rotation.y=this.combo.angle;group.rotation.z=Math.sin(this.combo.angle)*.12;}
  }
+ const dazedOpacity=this.poses.dazed.visible?(this.parts.dazed[0].material.uniforms.opacity.value as number):0;
+ this.dazedStars.visible=dazedOpacity>.005;
+ this.dazedStars.children.forEach((star,i)=>{const a=this.time*2+i*Math.PI*2/3;star.position.set(Math.cos(a)*.8,1.08+Math.sin(a)*.12,.45+Math.sin(a)*.35);star.rotation.z=-this.time*1.5+i;(star as T.Mesh<T.BufferGeometry,T.MeshBasicMaterial>).material.opacity=dazedOpacity;});
  this.trails.forEach((g,i)=>{g.visible=this.combo.phase==='ORBIT';g.rotation.y=this.combo.angle-(i+1)*.32;g.rotation.z=Math.sin(this.combo.angle-(i+1)*.32)*.12;});
  }
 }

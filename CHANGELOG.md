@@ -72,3 +72,8 @@
 - New small-iris eyes for scared/shocked/dazed, optional left/right gaze, and reduced viewer-left unhinged iris/pupil.
 - One-shot keyframe clips, independent blink, 3-turn face orbit with trails, dizzy body-stop/rocking preview and recovery.
 - Added `?face-animations`; gameplay event/physics integration remains separate. KO mouth is marked temporary, awaiting user's requested broken-line redraw.
+
+### 25.10.2026 — сознательное оглушение, предварительный просмотр
+- Маленькая орбита взгляда внутри глаз, три пробные звёздочки с возвратом к базовому выражению.
+- Удивление смотрит прямо при любом выборе направления взгляда.
+- 30 Node-тестов и production build проходят; положение звёздочек предварительное.

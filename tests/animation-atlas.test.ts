@@ -31,3 +31,12 @@ test('small-pupil eye variants exist for all three conscious reactions, but neve
  assert.equal(atlas.poses.knockout.blink,false);
  assert.ok(atlas.poses.knockout.parts.every(p=>!p.variants));
 });
+
+test('conscious dazed gaze orbits inside fixed eye patches; stars disappear on recovery',()=>{
+ const rig=new AnimatedAtlasRig(atlas,[new Texture(),new Texture(),new Texture()]);rig.play('dazed');rig.update(.3);
+ const eye=rig.poses.dazed.children.find(o=>o.name==='study-eye-0') as any;
+ const layout={...eye.userData.part.layout},first=eye.material.uniforms.gazeOffset.value.clone();
+ assert.equal(rig.dazedStars.visible,true);assert.equal(rig.dazedStars.children.length,3);
+ rig.update(.2);assert.ok(first.distanceTo(eye.material.uniforms.gazeOffset.value)>.01);assert.deepEqual(eye.userData.part.layout,layout);
+ rig.update(10);assert.equal(rig.dazedStars.visible,false);rig.play('knockout');rig.update(.3);assert.equal(rig.dazedStars.visible,false);
+});
