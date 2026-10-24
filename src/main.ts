@@ -12,6 +12,7 @@ import { PlayerVisual } from "./game/PlayerVisual";
 import { PhysicsPlayer } from "./game/PhysicsPlayer";
 import { Effects } from "./game/Effects";
 import { ImpactAudio } from "./game/ImpactAudio";
+import { OrbitInput } from "./game/OrbitInput";
 import { RingCollectibles } from "./game/RingCollectibles";
 async function start() {
   await R.init();
@@ -112,9 +113,17 @@ async function start() {
   });
   const cameraButton = document.querySelector<HTMLButtonElement>("#camera")!;
   function setCamera(n: number) {
-    rig.mode = n;
+    rig.setMode(n);
     cameraButton.textContent = "Камера: " + rig.names[n];
   }
+  new OrbitInput(
+    renderer.domElement,
+    rig,
+    () => visual.position,
+    () => {
+      cameraButton.textContent = "Камера: свободная · 1–4 вернуть";
+    },
+  );
   cameraButton.onclick = () => setCamera((rig.mode + 1) % 4);
   addEventListener("keydown", (e) => {
     if (["Digit1", "Digit2", "Digit3", "Digit4"].includes(e.code))
@@ -235,6 +244,9 @@ async function start() {
       viewForward: direction.toArray(),
       skin,
       camera: rig.mode,
+      freeOrbit: rig.freeOrbit,
+      orbitYaw: rig.orbitYaw,
+      orbitPitch: rig.orbitPitch,
       fps,
       stun: face.stun,
       phase: face.phase,
