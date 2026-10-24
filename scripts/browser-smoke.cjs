@@ -24,7 +24,7 @@ const { chromium } = require(process.env.PLAYWRIGHT_MODULE || "playwright");
   page.on("console", (m) => {
     if (m.type() === "error") errors.push(m.text());
   });
-  await page.goto("http://127.0.0.1:4173");
+  await page.goto(process.env.GAME_TEST_URL || "http://127.0.0.1:4173");
   await page.waitForFunction(() => window.__SHAROBESY__, { timeout: 30000 });
   await page.waitForTimeout(2600);
   const initial = await page.evaluate(() => window.__SHAROBESY__);

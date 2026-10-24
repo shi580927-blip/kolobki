@@ -22,16 +22,48 @@ test("closed blink hides all visible eyeballs and stun uses crosses", () => {
     face = new FaceRig(state, "#e8c36b");
   state.blink = 1;
   face.update(0, 0);
-  for (const anchor of face.children.filter((x) => x instanceof Group)) {
-    assert.equal(anchor.children[0].visible, false);
-    assert.equal(anchor.children[1].visible, true);
-  }
+  assert.ok(face.eyes.every((eye) => !eye.visible));
+  assert.ok(face.lids.every((lid) => lid.visible));
   state.knockOut(1);
   face.update(0, 0);
-  for (const anchor of face.children.filter((x) => x instanceof Group)) {
-    assert.equal(anchor.children[0].visible, false);
-    assert.equal(anchor.children[1].visible, false);
-    assert.equal(anchor.children[2].visible, true);
-  }
+  assert.ok(face.eyes.every((eye) => !eye.visible));
+  assert.ok(face.lids.every((lid) => !lid.visible));
+  assert.ok(face.crosses.every((cross) => cross.visible));
   assert.ok(face.children.some((x) => x instanceof Mesh));
+});
+
+import { EXPRESSIONS, FACE_POSES } from "../src/face/FaceRig";
+test("all 12 expressions have distinct usable part combinations inside hemisphere", () => {
+  const state = new FaceState("sly", () => 0.5),
+    face = new FaceRig(state, "#389fae");
+  assert.equal(EXPRESSIONS.length, 12);
+  for (const expression of EXPRESSIONS) {
+    face.reviewExpression = expression;
+    face.update(0.016, 0);
+    assert.equal(face.expression(), expression);
+    assert.ok(FACE_POSES[expression]);
+    for (const child of face.children) {
+      if (child instanceof Mesh) {
+        const p = child.geometry.attributes.position;
+        for (let i = 0; i < p.count; i++) {
+          assert.ok(Math.hypot(p.getX(i), p.getY(i)) < 0.95);
+          assert.ok(p.getZ(i) > 0);
+        }
+      }
+    }
+  }
+});
+test("reaction returns to individual base expression and closed eyes never expose pupil", () => {
+  const state = new FaceState("grumpy", () => 0.5),
+    face = new FaceRig(state, "#389fae");
+  state.react("joy");
+  state.update(0.2);
+  face.update(0.2, 0);
+  assert.equal(face.expression(), "delighted");
+  state.update(1.1);
+  face.update(0.1, 0);
+  assert.equal(face.expression(), "irritated");
+  state.blink = 1;
+  face.update(0, 0);
+  assert.ok(face.eyes.every((e) => !e.visible));
 });

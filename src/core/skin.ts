@@ -16,21 +16,21 @@ export function randomFrom(seed: number) {
 }
 export function skinFrom(seed: number): Skin {
   const r = randomFrom(seed);
-  const colors = [
-    "#dda7bd",
-    "#9cba9c",
-    "#e8c36b",
-    "#a6a5cf",
-    "#76b8ba",
-    "#e6a879",
+  const palettes = [
+    ["#d76aab", "#8e377f", "#f2b4d6"],
+    ["#48b49b", "#21796b", "#98d9ba"],
+    ["#6b9fd6", "#355f96", "#b0d2ed"],
+    ["#9874c4", "#593783", "#d6b3e5"],
+    ["#389fae", "#1d647a", "#99d2d5"],
+    ["#b665a2", "#693a77", "#e9b1d4"],
   ];
-  const baseIndex = Math.floor(r() * colors.length);
-  const accentIndex =
-    (baseIndex + 1 + Math.floor(r() * (colors.length - 1))) % colors.length;
+  const baseIndex = Math.floor(r() * palettes.length);
+  const variant = r();
+  const palette = palettes[baseIndex];
   return {
     seed,
-    color: colors[baseIndex],
-    accent: colors[accentIndex],
+    color: palette[0],
+    accent: palette[variant < 0.65 ? 1 : 2],
     pattern: (["dots", "stripes", "hearts"] as const)[Math.floor(r() * 3)],
     mood: (["sly", "grumpy", "worried"] as const)[Math.floor(r() * 3)],
   };

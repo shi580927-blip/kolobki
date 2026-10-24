@@ -17,7 +17,7 @@ const { chromium } = require("playwright");
   });
   const errors = [];
   page.on("pageerror", (e) => errors.push(e.message));
-  await page.goto("http://127.0.0.1:4173");
+  await page.goto(process.env.GAME_TEST_URL || "http://127.0.0.1:4173");
   await page.waitForFunction(() => window.__SHAROBESY__);
   const cdp = await page.context().newCDPSession(page);
   await cdp.send("Input.dispatchTouchEvent", {

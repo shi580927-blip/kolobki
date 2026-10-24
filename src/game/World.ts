@@ -11,9 +11,10 @@ export function createWorld(scene: THREE.Scene, world: RAPIER.World) {
   const color = new THREE.Color();
   for (let i = 0; i < vertices.length; i += 3) {
     color.setHSL(
-      0.235 + vertices[i + 1] * 0.001,
-      0.35,
-      0.44 + vertices[i + 1] * 0.008,
+      0.29 + vertices[i + 1] * 0.001,
+      0.3,
+      0.34 + vertices[i + 1] * 0.004,
+      THREE.SRGBColorSpace,
     );
     colors.set([color.r, color.g, color.b], i);
   }

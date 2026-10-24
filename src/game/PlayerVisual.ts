@@ -2,11 +2,12 @@ import * as T from "three";
 import type { Skin } from "../core/skin";
 import { randomFrom } from "../core/skin";
 import { FaceRig } from "../face/FaceRig";
+import type { FaceAtlas } from "../face/FaceAtlas";
 import { FaceState } from "../face/FaceState";
 export class PlayerVisual extends T.Group {
   readonly rollingBody: T.Mesh;
   readonly face: FaceRig;
-  constructor(skin: Skin, state: FaceState) {
+  constructor(skin: Skin, state: FaceState, atlas?: FaceAtlas) {
     super();
     const canvas = document.createElement("canvas");
     canvas.width = canvas.height = 512;
@@ -38,7 +39,7 @@ export class PlayerVisual extends T.Group {
     );
     this.rollingBody.castShadow = true;
     this.add(this.rollingBody);
-    this.face = new FaceRig(state, skin.color);
+    this.face = new FaceRig(state, skin.color, atlas);
     this.add(this.face);
   }
 }
