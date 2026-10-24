@@ -71,3 +71,6 @@ FaceRig использует отдельные RGBA-глаза, пару бро
 
 ### dev.7 — face construction and patterns
 Approved concept direction implemented as alpha geometry: larger sculpted brows, compact lower face, whole-face expressive tilt, fine small motifs without stripes. Skin seeds retained. Read-only gallery shows all twelve poses in normal and shadow lighting. This is not a final commercial art acceptance. Real phone performance remains unverified.
+
+### Three-expression art study
+User rejected dev.7 face art. Isolated `?face-study` now uses new independent RGBA sprite parts based on the approved concept, not procedural brow substitutes. Main gameplay visuals unchanged. Front/¾, shadow, ~80px samples, rolling-body separation, blink and simulated reaction are reviewable. No claim of final visual acceptance or physical collision integration.

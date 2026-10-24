@@ -261,7 +261,9 @@ async function start() {
     }),
   });
 }
-const launch = new URLSearchParams(location.search).has("art-review")
+const launch = new URLSearchParams(location.search).has("face-study")
+  ? import("./faceStudy").then((m) => m.startFaceStudy())
+  : new URLSearchParams(location.search).has("art-review")
   ? import("./artReview").then((m) => m.startArtReview())
   : start();
 launch.catch((error) => {

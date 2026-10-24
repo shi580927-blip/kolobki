@@ -44,3 +44,8 @@
 - Compact lower face assembly tilts up/down with expression, independently of body rolling.
 - Fine seeded dots, hearts and petals replace broad stripes without rerolling identity.
 - Environment art and final visual approval remain pending; controls/physics unchanged.
+
+## Isolated three-expression sprite study
+- Added read-only `?face-study` with one teal character, three expressions and new independent RGBA parts.
+- Added front/¾, light/shadow, rolling, blink, reaction controls and ~80px samples.
+- Main gameplay art remains unchanged pending visual review; simulated reaction is not a collision test.
