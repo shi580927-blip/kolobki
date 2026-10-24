@@ -49,6 +49,31 @@ export class Effects {
     });
     while (this.items.length > 80) this.remove(0);
   }
+  sparkle(position: T.Vector3) {
+    for (let i = 0; i < 12; i++) {
+      const mesh = new T.Mesh(
+        new T.OctahedronGeometry(0.12, 0),
+        new T.MeshBasicMaterial({
+          color: i % 2 ? 0xffd65c : 0xffffff,
+          transparent: true,
+        }),
+      );
+      mesh.position.copy(position);
+      this.scene.add(mesh);
+      const angle = (i / 12) * Math.PI * 2;
+      this.items.push({
+        mesh,
+        velocity: new T.Vector3(
+          Math.cos(angle) * 3,
+          2 + Math.sin(angle) * 1.2,
+          Math.sin(angle) * 3,
+        ),
+        life: 0.45,
+        total: 0.45,
+      });
+    }
+    while (this.items.length > 80) this.remove(0);
+  }
   private remove(i: number) {
     const item = this.items[i];
     this.scene.remove(item.mesh);

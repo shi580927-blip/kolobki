@@ -24,4 +24,23 @@ export class ImpactAudio {
     oscillator.start(t);
     oscillator.stop(t + 0.21);
   }
+  collect() {
+    const c = this.context;
+    if (!c || c.state !== "running") return;
+    for (const [offset, frequency] of [
+      [0, 740],
+      [0.075, 1110],
+    ]) {
+      const t = c.currentTime + offset,
+        gain = c.createGain(),
+        tone = c.createOscillator();
+      tone.type = "sine";
+      tone.frequency.value = frequency;
+      gain.gain.setValueAtTime(0.075, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+      tone.connect(gain).connect(c.destination);
+      tone.start(t);
+      tone.stop(t + 0.16);
+    }
+  }
 }

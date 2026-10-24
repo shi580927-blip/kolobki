@@ -12,6 +12,7 @@ import { PlayerVisual } from "./game/PlayerVisual";
 import { PhysicsPlayer } from "./game/PhysicsPlayer";
 import { Effects } from "./game/Effects";
 import { ImpactAudio } from "./game/ImpactAudio";
+import { RingCollectibles } from "./game/RingCollectibles";
 async function start() {
   await R.init();
   const stage = document.querySelector<HTMLElement>("#stage")!,
@@ -48,6 +49,7 @@ async function start() {
   createWorld(scene, world);
   const bus = new EventBus();
   const audio = new ImpactAudio();
+  const rings = new RingCollectibles(scene, bus);
   const player = new PhysicsPlayer(world, bus);
   let storage: Storage;
   try {
@@ -95,6 +97,19 @@ async function start() {
     visual.face.impact();
     portraitVisual.face.impact();
   });
+  const ringCount = document.querySelector<HTMLElement>("#ring-count")!;
+  const updateRingCount = () => {
+    ringCount.textContent =
+      `Кольца: ${rings.count} / ${rings.total}` +
+      (rings.count === rings.total ? " · Все собраны!" : "");
+  };
+  updateRingCount();
+  bus.on("ring_collected", ({ position }) => {
+    updateRingCount();
+    effects.sparkle(position);
+    audio.collect();
+    face.react("joy", 0.6);
+  });
   const cameraButton = document.querySelector<HTMLButtonElement>("#camera")!;
   function setCamera(n: number) {
     rig.mode = n;
@@ -108,8 +123,11 @@ async function start() {
       document.querySelector<HTMLElement>("#diagnostics")!.hidden =
         !document.querySelector<HTMLElement>("#diagnostics")!.hidden;
   });
-  document.querySelector<HTMLButtonElement>("#reset")!.onclick = () =>
+  document.querySelector<HTMLButtonElement>("#reset")!.onclick = () => {
     player.reset();
+    rings.reset();
+    updateRingCount();
+  };
   const resize = () => {
     const fit = fit16by9(innerWidth, innerHeight);
     stage.style.width = fit.width + "px";
@@ -166,6 +184,7 @@ async function start() {
       player.step(dt, input, direction);
       world.step(events);
       player.sync();
+      rings.checkSegment(player.previous, player.current);
       events.drainContactForceEvents((e) => {
         if (
           e.collider1() === player.collider.handle ||
@@ -212,11 +231,14 @@ async function start() {
       rotation: visual.rollingBody.quaternion.toArray(),
       faceRotation: visual.face.rotation.toArray(),
       heading: player.heading,
+      velocity: { ...player.body.linvel() },
+      viewForward: direction.toArray(),
       skin,
       camera: rig.mode,
       fps,
       stun: face.stun,
       phase: face.phase,
+      rings: { count: rings.count, total: rings.total },
       input: { x: input.x, z: input.z },
     }),
   });

@@ -62,18 +62,4 @@ export function createWorld(scene: THREE.Scene, world: RAPIER.World) {
       ),
     );
   }
-  const markerMat = new THREE.MeshStandardMaterial({
-    color: 0xf3cf74,
-    roughness: 0.7,
-  });
-  for (let i = 0; i < 12; i++) {
-    const x = Math.sin(i * 0.9) * 28,
-      z = -8 - i * 4;
-    const m = new THREE.Mesh(
-      new THREE.TorusGeometry(1, 0.12, 6, 24),
-      markerMat,
-    );
-    m.position.set(x, heightAt(x, z) + 1.6, z);
-    scene.add(m);
-  }
 }

@@ -1,5 +1,6 @@
 import type { Vector3 } from "three";
 export interface GameEvents {
+  ring_collected: { position: Vector3; count: number; total: number };
   player_jump: {};
   player_dash: {};
   impact_major: { position: Vector3; strength: number };
