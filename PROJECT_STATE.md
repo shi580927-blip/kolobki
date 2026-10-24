@@ -80,3 +80,10 @@ User rejected dev.7 face art. Isolated `?face-study` now uses new independent RG
 
 ### 25.10.2026 — user layout received
 All three user layouts retained exactly in src/face/approved-layout.json from cumulative final JSON. Applied to isolated sample/editor defaults; brow layer priority fixed in all rigs. Existing editor local saves are preserved. Main gameplay still uses legacy expressions; integration of new sprite poses into gameplay reactions is outstanding.
+
+
+## Зафиксировано пользователем — 25.10.2026
+
+Пользователь подтвердил текущую посадку командой «фиксируй». Согласованный эталон трёх выражений — `src/face/approved-layout.json`, точная копия `sharobesy-face-layout (4).json`: довольное сохранено из первого варианта, хитрое и хмурое — последние уточнённые. Самовольно не менять размеры и координаты. Брови всегда поверх глаз и век; отдельной лицевой поверхности нет. Следующие эмоции строить с учётом этих пропорций.
+
+Зафиксирована посадка данного образца, а не готовность полного набора анимаций или коммерческой игры. Перенос трёх спрайтов в основной игровой контроллер и проверка реальных столкновений остаются следующей работой. `main` по-прежнему не изменять; SDK, реклама и платежи запрещены.
