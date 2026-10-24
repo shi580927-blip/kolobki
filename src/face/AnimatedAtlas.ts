@@ -52,7 +52,7 @@ export class AnimatedAtlasRig extends T.Group {
   group.visible=opacity>.005;if(!group.visible)continue;group.rotation.set(0,0,0);
   const blink=this.atlas.poses[key].blink&&this.combo.phase!=='ORBIT'?this.blink:0;
   for(const part of this.parts[key]){const source=part.userData.part as AtlasPart,kind=source.channel;
-   if(source.variants){const direction=key==='shocked'||key==='dazed'?'center':this.gaze==='auto'?(['center','left','center','right'] as const)[Math.floor(this.time/1.3)%4]:this.gaze;const r=source.variants[direction],page=this.atlas.pages[source.page!];part.material.uniforms.rect.value.set(r[0]/page.width,1-(r[1]+r[3])/page.height,r[2]/page.width,r[3]/page.height);}
+   if(source.variants){const direction=key==='shocked'||key==='scared'||key==='dazed'?'center':this.gaze==='auto'?(['center','left','center','right'] as const)[Math.floor(this.time/1.3)%4]:this.gaze;const r=source.variants[direction],page=this.atlas.pages[source.page!];part.material.uniforms.rect.value.set(r[0]/page.width,1-(r[1]+r[3])/page.height,r[2]/page.width,r[3]/page.height);}
    part.material.uniforms.gazeOffset.value.set(key==='dazed'&&kind==='eye'?Math.cos(this.time*5)*.035:0,key==='dazed'&&kind==='eye'?Math.sin(this.time*5)*.025:0);
    part.material.uniforms.opacity.value=opacity;part.material.uniforms.open.value=kind==='eye'?1-blink:1;part.visible=!(kind==='eye'&&blink>=.985);
    const micro=this.clock.phase==='HOLD'&&key===this.target?Math.sin(this.time*3.1)*.006:0;

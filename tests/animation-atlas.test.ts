@@ -40,3 +40,9 @@ test('conscious dazed gaze orbits inside fixed eye patches; stars disappear on r
  rig.update(.2);assert.ok(first.distanceTo(eye.material.uniforms.gazeOffset.value)>.01);assert.deepEqual(eye.userData.part.layout,layout);
  rig.update(10);assert.equal(rig.dazedStars.visible,false);rig.play('knockout');rig.update(.3);assert.equal(rig.dazedStars.visible,false);
 });
+
+test('fear reuses surprised eyes exactly; conscious dazed keeps both eyes open',()=>{
+ const eyes=(name:string)=>atlas.poses[name].parts.filter(p=>p.channel==='eye');
+ assert.deepEqual(eyes('scared'),eyes('shocked'));
+ assert.deepEqual(eyes('dazed'),eyes('shocked'));
+});
