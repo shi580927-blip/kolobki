@@ -30,5 +30,16 @@ export function applyLayout(face:StudyFaceRig,layout:FaceLayout){
    p.setXYZ(i,x,y,Math.sqrt(Math.max(.001,1-x*x-y*y))+.025);
   }
   p.needsUpdate=true;mesh.geometry.computeBoundingSphere();mesh.userData.layout={...l};
+  if(key.startsWith('study-eye-')) {
+   const lid=face.lids[Number(key.slice(-1))];
+   if(lid) {
+    const points=Array.from({length:21},(_,j)=>{
+     const u=(j/20-.5)*l.width*.85,v=-l.height*.10-.035*Math.sin(j/20*Math.PI),
+       x=l.x+u*c-v*s,y=l.y+u*s+v*c;
+     return new T.Vector3(x,y,Math.sqrt(Math.max(.001,1-x*x-y*y))+.036);
+    });
+    lid.geometry.dispose();lid.geometry=new T.TubeGeometry(new T.CatmullRomCurve3(points),20,.014,6,false);
+   }
+  }
  }
 }

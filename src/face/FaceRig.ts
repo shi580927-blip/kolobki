@@ -428,10 +428,11 @@ export class FaceRig extends T.Group {
       geometry.computeVertexNormals();
       const material = new T.MeshStandardMaterial({
         color: 0x42201b, roughness: 0.48, emissive: 0x32150f,
-        emissiveIntensity: 0.45, side: T.DoubleSide,
+        emissiveIntensity: 0.45, side: T.DoubleSide, transparent: true, depthWrite: false,
       });
       const brow = new T.Mesh(geometry, material);
       brow.name = "expressive-brow-" + side;
+      brow.renderOrder = 30;
       this.sculptedBrows.add(brow);
     }
   }

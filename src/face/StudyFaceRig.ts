@@ -1,4 +1,6 @@
 import * as T from "three";
+import approved from "./approved-layout.json";
+import {applyLayout, type FaceLayout} from "./FaceLayout";
 export type StudyExpression = "sly" | "happy" | "grumpy";
 const crops = {
   sly: { brows: [[30,168,284,184],[320,199,200,160]], eyes: [[17,406,265,220],[306,437,208,214]], mouth: [103,710,360,162] },
@@ -20,16 +22,19 @@ export class StudyFaceRig extends T.Group {
       const eye=this.part(texture,pose.eyes[i],x,eyeY,0.66,expression==="happy" ? 0.67 : 0.58);
       eye.name="study-eye-"+i; this.eyeParts.push(eye);this.add(eye);
       const brow=this.part(texture,pose.brows[i],x,expression==="happy" ? 0.53 : 0.40,0.72,0.42);
-      brow.name="study-brow-"+i;this.add(brow);
+      brow.name="study-brow-"+i;
+      // Transparent features draw in semantic order; depth testing still hides the far hemisphere.
+      eye.renderOrder=10;brow.renderOrder=30;this.add(brow);
       const points=Array.from({length:21},(_,j)=>{
         const dx=(j/20-0.5)*0.56;
         return this.surface(x+dx,eyeY-0.06-0.035*Math.sin(j/20*Math.PI),0.036);
       });
       const lid=new T.Mesh(new T.TubeGeometry(new T.CatmullRomCurve3(points),20,0.014,6,false),new T.MeshBasicMaterial({color:0x164846}));
-      lid.visible=false;this.lids.push(lid);this.add(lid);
+      lid.visible=false;lid.renderOrder=20;this.lids.push(lid);this.add(lid);
     }
     const mouth=this.part(texture,pose.mouth,0,expression==="happy" ? -0.46 : -0.52,expression==="grumpy" ? 0.67 : 0.89,0.40);
-    mouth.name="study-mouth";this.add(mouth);
+    mouth.name="study-mouth";mouth.renderOrder=5;this.add(mouth);
+    applyLayout(this, approved.faces[expression] as FaceLayout);
   }
   private surface(x:number,y:number,offset=0.025) {
     return new T.Vector3(x,y,Math.sqrt(Math.max(0.001,1-x*x-y*y))+offset);
@@ -57,7 +62,7 @@ export class StudyFaceRig extends T.Group {
   impact(){this.impactTime=0.8;}
   update(dt:number,blink:number) {
     this.elapsed+=dt;this.impactTime=Math.max(0,this.impactTime-dt);
-    this.rotation.set((this.expression==="happy" ? -0.07 : this.expression==="grumpy" ? 0.10 : 0),0,0);
+    this.rotation.set(0,0,0);
     if(this.impactTime>0){this.rotation.z=Math.sin(this.elapsed*31)*this.impactTime*.3;this.rotation.y=Math.sin(this.elapsed*23)*this.impactTime*.5;}
     this.eyeParts.forEach((e,i)=>{e.visible=blink<.985;e.material.uniforms.open.value=1-blink;this.lids[i].visible=blink>.82;});
   }

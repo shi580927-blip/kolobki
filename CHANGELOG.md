@@ -54,3 +54,9 @@
 - Added explicitly requested authoring tool at `?face-editor`: drag individual/paired features, width/height, overall scale, undo, front/¾ and lighting.
 - Added local save, validated JSON import/export and PNG download; gameplay and saved skin remain separate.
 - Browser verification covers drag/resize, save/reload and JSON/PNG roundtrip; calibration is static, animation integration follows accepted layout.
+
+## 2026-10-25 — user-authored face calibration
+- Preserved exact cumulative JSON supplied by user: happy, sly, grumpy.
+- Sample/editor defaults now use user calibration without an additional pitch offset.
+- Brows draw over eyes/lids, while sphere depth occlusion remains enabled, in sample/editor and legacy gameplay rig.
+- Closed lid curves follow edited eye coordinates.

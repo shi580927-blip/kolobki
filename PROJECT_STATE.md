@@ -77,3 +77,6 @@ User rejected dev.7 face art. Isolated `?face-study` now uses new independent RG
 
 ### User face calibration tool
 `?face-editor` lets the user author exact three-expression proportions and send a JSON plus PNG. Separate local persistence, no gameplay skin changes. Transfer is manual after review; moving-eye eyelids must be recalibrated when integrating animations. Local tests include real drag, resize, save/reload, export/import and PNG download. Phone usability unverified.
+
+### 25.10.2026 — user layout received
+All three user layouts retained exactly in src/face/approved-layout.json from cumulative final JSON. Applied to isolated sample/editor defaults; brow layer priority fixed in all rigs. Existing editor local saves are preserved. Main gameplay still uses legacy expressions; integration of new sprite poses into gameplay reactions is outstanding.
