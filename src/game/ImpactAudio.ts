@@ -1,0 +1,27 @@
+/** Original synthesized impact; no external audio assets or network. */
+export class ImpactAudio {
+  private context: AudioContext | null = null;
+  constructor() {
+    const unlock = () => {
+      this.context ??= new AudioContext();
+      void this.context.resume();
+    };
+    addEventListener("pointerdown", unlock, { once: true });
+    addEventListener("keydown", unlock, { once: true });
+  }
+  play() {
+    const c = this.context;
+    if (!c || c.state !== "running") return;
+    const t = c.currentTime,
+      gain = c.createGain(),
+      oscillator = c.createOscillator();
+    oscillator.type = "triangle";
+    oscillator.frequency.setValueAtTime(150, t);
+    oscillator.frequency.exponentialRampToValueAtTime(45, t + 0.15);
+    gain.gain.setValueAtTime(0.18, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
+    oscillator.connect(gain).connect(c.destination);
+    oscillator.start(t);
+    oscillator.stop(t + 0.21);
+  }
+}
