@@ -43,14 +43,16 @@ export class StudyFaceRig extends T.Group {
     const material=new T.ShaderMaterial({
       transparent:true,depthWrite:false,side:T.DoubleSide,
       uniforms:{map:{value:texture},rect:{value:new T.Vector4(r[0]/1536,1-(r[1]+r[3])/1024,r[2]/1536,r[3]/1024)},open:{value:1}},
-      vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
-      fragmentShader:`uniform sampler2D map;uniform vec4 rect;uniform float open;varying vec2 vUv;
-      void main(){if(open<.015||vUv.y>open)discard;vec4 c=texture2D(map,rect.xy+vUv*rect.zw);
+      vertexShader:'varying vec2 vUv;varying vec2 faceXY;void main(){vUv=uv;faceXY=position.xy;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
+      fragmentShader:`uniform sampler2D map;uniform vec4 rect;uniform float open;varying vec2 vUv;varying vec2 faceXY;
+      void main(){if(length(faceXY)>.99||open<.015||vUv.y>open)discard;vec4 c=texture2D(map,rect.xy+vUv*rect.zw);
       if(c.a<.91)discard;gl_FragColor=vec4(c.rgb,1.);
       #include <colorspace_fragment>
       }`,
     });
-    return new T.Mesh(g,material);
+    const mesh = new T.Mesh(g,material);
+    mesh.userData.layout = {x,y,width:w,height:h,angle:0};
+    return mesh;
   }
   impact(){this.impactTime=0.8;}
   update(dt:number,blink:number) {

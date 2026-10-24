@@ -49,3 +49,8 @@
 - Added read-only `?face-study` with one teal character, three expressions and new independent RGBA parts.
 - Added front/¾, light/shadow, rolling, blink, reaction controls and ~80px samples.
 - Main gameplay art remains unchanged pending visual review; simulated reaction is not a collision test.
+
+## Face layout editor
+- Added explicitly requested authoring tool at `?face-editor`: drag individual/paired features, width/height, overall scale, undo, front/¾ and lighting.
+- Added local save, validated JSON import/export and PNG download; gameplay and saved skin remain separate.
+- Browser verification covers drag/resize, save/reload and JSON/PNG roundtrip; calibration is static, animation integration follows accepted layout.

@@ -74,3 +74,6 @@ Approved concept direction implemented as alpha geometry: larger sculpted brows,
 
 ### Three-expression art study
 User rejected dev.7 face art. Isolated `?face-study` now uses new independent RGBA sprite parts based on the approved concept, not procedural brow substitutes. Main gameplay visuals unchanged. Front/¾, shadow, ~80px samples, rolling-body separation, blink and simulated reaction are reviewable. No claim of final visual acceptance or physical collision integration.
+
+### User face calibration tool
+`?face-editor` lets the user author exact three-expression proportions and send a JSON plus PNG. Separate local persistence, no gameplay skin changes. Transfer is manual after review; moving-eye eyelids must be recalibrated when integrating animations. Local tests include real drag, resize, save/reload, export/import and PNG download. Phone usability unverified.

@@ -1,0 +1,21 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {Texture,Mesh} from 'three';
+import {StudyFaceRig} from '../src/face/StudyFaceRig';
+import {readLayout,applyLayout,validateLayoutFile,type FaceLayoutFile} from '../src/face/FaceLayout';
+test('editor layout roundtrip reproduces curved geometry and rejects malformed input',()=>{
+ const faces={} as FaceLayoutFile['faces'];
+ for(const exp of ['sly','happy','grumpy'] as const)faces[exp]=readLayout(new StudyFaceRig(new Texture(),exp));
+ faces.happy['study-brow-0'].width*=1.4;faces.happy['study-mouth'].y+=.18;
+ const file:FaceLayoutFile={format:'sharobesy-face-layout',version:1,atlas:'three-expressions',faces};
+ const parsed=validateLayoutFile(JSON.parse(JSON.stringify(file)));
+ const a=new StudyFaceRig(new Texture(),'happy'),b=new StudyFaceRig(new Texture(),'happy');
+ applyLayout(a,faces.happy);applyLayout(b,parsed.faces.happy);
+ assert.deepEqual(readLayout(a),readLayout(b));
+ const pa=(a.getObjectByName('study-mouth') as Mesh).geometry.attributes.position;
+ const pb=(b.getObjectByName('study-mouth') as Mesh).geometry.attributes.position;
+ assert.deepEqual(pa.array,pb.array);
+ assert.throws(()=>validateLayoutFile({format:'unknown'}));
+ const bad=structuredClone(file);bad.faces.happy['study-mouth'].height=-1;
+ assert.throws(()=>validateLayoutFile(bad));
+});
