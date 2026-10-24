@@ -5,7 +5,7 @@ import {FaceState} from "./face/FaceState";
 import {StudyFaceRig,type StudyExpression} from "./face/StudyFaceRig";
 /** Read-only acceptance sample, separate from the current game and saved skin. */
 export async function startFaceStudy(){
- const texture=await new T.TextureLoader().loadAsync(import.meta.env.BASE_URL+'assets/face/study/three-expressions.png');
+ const texture=await new T.TextureLoader().loadAsync(import.meta.env.BASE_URL+'assets/face/study/three-expressions.webp');
  texture.colorSpace=T.SRGBColorSpace;texture.generateMipmaps=false;texture.minFilter=T.LinearFilter;
  const stage=document.querySelector<HTMLElement>('#stage')!,hud=document.querySelector<HTMLElement>('#hud')!;
  hud.innerHTML='<div class="brand">ОБРАЗЕЦ ЛИЦА <small>ТРИ ВЫРАЖЕНИЯ · ХУДОЖЕСТВЕННАЯ ПРОВЕРКА</small></div>';
