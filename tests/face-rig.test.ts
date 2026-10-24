@@ -69,3 +69,19 @@ test("reaction returns to individual base expression and closed eyes never expos
   face.update(0, 0);
   assert.ok(face.eyes.every((e) => !e.visible));
 });
+
+test("mouth stays below both eyes with a visible gap for every expression and impact", () => {
+  const face = new FaceRig(new FaceState("sly", () => 0.5), "#389fae");
+  const mouth = face.getObjectByName("mouth") as Mesh;
+  for (const expression of EXPRESSIONS) {
+    face.reviewExpression = expression;
+    face.impact();
+    face.update(0.016, 0);
+    mouth.geometry.computeBoundingBox();
+    for (const eye of face.eyes) {
+      eye.geometry.computeBoundingBox();
+      assert.ok(eye.geometry.boundingBox!.min.y - mouth.geometry.boundingBox!.max.y >= 0.08,
+        `${expression}: mouth overlaps eye zone`);
+    }
+  }
+});

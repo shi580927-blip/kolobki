@@ -33,3 +33,8 @@
 Контраст рисунка корпуса смягчён; добавлены мягкое заполнение и слабая собственная подсветка материала, светлее трава/небо. Seed и параметры физики/камеры сохранены. В QA доступен `?art-review&lighting=shadow` для сравнения с фронтальным светом.
 
 17 тестов, build и браузерные сценарии света/тени/закрытых глаз/сбора/камеры проходят; локальные скриншоты проверены визуально. Производительность на реальном телефоне не измерялась.
+
+## 0.1.0-dev.6 — face proportions
+- Restored eye dominance relative to the mouth; raised eye line and lowered and limited the mouth.
+- Reserved at least 0.08 sphere radii between eye and mouth geometry in all 12 poses; regression test includes impact.
+- Original reference artwork remains the visual target, not a claim of final atlas quality.

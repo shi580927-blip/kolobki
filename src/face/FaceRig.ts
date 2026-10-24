@@ -83,7 +83,7 @@ export class FaceRig extends T.Group {
     });
     for (let i = 0; i < 2; i++) {
       const x = i === 0 ? -0.335 : 0.335;
-      const eye = this.patch(x, 0.2, 0.64, 0.72, atlas.eyes[0], i === 1);
+      const eye = this.patch(x, 0.32, 0.66, 0.72, atlas.eyes[0], i === 1);
       eye.name = "eye-" + i;
       this.eyes.push(eye);
       this.add(eye);
@@ -91,7 +91,7 @@ export class FaceRig extends T.Group {
       const points = [];
       for (let j = 0; j <= 16; j++) {
         const px = x + (j / 16 - 0.5) * 0.42,
-          py = 0.2 - 0.025 * Math.sin((j / 16) * Math.PI);
+          py = 0.32 - 0.025 * Math.sin((j / 16) * Math.PI);
         points.push(this.surface(px, py, 0.028));
       }
       const lid = new T.Mesh(
@@ -110,7 +110,7 @@ export class FaceRig extends T.Group {
       for (let k = 0; k < wp.count; k++) {
         const v = this.surface(
           x + wp.getX(k) * 0.23,
-          0.2 + wp.getY(k) * 0.28,
+          0.32 + wp.getY(k) * 0.28,
           0.026,
         );
         wp.setXYZ(k, v.x, v.y, v.z);
@@ -129,7 +129,7 @@ export class FaceRig extends T.Group {
         const pts = [];
         for (let j = 0; j <= 8; j++) {
           const d = (j / 8 - 0.5) * 0.33;
-          pts.push(this.surface(x + d, 0.2 + sign * d, 0.045));
+          pts.push(this.surface(x + d, 0.32 + sign * d, 0.045));
         }
         cross.add(
           new T.Mesh(
@@ -143,7 +143,7 @@ export class FaceRig extends T.Group {
         const a = (j / 70) * Math.PI * 5,
           r = 0.016 + (j / 70) * 0.16;
         spiralPoints.push(
-          this.surface(x + Math.cos(a) * r, 0.2 + Math.sin(a) * r, 0.045),
+          this.surface(x + Math.cos(a) * r, 0.32 + Math.sin(a) * r, 0.045),
         );
       }
       const spiral = new T.Mesh(
@@ -164,17 +164,17 @@ export class FaceRig extends T.Group {
       this.crosses.push(cross);
       this.add(cross);
     }
-    this.brow = this.patch(0, 0.56, 1.05, 0.32, atlas.brows[0]);
+    this.brow = this.patch(0, 0.64, 1.05, 0.32, atlas.brows[0]);
     this.brow.material.uniforms.feature.value = 1;
     this.brow.name = "brows";
     this.add(this.brow);
-    this.mouth = this.patch(0, -0.3, 0.98, 0.53, atlas.mouths[0]);
+    this.mouth = this.patch(0, -0.40, 0.88, 0.48, atlas.mouths[0]);
     this.mouth.name = "mouth";
     this.add(this.mouth);
     const smilePoints = [];
     for (let j = 0; j <= 28; j++) {
-      const x = (j / 28 - 0.5) * 0.74;
-      smilePoints.push(this.surface(x, -0.4 + 0.16 * (x / 0.37) ** 2, 0.032));
+      const x = (j / 28 - 0.5) * 0.60;
+      smilePoints.push(this.surface(x, -0.40 + 0.11 * (x / 0.30) ** 2, 0.032));
     }
     this.smileStroke = new T.Mesh(
       new T.TubeGeometry(
@@ -352,11 +352,11 @@ export class FaceRig extends T.Group {
       this.smileStroke.userData.frown = expression === "irritated";
       const points = [];
       for (let j = 0; j <= 28; j++) {
-        const x = (j / 28 - 0.5) * 0.74;
+        const x = (j / 28 - 0.5) * 0.60;
         const y =
           expression === "irritated"
-            ? -0.23 - 0.16 * (x / 0.37) ** 2
-            : -0.4 + 0.16 * (x / 0.37) ** 2;
+            ? -0.29 - 0.11 * (x / 0.30) ** 2
+            : -0.40 + 0.11 * (x / 0.30) ** 2;
         points.push(this.surface(x, y, 0.032));
       }
       this.smileStroke.geometry.dispose();
@@ -385,7 +385,7 @@ export class FaceRig extends T.Group {
     const dy = Math.sin(t * 1.73 + Math.sin(t * 0.81)) * 0.006;
     for (let i = 0; i < b.count; i++) {
       const y =
-        0.56 +
+        0.64 +
         (this.brow.geometry.attributes.uv.getY(i) - 0.5) *
           this.brow.userData.height +
         dy;
