@@ -66,3 +66,9 @@
 - Wired jump/ring/dash, independent blink, heading and temporary impact/stun recovery.
 - Preserved rolling body, stored seed/mood, controls and physics. Worried/shock use happy as temporary art until additional poses are approved.
 - Added game-face state/geometry tests and browser test of actual jump, physical landing stun, dash and recovery.
+
+## Animation atlas preview
+- New modular WebP/JSON parts atlas with 12 emotions plus distinct knockout; original three calibrated poses preserved.
+- New small-iris eyes for scared/shocked/dazed, optional left/right gaze, and reduced viewer-left unhinged iris/pupil.
+- One-shot keyframe clips, independent blink, 3-turn face orbit with trails, dizzy body-stop/rocking preview and recovery.
+- Added `?face-animations`; gameplay event/physics integration remains separate. KO mouth is marked temporary, awaiting user's requested broken-line redraw.

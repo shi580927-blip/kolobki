@@ -93,3 +93,6 @@ Main player and HUD now share approved three-expression sprite rig. Jump/ring: h
 
 ### Latest calibration — layout (5)
 User's exact latest JSON now drives gameplay/HUD/sample/editor defaults; happy unchanged, sly/grumpy repositioned and resized. Event rules unchanged. Next: agree explicit emotion/event/duration/priority/consequence/recovery table; do not treat provisional three-pose event mapping as final design.
+
+### Modular animation atlas preview
+`?face-animations`: modular 3-page WebP/JSON atlas, 13 states (12 emotions + KO), one-shot IN/HOLD/OUT/IDLE, independent blink, small-iris gaze variants for scared/shocked/dazed, reduced viewer-left iris/pupil for unhinged. Three user-calibrated poses unchanged. Combo preview completes 3 orbits with ghost trails, stops body rotation during dizzy rocking and returns to base. New gameplay event rules/physical stop remain unwired; KO mouth is temporary pending crooked broken-line redraw. Browser and unit checks cover atlas bounds, layer priority, blink, transitions, body-stop preview and recovery. No phone hardware performance claim.

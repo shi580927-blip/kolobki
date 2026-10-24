@@ -265,7 +265,9 @@ async function start() {
     }),
   });
 }
-const launch = new URLSearchParams(location.search).has("face-editor")
+const launch = new URLSearchParams(location.search).has("face-animations")
+  ? import("./faceAnimations").then((m) => m.startFaceAnimations())
+  : new URLSearchParams(location.search).has("face-editor")
   ? import("./faceEditor").then((m) => m.startFaceEditor())
   : new URLSearchParams(location.search).has("face-study")
   ? import("./faceStudy").then((m) => m.startFaceStudy())
