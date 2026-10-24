@@ -24,11 +24,13 @@ test("closed blink hides all visible eyeballs and stun uses crosses", () => {
   face.update(0, 0);
   assert.ok(face.eyes.every((eye) => !eye.visible));
   assert.ok(face.lids.every((lid) => lid.visible));
+  assert.ok(face.stunWhites.every((eye) => !eye.visible));
   state.knockOut(1);
   face.update(0, 0);
   assert.ok(face.eyes.every((eye) => !eye.visible));
   assert.ok(face.lids.every((lid) => !lid.visible));
   assert.ok(face.crosses.every((cross) => cross.visible));
+  assert.ok(face.stunWhites.every((eye) => eye.visible));
   assert.ok(face.children.some((x) => x instanceof Mesh));
 });
 

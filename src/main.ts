@@ -32,9 +32,9 @@ async function start() {
   renderer.shadowMap.type = T.PCFSoftShadowMap;
   stage.appendChild(renderer.domElement);
   const scene = new T.Scene();
-  scene.background = new T.Color(0xb9deeb);
-  scene.fog = new T.Fog(0xb9deeb, 60, 150);
-  scene.add(new T.HemisphereLight(0xfff5df, 0x536f4f, 1.5));
+  scene.background = new T.Color(0x91cbed);
+  scene.fog = new T.Fog(0xb7dbea, 60, 150);
+  scene.add(new T.HemisphereLight(0xfff5df, 0x738b83, 1.8));
   const sun = new T.DirectionalLight(0xfff1de, 2);
   sun.position.set(-25, 45, 20);
   sun.castShadow = true;
@@ -83,7 +83,7 @@ async function start() {
   portraitRenderer.toneMappingExposure = 1;
   portraitRenderer.setSize(150, 150, false);
   const portraitScene = new T.Scene();
-  portraitScene.add(new T.HemisphereLight(0xfff5df, 0x536f4f, 1.5));
+  portraitScene.add(new T.HemisphereLight(0xfff5df, 0x738b83, 1.8));
   const portraitLight = new T.DirectionalLight(0xfff1de, 2);
   portraitLight.position.set(-3, 4, 5);
   portraitScene.add(portraitLight);

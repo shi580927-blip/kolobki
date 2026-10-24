@@ -14,7 +14,9 @@ export class PlayerVisual extends T.Group {
     const c = canvas.getContext("2d")!;
     c.fillStyle = skin.color;
     c.fillRect(0, 0, 512, 512);
-    c.fillStyle = skin.accent;
+    c.fillStyle = new T.Color(skin.accent)
+      .lerp(new T.Color(skin.color), 0.24)
+      .getStyle();
     const r = randomFrom(skin.seed + 1);
     if (skin.pattern === "stripes") {
       for (let x = 0; x < 512; x += 64) c.fillRect(x, 0, 24, 512);
@@ -35,7 +37,12 @@ export class PlayerVisual extends T.Group {
     texture.anisotropy = 4;
     this.rollingBody = new T.Mesh(
       new T.SphereGeometry(1, 40, 28),
-      new T.MeshStandardMaterial({ map: texture, roughness: 0.65 }),
+      new T.MeshStandardMaterial({
+        map: texture,
+        roughness: 0.58,
+        emissive: skin.color,
+        emissiveIntensity: 0.14,
+      }),
     );
     this.rollingBody.castShadow = true;
     this.add(this.rollingBody);

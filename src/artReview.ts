@@ -11,7 +11,7 @@ export async function startArtReview() {
   const stage = document.querySelector<HTMLElement>("#stage")!;
   const hud = document.querySelector<HTMLElement>("#hud")!;
   hud.innerHTML =
-    '<div class="brand">ЛИЦА v03 <small>ПРОВЕРКА В 3D · 12 ВЫРАЖЕНИЙ · НЕ ФИНАЛЬНАЯ ПРИЁМКА</small></div><a href="./" style="position:absolute;right:25px;top:25px;pointer-events:auto;color:white">Вернуться к игре</a>';
+    '<div class="brand">ЛИЦА v03 <small>ПРОВЕРКА В 3D · 12 ВЫРАЖЕНИЙ · СВЕТ И ЦВЕТ</small></div><a href="./" style="position:absolute;right:25px;top:25px;pointer-events:auto;color:white">Вернуться к игре</a>';
   const renderer = new T.WebGLRenderer({
     antialias: true,
     preserveDrawingBuffer: true,
@@ -19,12 +19,19 @@ export async function startArtReview() {
   renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
   renderer.toneMapping = T.ACESFilmicToneMapping;
   stage.appendChild(renderer.domElement);
+  const shadow =
+    new URLSearchParams(location.search).get("lighting") === "shadow";
   const scene = new T.Scene();
   scene.background = new T.Color("#27383e");
-  scene.add(new T.HemisphereLight(0xfff5df, 0x536f4f, 1.5));
+  scene.add(new T.HemisphereLight(0xfff5df, 0x738b83, shadow ? 0.22 : 1.8));
   const light = new T.DirectionalLight(0xfff1de, 2);
-  light.position.set(-4, 7, 8);
+  light.position.set(-4, 7, shadow ? -8 : 8);
   scene.add(light);
+  const lightingLabel = document.createElement("div");
+  lightingLabel.textContent = shadow ? "ПРОВЕРКА В ТЕНИ" : "ПРОВЕРКА НА СВЕТУ";
+  lightingLabel.style.cssText =
+    "position:absolute;right:25px;top:55px;font-size:12px";
+  hud.appendChild(lightingLabel);
   const camera = new T.OrthographicCamera(-6.6, 6.6, 3.7125, -3.7125, 0.1, 30);
   camera.position.set(0, 0, 12);
   camera.lookAt(0, 0, 0);
