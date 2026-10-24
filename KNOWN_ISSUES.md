@@ -12,3 +12,5 @@
 - Build выдаёт предупреждение о chunk >500 КБ. Rapier compat включает WASM в пакет; загрузка/память требуют профилирования.
 - Rapier сообщает предупреждение о параметрах инициализации внутри compat-модуля; тесты и сцена запускаются, предупреждение не является ошибкой.
 - Pages опубликована: https://shi580927-blip.github.io/kolobki/ . Облачный браузер без WebGL не может отрисовать сцену; локальные тесты выполняются с программным WebGL.
+
+- dev.8: only three new approved sprite expressions are integrated. Stored worried mood and shock temporarily use happy artwork; complete 12-expression art/animations remain pending. The legacy 12-pose art-review is separate from gameplay.

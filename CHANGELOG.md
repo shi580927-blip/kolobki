@@ -60,3 +60,9 @@
 - Sample/editor defaults now use user calibration without an additional pitch offset.
 - Brows draw over eyes/lids, while sphere depth occlusion remains enabled, in sample/editor and legacy gameplay rig.
 - Closed lid curves follow edited eye coordinates.
+
+## 0.1.0-dev.8 — approved faces in gameplay
+- Main player and HUD use three approved sprite poses and exact user-authored proportions.
+- Wired jump/ring/dash, independent blink, heading and temporary impact/stun recovery.
+- Preserved rolling body, stored seed/mood, controls and physics. Worried/shock use happy as temporary art until additional poses are approved.
+- Added game-face state/geometry tests and browser test of actual jump, physical landing stun, dash and recovery.
