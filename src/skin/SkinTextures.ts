@@ -28,9 +28,3 @@ export function makePatternTexture(d:SkinDesign){const c=canvas(),g=c.getContext
   }
  }return texture(c,true);
 }
-/** Neutral bump data; changing relief never adds an extra pigment color. */
-export function makeSurfaceTexture(d:SkinDesign){const c=canvas(),g=c.getContext('2d')!;g.fillStyle='#cccccc';g.fillRect(0,0,W,H);const n=Math.round(24/d.surfaceScale),step=W/n;
- if(d.surface==='segments'){g.strokeStyle='#333333';g.lineWidth=step*.07;const radius=step/Math.sqrt(3);for(let row=-1;row<H/(radius*1.5)+1;row++)for(let col=-1;col<=n;col++){g.beginPath();for(let k=0;k<6;k++){const a=Math.PI/6+k*Math.PI/3,x=col*step+(row%2)*step/2+Math.cos(a)*radius,y=row*radius*1.5+Math.sin(a)*radius;k?g.lineTo(x,y):g.moveTo(x,y);}g.closePath();g.stroke();}}
- if(d.surface==='scales'){const sy=H/Math.round(14/d.surfaceScale);for(let row=-1;row<H/sy+1;row++)for(let col=-1;col<=n;col++){const x=col*step+(row%2)*step/2,y=row*sy;const gradient=g.createLinearGradient(0,y,0,y+sy*1.25);gradient.addColorStop(0,'#777777');gradient.addColorStop(.6,'#eeeeee');gradient.addColorStop(1,'#aaaaaa');g.fillStyle=gradient;g.strokeStyle='#555555';g.lineWidth=step*.035;g.beginPath();g.moveTo(x-step*.5,y);g.lineTo(x+step*.5,y);g.bezierCurveTo(x+step*.6,y+sy*.8,x+step*.25,y+sy*1.3,x,y+sy*1.3);g.bezierCurveTo(x-step*.25,y+sy*1.3,x-step*.6,y+sy*.8,x-step*.5,y);g.fill();g.stroke();}}
- return texture(c);
-}
