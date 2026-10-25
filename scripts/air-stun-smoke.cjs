@@ -1,0 +1,21 @@
+const {chromium}=require('playwright');
+const assert=require('node:assert/strict');
+(async()=>{
+ const b=await chromium.launch({headless:true,executablePath:process.env.CHROMIUM_EXECUTABLE,args:['--no-sandbox','--enable-unsafe-swiftshader','--use-angle=swiftshader']});
+ const page=await b.newPage({viewport:{width:1280,height:720}}),errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.goto((process.env.GAME_TEST_URL||'http://127.0.0.1:4260')+'/?skin-test');await page.waitForFunction(()=>window.__SHAROBESY__);
+ const state=()=>page.evaluate(()=>window.__SHAROBESY__);
+ await page.waitForTimeout(700);await page.getByRole('button',{name:'На старт',exact:true}).click();await page.waitForTimeout(300);
+ const ground=(await state()).position[1];
+ await page.getByRole('button',{name:'Проба комбо',exact:true}).click();
+ await page.waitForFunction(()=>window.__SHAROBESY__.comboPhase==='ORBIT');await page.waitForTimeout(350);await page.keyboard.press('Space');
+ await page.waitForFunction(()=>window.__SHAROBESY__.comboPhase==='DIZZY');const airborne=await state();
+ assert.ok(airborne.position[1]>ground+.3,'dizziness must start while airborne');
+ await page.screenshot({path:'test-results/air-stun-start.png'});
+ const initialY=airborne.position[1];await page.keyboard.down('KeyW');await page.waitForFunction(y=>window.__SHAROBESY__.comboPhase==='DIZZY'&&window.__SHAROBESY__.position[1]<y-.2,initialY,{timeout:15000});const falling=await state();
+ assert.ok(falling.position[1]<initialY-.2,'gravity continues during stun');
+ await page.keyboard.up('KeyW');await page.screenshot({path:'test-results/air-stun-falling.png'});
+ await page.waitForFunction(()=>window.__SHAROBESY__.comboPhase==='IDLE');const recovered=await state();assert.equal(recovered.immobilized,false);assert.ok(recovered.faceVisibility.some(p=>p.opacity===1));
+ await page.keyboard.down('KeyD');await page.waitForTimeout(350);await page.keyboard.up('KeyD');const moving=await state();assert.ok(Math.hypot(moving.velocity.x,moving.velocity.z)>.2);
+ assert.deepEqual(errors,[]);console.log(JSON.stringify({airborneHeight:initialY-ground,dropDuringStun:initialY-falling.position[1],recovers:true,errors}));await b.close();
+})().catch(e=>{console.error(e);process.exit(1)});

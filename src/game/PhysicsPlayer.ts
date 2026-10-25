@@ -12,6 +12,7 @@ export class PhysicsPlayer {
   rotation = new Quaternion();
   heading = 0;
   private immobilized=false;
+  private groundHold=false;
   private jumpCooldown = 0;
   private dashCooldown = 0;
   private impactCooldown = 0;
@@ -40,7 +41,30 @@ export class PhysicsPlayer {
     );
     this.reset();
   }
-  setImmobilized(value:boolean){if(value===this.immobilized)return;this.immobilized=value;this.body.setBodyType(value?R.RigidBodyType.KinematicPositionBased:R.RigidBodyType.Dynamic,true);this.body.setLinvel({x:0,y:0,z:0},true);this.body.setAngvel({x:0,y:0,z:0},true);this.velocityBeforeStep.set(0,0,0);this.collisionSpeedChange=0;}
+  setImmobilized(value:boolean){
+    if(value===this.immobilized)return;
+    this.immobilized=value;
+    if(!value&&this.groundHold){
+      this.body.setBodyType(R.RigidBodyType.Dynamic,true);
+      this.body.setLinvel({x:0,y:0,z:0},true);this.body.setAngvel({x:0,y:0,z:0},true);
+      this.groundHold=false;
+    }
+    this.collisionSpeedChange=0;
+  }
+  private hasGroundSupport(){
+    let supported=false;
+    const center=this.body.translation();
+    // A nearby ray is insufficient: wait for a real lower-surface contact.
+    this.world.contactPairsWith(this.collider,other=>{
+      this.world.contactPair(this.collider,other,manifold=>{
+        if(Math.abs(manifold.normal().y)<.45)return;
+        for(let i=0;i<manifold.numSolverContacts();i++){
+          if(manifold.solverContactDist(i)<=.02&&manifold.solverContactPoint(i).y<center.y-.3)supported=true;
+        }
+      });
+    });
+    return supported;
+  }
   reset() {
     this.setImmobilized(false);
     this.body.setTranslation({ x: 0, y: heightAt(0, 0) + 1.1, z: 0 }, true);
@@ -57,7 +81,18 @@ export class PhysicsPlayer {
     this.jumpCooldown -= dt;
     this.dashCooldown -= dt;
     this.impactCooldown -= dt;
-    if(this.immobilized){this.body.setNextKinematicTranslation(this.current);input.jump=false;input.dash=false;return;}
+    if(this.immobilized){
+      input.jump=false;input.dash=false;
+      // In the air only input is locked; gravity and ballistic momentum continue.
+      if(!this.groundHold&&this.body.linvel().y<=.5&&this.hasGroundSupport()){
+        this.body.setBodyType(R.RigidBodyType.KinematicPositionBased,true);
+        this.body.setLinvel({x:0,y:0,z:0},true);this.body.setAngvel({x:0,y:0,z:0},true);
+        this.groundHold=true;
+      }
+      if(this.groundHold)this.body.setNextKinematicTranslation(this.current);
+      this.velocityBeforeStep.copy(this.body.linvel());
+      return;
+    }
     const ray = new R.Ray(this.body.translation(), { x: 0, y: -1, z: 0 });
     const hit = this.world.castRay(
       ray,
@@ -133,6 +168,7 @@ export class PhysicsPlayer {
   }
   contact(strength: number) {
     if (
+      this.immobilized ||
       strength < 90 ||
       this.collisionSpeedChange < 4.5 ||
       this.impactCooldown > 0

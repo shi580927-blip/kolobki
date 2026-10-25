@@ -59,3 +59,23 @@ test('dizzy immobilization holds a ball on a hill and releases input without tel
  for(let i=0;i<60;i++){player.step(1/60,input,new Vector3(0,0,1));world.step();player.sync();}
  player.setImmobilized(true);const anchor=player.current.clone();for(let i=0;i<120;i++){player.step(1/60,input,new Vector3(0,0,1));world.step();player.sync();}assert.ok(player.current.distanceTo(anchor)<1e-5);player.setImmobilized(false);for(let i=0;i<60;i++){player.step(1/60,input,new Vector3(0,0,1));world.step();player.sync();}assert.ok(player.current.distanceTo(anchor)>.1);assert.ok(player.current.distanceTo(anchor)<20);world.free();
 });
+
+test('airborne stun preserves gravity and momentum, then holds only after landing',async()=>{
+ await R.init();const world=new R.World({x:0,y:-18,z:0});world.timestep=1/60;
+ world.createCollider(R.ColliderDesc.cuboid(20,.5,20).setTranslation(0,-.5,0));
+ const player=new PhysicsPlayer(world,new EventBus()),input={x:1,z:-1,jump:true,dash:true} as Input;
+ player.body.setTranslation({x:0,y:10,z:0},true);player.body.setLinvel({x:2,y:-3,z:0},true);player.sync();player.setImmobilized(true);
+ for(let i=0;i<30;i++){input.jump=input.dash=true;player.step(1/60,input,new Vector3(0,0,1));world.step();player.sync();}
+ assert.ok(player.current.y<7,'stunned ball must fall before stun expires');assert.ok(player.current.x>.5,'airborne momentum is retained');assert.equal(input.jump,false);assert.equal(input.dash,false);
+ for(let i=0;i<90;i++){player.step(1/60,input,new Vector3(0,0,1));world.step();player.sync();}
+ assert.ok(player.current.y>.9&&player.current.y<1.1,'hold begins at the actual ground');
+ const landed=player.current.clone();for(let i=0;i<30;i++){player.step(1/60,input,new Vector3(0,0,1));world.step();player.sync();}assert.ok(player.current.distanceTo(landed)<1e-5);
+ player.setImmobilized(false);for(let i=0;i<30;i++){player.step(1/60,input,new Vector3(0,0,1));world.step();player.sync();}assert.ok(player.current.distanceTo(landed)>.1);world.free();
+});
+
+test('stun onset and recovery in midair do not cancel upward velocity',async()=>{
+ await R.init();const world=new R.World({x:0,y:-18,z:0}),player=new PhysicsPlayer(world,new EventBus());world.timestep=1/60;
+ player.body.setTranslation({x:0,y:8,z:0},true);player.body.setLinvel({x:0,y:5,z:0},true);player.sync();player.setImmobilized(true);
+ const input={x:0,z:0,jump:false,dash:false} as Input;player.step(1/60,input,new Vector3(0,0,1));world.step();player.sync();assert.ok(player.body.linvel().y>4);
+ const velocity=player.body.linvel().y;player.setImmobilized(false);assert.equal(player.body.linvel().y,velocity);world.free();
+});
