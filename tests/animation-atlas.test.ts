@@ -53,3 +53,8 @@ test('pride crops exclude the two neighboring brow fragments without changing la
  assert.deepEqual(brows.map(b=>b.material.uniforms.trim.value),[2,3]);
  brows.forEach((b,i)=>assert.deepEqual(b.userData.part.layout,atlas.poses.proud.parts[i].layout));
 });
+
+test('combo face and its motion trail orbit vertically rather than around the equator',()=>{
+ const rig=new AnimatedAtlasRig(atlas,[new Texture(),new Texture(),new Texture()]);rig.playCombo();rig.update(.1);assert.equal(atlas.combo.axis,'x');assert.equal(rig.poses.unhinged.rotation.x,rig.combo.angle);assert.equal(rig.poses.unhinged.rotation.y,0);
+ const poseGroups=new Set(Object.values(rig.poses));const trails=rig.children.filter(o=>!poseGroups.has(o as any)&&o!==rig.dazedStars);assert.equal(trails.length,atlas.combo.trailCopies);assert.ok(trails.every(t=>t.rotation.x!==0&&t.rotation.y===0));
+});

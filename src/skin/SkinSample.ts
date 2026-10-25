@@ -15,10 +15,10 @@ export class SkinSample extends T.Group {
  private layouts:ReturnType<typeof growthLayout>=[];
  private dummy=new T.Object3D();private dir=new T.Vector3();private worldDir=new T.Vector3();private axis=new T.Vector3(0,1,0);private q=new T.Quaternion();
  private angle=0;
- constructor(readonly faceTexture:T.Texture,expression:StudyExpression='sly'){
-  super();this.body=new T.Mesh(new T.SphereGeometry(1,80,56),new T.MeshStandardMaterial({roughness:.55,metalness:0}));this.body.castShadow=true;this.body.receiveShadow=true;this.rollingBody.add(this.body);this.add(this.rollingBody);this.face=new StudyFaceRig(faceTexture,expression);applyLayout(this.face,scaleLayoutAboutCenter(readLayout(this.face),SKIN_STUDY_FACE_SCALE));this.add(this.face);
+ constructor(readonly faceTexture:T.Texture,expression:StudyExpression='sly',readonly glossEnvironment?:T.Texture){
+  super();this.body=new T.Mesh(new T.SphereGeometry(1,80,56),new T.MeshPhysicalMaterial({roughness:.55,metalness:0}));this.body.castShadow=true;this.body.receiveShadow=true;this.rollingBody.add(this.body);this.add(this.rollingBody);this.face=new StudyFaceRig(faceTexture,expression);applyLayout(this.face,scaleLayoutAboutCenter(readLayout(this.face),SKIN_STUDY_FACE_SCALE));this.add(this.face);
  }
- apply(d:SkinDesign){const material=this.body.material;material.map?.dispose();material.map=d.surface==='smooth'?makePatternTexture(d):null;material.color.set(d.surface==='smooth'?'#ffffff':d.base);material.needsUpdate=true;
+ apply(d:SkinDesign){const material=this.body.material;material.map?.dispose();material.map=d.surface==='smooth'?makePatternTexture(d):null;material.color.set(d.surface==='smooth'?'#ffffff':d.base);const gloss=d.surface==='smooth'&&d.growthCount===0?d.gloss:0;material.roughness=.62-gloss*.43;const physical=material as T.MeshPhysicalMaterial;physical.envMap=gloss>0?(this.glossEnvironment??null):null;physical.envMapIntensity=.65;physical.clearcoat=gloss;physical.clearcoatRoughness=.18;material.needsUpdate=true;
   if(this.cells){this.rollingBody.remove(this.cells);this.cells.geometry.dispose();this.cells.material.dispose();this.cells=null;}
   if(this.fur){this.rollingBody.remove(this.fur);this.fur.release();this.fur=null;}
   this.body.scale.setScalar(1);

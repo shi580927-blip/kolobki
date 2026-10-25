@@ -1727,7 +1727,9 @@
     "trailCopies": 3,
     "dizzySeconds": 2.1,
     "recoverSeconds": 0.35,
-    "stopDuringDizzy": true
+    "stopDuringDizzy": true,
+    "axis": "x",
+    "plane": "vertical"
   },
   "unhingedIris": {
     "eye": "viewer-left",

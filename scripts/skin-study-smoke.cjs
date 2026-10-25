@@ -7,7 +7,7 @@ const assert=require('node:assert/strict');
  await page.evaluate(()=>{localStorage.setItem('sharobesy.skin.v1','56789');});
  const state=()=>page.evaluate(()=>window.__SKIN_STUDY__);
  await page.screenshot({path:'test-results/skin-solid.png'});
- for(const pattern of ['none','dots','cow','leopard','tiger','hearts','diamonds','hex','checker','zigzag','waves','splats','scribbles','lightning']){
+ for(const pattern of ['none','dots','cow','leopard','tiger','hearts','diamonds','hex','checker','zigzag','waves','splats','scribbles','lightning','zebra','giraffe']){
   await page.getByLabel('Узор',{exact:true}).selectOption(pattern);assert.equal((await state()).design.pattern,pattern);
   if(['cow','hex','lightning'].includes(pattern))await page.screenshot({path:`test-results/skin-${pattern}.png`});
  }
@@ -25,5 +25,5 @@ const assert=require('node:assert/strict');
  const waitDownload=page.waitForEvent('download');await page.getByRole('button',{name:'Скачать JSON',exact:true}).click();const download=await waitDownload;const path=await download.path();assert.deepEqual(JSON.parse(require('node:fs').readFileSync(path,'utf8')),imported);
  await page.setViewportSize({width:844,height:390});const dimensions=await page.locator('#stage').boundingBox();assert.ok(Math.abs(dimensions.width/dimensions.height-16/9)<.01);await page.screenshot({path:'test-results/skin-mobile-landscape.png'});
  await page.setViewportSize({width:1280,height:720});await page.goto((process.env.SKIN_TEST_URL||'http://127.0.0.1:4224')+'/?face-animations');await page.waitForFunction(()=>window.__FACE_ANIMATIONS__);await page.getByRole('button',{name:'Гордость',exact:true}).click();await page.waitForFunction(()=>window.__FACE_ANIMATIONS__.phase==='HOLD');await page.screenshot({path:'test-results/pride-brow-clean.png'});
- assert.deepEqual(errors,[]);console.log(JSON.stringify({patterns:14,surfaces:5,maxGrowths:240,roundTrip:true,gameSeedPreserved:true,independentFace:true,drawCalls:after.drawCalls,errors}));await browser.close();
+ assert.deepEqual(errors,[]);console.log(JSON.stringify({patterns:16,surfaces:5,maxGrowths:240,roundTrip:true,gameSeedPreserved:true,independentFace:true,drawCalls:after.drawCalls,errors}));await browser.close();
 })().catch(e=>{console.error(e);process.exit(1)});

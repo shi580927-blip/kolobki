@@ -3,7 +3,7 @@ import type {PartLayout} from './FaceLayout';
 import {AnimationClock,ComboAnimationClock,type ClipTiming} from './AnimationClock';
 export interface AtlasPart{id:string;rect:number[];layout:PartLayout;layer:number;channel:string;page?:number;variants?:Record<string,number[]>}
 export interface AtlasPose{label:string;page:number;parts:AtlasPart[];blink:boolean}
-export interface AnimationAtlas{version:string;pages:{image:string;width:number;height:number}[];poses:Record<string,AtlasPose>;clips:Record<string,ClipTiming>;blink:{close:number;closed:number;open:number;pause:number[]};combo:{orbitSeconds:number;turns:number;trailCopies:number;dizzySeconds:number;recoverSeconds:number;stopDuringDizzy:boolean}}
+export interface AnimationAtlas{version:string;pages:{image:string;width:number;height:number}[];poses:Record<string,AtlasPose>;clips:Record<string,ClipTiming>;blink:{close:number;closed:number;open:number;pause:number[]};combo:{axis:'x';orbitSeconds:number;turns:number;trailCopies:number;dizzySeconds:number;recoverSeconds:number;stopDuringDizzy:boolean}}
 export async function loadAnimationAtlas(){
  const base=import.meta.env.BASE_URL+'assets/face/animated/';const response=await fetch(base+'atlas.json');if(!response.ok)throw Error('Animation atlas unavailable');const data:AnimationAtlas=await response.json();
  const textures=await Promise.all(data.pages.map(async page=>{const t=await new T.TextureLoader().loadAsync(base+page.image);t.colorSpace=T.SRGBColorSpace;t.minFilter=T.LinearFilter;t.magFilter=T.LinearFilter;t.generateMipmaps=false;return t;}));return{data,textures};
@@ -64,11 +64,11 @@ export class AnimatedAtlasRig extends T.Group {
    this.project(part,0,kind==='brow'?sample('browLift',0)+micro:0,kind==='mouth'?pulse:1,pulse,kind==='brow'?micro*.4:0);
   }
   this.lids[key].visible=blink>.82;this.lids[key].traverse(o=>{if(o instanceof T.Mesh)(o.material as T.MeshBasicMaterial).opacity=opacity;});
-  if(this.combo.phase==='ORBIT'){group.rotation.y=this.combo.angle;group.rotation.z=Math.sin(this.combo.angle)*.12;}
+  if(this.combo.phase==='ORBIT'){group.rotation.x=this.combo.angle;group.rotation.z=Math.sin(this.combo.angle)*.12;}
  }
  const dazedOpacity=this.poses.dazed.visible?(this.parts.dazed[0].material.uniforms.opacity.value as number):0;
  this.dazedStars.visible=dazedOpacity>.005;
  this.dazedStars.children.forEach((star,i)=>{const a=this.time*2+i*Math.PI*2/3;star.position.set(Math.cos(a)*.8,1.08+Math.sin(a)*.12,.45+Math.sin(a)*.35);star.rotation.z=-this.time*1.5+i;(star as T.Mesh<T.BufferGeometry,T.MeshBasicMaterial>).material.opacity=dazedOpacity;});
- this.trails.forEach((g,i)=>{g.visible=this.combo.phase==='ORBIT';g.rotation.y=this.combo.angle-(i+1)*.32;g.rotation.z=Math.sin(this.combo.angle-(i+1)*.32)*.12;});
+ this.trails.forEach((g,i)=>{g.visible=this.combo.phase==='ORBIT';g.rotation.set(this.combo.angle-(i+1)*.32,0,Math.sin(this.combo.angle-(i+1)*.32)*.12);});
  }
 }
