@@ -15,7 +15,7 @@ export function validateDesign(value:unknown):SkinDesign {
  if(typeof x.pattern!=='string'||!Object.hasOwn(patterns,x.pattern))throw Error('Неизвестный узор');out.pattern=x.pattern as Pattern;
  if(!['smooth','scales','segments','fuzz','shaggy'].includes(String(x.surface)))throw Error('Неизвестная поверхность');out.surface=x.surface as SkinDesign['surface'];
  if(!['soft','spike'].includes(String(x.growthShape)))throw Error('Неизвестная форма наростов');out.growthShape=x.growthShape as SkinDesign['growthShape'];
- const ranges={seed:[0,0xffffffff],scale:[.4,2.4],density:[.1,1.5],sizeScatter:[0,.7],positionScatter:[0,1],rotationScatter:[0,1],surfaceScale:[.5,2],relief:[.005,.1],growthCount:[0,240],growthSize:[.06,.34],growthScatter:[0,.7]} as const;
+ const ranges={seed:[0,0xffffffff],scale:[.25,2.4],density:[.1,1.5],sizeScatter:[0,.7],positionScatter:[0,1],rotationScatter:[0,1],surfaceScale:[.5,2],relief:[.005,.1],growthCount:[0,240],growthSize:[.06,.34],growthScatter:[0,.7]} as const;
  for(const [key,[min,max]] of Object.entries(ranges)){const v=x[key];if(typeof v!=='number'||!Number.isFinite(v)||v<min||v>max)throw Error('Недопустимый параметр: '+key);(out as unknown as Record<string,unknown>)[key]=v;}
  if(!Number.isInteger(out.seed)||!Number.isInteger(out.growthCount))throw Error('Seed и количество должны быть целыми');
  for(const [key,min,max] of [['furCount',1,160],['furLength',.05,.3],['furScatter',0,1]] as const){const value=x[key]===undefined?defaultDesign[key]:x[key];if(typeof value!=='number'||!Number.isFinite(value)||value<min||value>max||(key==='furCount'&&!Number.isInteger(value)))throw Error('Недопустимый параметр: '+key);out[key]=value;}

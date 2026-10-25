@@ -1,6 +1,6 @@
 import * as T from 'three';
 import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
-import {skinFrom} from './core/skin';
+import {skinFrom,isVividSeed} from './core/skin';
 import {designForGame} from './game/RuntimeAppearance';
 import {fit16by9} from './core/terrain';
 import {SkinSample,SKIN_STUDY_FACE_SCALE} from './skin/SkinSample';
@@ -45,7 +45,7 @@ export async function startSkinStudy(){
  let scheduled=false;function queueApply(){if(scheduled)return;scheduled=true;requestAnimationFrame(()=>{scheduled=false;apply();});}
  for(const [key,name] of [['base','Цвет корпуса'],['accent','Второй цвет']] as const){const i=document.createElement('input');i.type='color';i.oninput=()=>{design[key]=i.value;queueApply();};label(key,name,i);}
  const surfaceAccent=document.createElement('input');surfaceAccent.type='checkbox';surfaceAccent.onchange=()=>{design.surfaceAccent=surfaceAccent.checked;apply();};label('surfaceAccent','Второй цвет меха и углублений',surfaceAccent);
- select('pattern','Узор',patterns);const regular=document.createElement('input');regular.type='checkbox';regular.onchange=()=>{design.regular=regular.checked;apply();};label('regular','Равномерный узор',regular);range('gloss','Глянцевый блеск',0,1,.05);const glossNote=document.createElement('p');glossNote.className='hint';glossNote.textContent='Блеск пока доступен у гладкого корпуса без наростов, с рисунком или без него.';panel.appendChild(glossNote);range('scale','Масштаб рисунка',.4,2.4,.05);range('density','Плотность',.1,1.5,.05);range('sizeScatter','Разброс размеров',0,.7,.05);range('positionScatter','Разброс положения',0,1,.05);range('rotationScatter','Разброс наклона',0,1,.05);panel.appendChild(connectedNote);
+ select('pattern','Узор',patterns);const regular=document.createElement('input');regular.type='checkbox';regular.onchange=()=>{design.regular=regular.checked;apply();};label('regular','Равномерный узор',regular);range('gloss','Глянцевый блеск',0,1,.05);const glossNote=document.createElement('p');glossNote.className='hint';glossNote.textContent='Блеск пока доступен у гладкого корпуса без наростов, с рисунком или без него.';panel.appendChild(glossNote);range('scale','Масштаб рисунка',.25,2.4,.05);range('density','Плотность',.1,1.5,.05);range('sizeScatter','Разброс размеров',0,.7,.05);range('positionScatter','Разброс положения',0,1,.05);range('rotationScatter','Разброс наклона',0,1,.05);panel.appendChild(connectedNote);
  heading('Объёмная поверхность');select('surface','Фактура',{smooth:'Гладкая',scales:'Чешуя',segments:'Сегменты',fuzz:'Короткий плюш',shaggy:'Короткий кудрявый мех'});range('surfaceScale','Размер фактуры',.5,2,.05);range('relief','Рельеф',.005,.1,.005);
  
  const surfaceNote=document.createElement('p');surfaceNote.className='hint';surfaceNote.textContent='Отдельные объёмные ячейки: часть глубже посажена и наклонена. Распределение по сфере без схождения к макушке. Второй цвет заполняет внутренние углубления; верх ячеек остаётся основного цвета. Выключите второй цвет для однотонной поверхности.';panel.appendChild(surfaceNote);
@@ -57,7 +57,8 @@ export async function startSkinStudy(){
  function button(parent:HTMLElement,text:string,fn:()=>void){const b=document.createElement('button');b.textContent=text;b.onclick=fn;parent.appendChild(b);return b;}
  button(panel,'В игру с этим скином',()=>{try{localStorage.setItem(storageKey,JSON.stringify(design));location.assign(import.meta.env.BASE_URL+'?skin-test');}catch{status.textContent='Не удалось сохранить вариант для игровой пробы. Скачайте JSON.';}});
  button(panel,'Случайный образец',()=>{const seed=crypto.getRandomValues(new Uint32Array(1))[0];design=designForGame(skinFrom(seed));apply();status.textContent='Новый авторский образец. Игровой персонаж не изменён.';});
- button(panel,'Другой разброс',()=>{design.seed=(design.seed+1)>>>0;apply();});
+ button(panel,'Яркий + мелкий узор',()=>{let seed=crypto.getRandomValues(new Uint32Array(1))[0];for(let attempt=0;attempt<1000;attempt++,seed=(seed+1)>>>0){const candidate=designForGame(skinFrom(seed));if(isVividSeed(seed)&&candidate.pattern!=='none'&&candidate.scale<=.6&&candidate.density<=.22){design=candidate;apply();status.textContent='Яркий авторский образец с мелким редким рисунком. Игровой персонаж не изменён.';break;}}});
+ button(panel,'Другой разброс' ,()=>{design.seed=(design.seed+1)>>>0;apply();});
  button(panel,'Сохранить здесь',()=>{try{localStorage.setItem(storageKey,JSON.stringify(design));status.textContent='Авторский вариант сохранён. Игровой скин не изменён.';}catch{status.textContent='Не удалось записать настройки. Скачайте JSON.';}});
  function download(blob:Blob,name:string){const u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),1000);}
  button(panel,'Снимок PNG',()=>{renderer.domElement.toBlob(blob=>{if(blob)download(blob,'sharobesy-skin-preview.png');});});

@@ -2,7 +2,7 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {Scene,Vector3,Texture,Quaternion,Matrix4,InstancedMesh,MathUtils} from 'three';
 import {designForGame,gameplayAtlas} from '../src/game/RuntimeAppearance';
-import {skinFrom} from '../src/core/skin';
+import {skinFrom,isVividSeed} from '../src/core/skin';
 import {BerryCollectibles} from '../src/game/BerryCollectibles';
 import {RuntimeFace,RuntimeVisual} from '../src/game/RuntimeVisual';
 import {FurTufts} from '../src/skin/FurTufts';
@@ -45,7 +45,7 @@ test('dense soft bumps and spikes follow face clearance rather than a fixed bald
 });
 
 test('seeded appearance pool includes frequent patterns and real eligible gloss',()=>{
- let patterned=0,glossy=0,smooth=0;const colors=new Set<string>();
- for(let seed=0;seed<10000;seed++){const skin=skinFrom(seed),d=designForGame(skin);colors.add(d.base);assert.deepEqual(d,designForGame(skin));if(d.surface==='smooth')smooth++;if(d.pattern!=='none'){patterned++;assert.equal(d.surface,'smooth');}if(d.gloss>0){glossy++;assert.equal(d.surface,'smooth');assert.equal(d.growthCount,0);assert.ok(d.gloss>=.65&&d.gloss<=.95);}}
- assert.equal(colors.size,12);assert.ok(patterned>3500&&patterned<5000);assert.ok(glossy>4200&&glossy<5500);assert.ok(smooth>6500&&smooth<7500);
+ let patterned=0,glossy=0,smooth=0,vivid=0,smallSparse=0;const colors=new Set<string>();
+ for(let seed=0;seed<10000;seed++){const skin=skinFrom(seed),d=designForGame(skin);colors.add(d.base);if(isVividSeed(seed))vivid++;if(d.pattern!=='none'&&d.scale<=.6&&d.density<=.22)smallSparse++;assert.deepEqual(d,designForGame(skin));if(d.surface==='smooth')smooth++;if(d.pattern!=='none'){patterned++;assert.equal(d.surface,'smooth');}if(d.gloss>0){glossy++;assert.equal(d.surface,'smooth');assert.equal(d.growthCount,0);assert.ok(d.gloss>=.65&&d.gloss<=.95);}}
+ assert.equal(colors.size,24);assert.ok(vivid>6500&&vivid<7500);assert.ok(smallSparse>1800&&smallSparse<2500);assert.ok(patterned>3500&&patterned<5000);assert.ok(glossy>4200&&glossy<5500);assert.ok(smooth>6500&&smooth<7500);
 });
