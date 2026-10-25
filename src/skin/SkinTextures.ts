@@ -22,6 +22,7 @@ export function makePatternTexture(d:SkinDesign){const c=canvas(),g=c.getContext
     case 'leopard':for(let j=0;j<3;j++){g.beginPath();for(let i=0;i<=12;i++){const a=j*2.1+i/12*1.65,rr=r*(.8+.12*Math.sin(a*5));const xx=Math.cos(a)*rr,yy=Math.sin(a)*rr;i?g.lineTo(xx,yy):g.moveTo(xx,yy);}g.stroke();}break;
     case 'tiger':g.moveTo(-r*1.6,-r*.18);g.bezierCurveTo(-r*.4,-r*.8,r*.2,r*.7,r*1.7,-r*.1);g.bezierCurveTo(r*.2,r*1.1,-r*.5,-r*.05,-r*1.6,-r*.18);g.fill();break;
     case 'hearts':g.moveTo(0,r);g.bezierCurveTo(-r*1.8,-r*.2,-r*.7,-r*1.5,0,-r*.55);g.bezierCurveTo(r*.7,-r*1.5,r*1.8,-r*.2,0,r);g.fill();break;
+    case 'lightning':g.moveTo(r*.1,-r*1.35);g.lineTo(-r*.85,r*.13);g.lineTo(-r*.05,r*.02);g.lineTo(-r*.35,r*1.35);g.lineTo(r*.95,-r*.4);g.lineTo(r*.2,-r*.25);g.lineTo(r*.65,-r*1.35);g.closePath();g.fill();break;
     case 'diamonds':g.moveTo(0,-r);g.lineTo(r*.7,0);g.lineTo(0,r);g.lineTo(-r*.7,0);g.closePath();g.fill();break;
     case 'scribbles':g.moveTo(-r,r*.5);g.bezierCurveTo(-r*1.4,-r*1.2,r*.9,-r*1.4,r*.35,-r*.1);g.bezierCurveTo(-r*.3,r*.8,-r*.8,-r*.1,0,-r*.3);g.bezierCurveTo(r*.8,-r*.6,r*1.4,r*.7,r*.7,r);g.stroke();break;
    }g.restore();

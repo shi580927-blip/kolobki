@@ -1,8 +1,8 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {defaultDesign,patterns,validateDesign,motifLayout,growthLayout} from '../src/skin/SkinDesign';
-test('all twelve patterns plus solid are available and exported settings round-trip',()=>{
- assert.equal(Object.keys(patterns).length,13);assert.deepEqual(validateDesign(JSON.parse(JSON.stringify(defaultDesign))),defaultDesign);
+test('thirteen patterns plus solid are available and exported settings round-trip',()=>{
+ assert.equal(Object.keys(patterns).length,14);assert.deepEqual(validateDesign(JSON.parse(JSON.stringify(defaultDesign))),defaultDesign);
 });
 test('motif scale and size scatter preserve seeded count and placement independently',()=>{
  const base=motifLayout(defaultDesign),large=motifLayout({...defaultDesign,scale:2,sizeScatter:0});
