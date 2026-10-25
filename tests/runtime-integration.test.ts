@@ -1,0 +1,13 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {Scene,Vector3,Texture} from 'three';
+import {designForGame,gameplayAtlas} from '../src/game/RuntimeAppearance';
+import {skinFrom} from '../src/core/skin';
+import {BerryCollectibles} from '../src/game/BerryCollectibles';
+import {RuntimeFace} from '../src/game/RuntimeVisual';
+import {EventBus} from '../src/core/events';
+import fs from 'node:fs';
+const source=JSON.parse(fs.readFileSync('public/assets/face/animated/atlas.json','utf8'));
+test('runtime appearance preserves saved identity and is deterministic with bounded fur',()=>{const skin=skinFrom(4321),d=designForGame(skin);assert.deepEqual(d,designForGame(skin));assert.equal(d.seed,skin.seed);assert.equal(d.base,skin.color);assert.equal(d.accent,skin.accent);assert.ok(d.furCount<=24);});
+test('ordinary berries collect once across a dash, reset and ignore high passes',()=>{const scene=new Scene(),bus=new EventBus(),berries=new BerryCollectibles(scene,bus),events:number[]=[];bus.on('berry_pickup',e=>events.push(e.count));const position=berries.items[0].mesh.position;berries.checkSegment(position.clone().add(new Vector3(-5,0,0)),position.clone().add(new Vector3(5,0,0)));assert.equal(berries.count,1);berries.checkSegment(position,position);assert.equal(berries.count,1);assert.deepEqual(events,[1]);assert.equal(berries.items[0].mesh.visible,false);berries.reset();berries.checkSegment(position.clone().add(new Vector3(0,8,0)),position.clone().add(new Vector3(1,8,0)));assert.equal(berries.count,0);assert.equal(berries.items[0].mesh.visible,true);});
+test('runtime face uses compact current art, conscious impact and vertical combo then restores its character',()=>{const atlas=gameplayAtlas(source),face=new RuntimeFace(atlas,[new Texture(),new Texture(),new Texture()],'worried');assert.equal(face.expression(),'scared');assert.equal(atlas.poses.sly.parts[0].layout.width/source.poses.sly.parts[0].layout.width,.9);face.impact();face.update(.3,.7);assert.equal(face.expression(),'dazed');face.combo();face.update(.3,.7);assert.equal(face.expression(),'unhinged');assert.equal(face.rig.poses.unhinged.rotation.y,0);face.update(.5,.7);assert.equal(face.immobilized,true);assert.equal(face.expression(),'dizzy');face.update(3,.7);assert.equal(face.immobilized,false);assert.equal(face.expression(),'scared');assert.equal(face.rotation.y,.7);});

@@ -30,7 +30,8 @@ export class SkinSample extends T.Group {
    const geo=new T.LatheGeometry(points,12),mat=new T.MeshStandardMaterial({color:d.growthAccent?d.accent:d.base,roughness:.55});this.growths=new T.InstancedMesh(geo,mat,this.layouts.length);this.growths.castShadow=true;this.growths.frustumCulled=false;this.rollingBody.add(this.growths);
   }this.update(0,false);
  }
- update(dt:number,rolling:boolean){if(rolling)this.angle+=dt*.65;this.rollingBody.rotation.set(this.angle,0,this.angle*.22);this.q.copy(this.rollingBody.quaternion);this.fur?.updateTufts(this.q);
+ update(dt:number,rolling:boolean){if(rolling)this.angle+=dt*.65;this.rollingBody.rotation.set(this.angle,0,this.angle*.22);this.syncDecorations();}
+ syncDecorations(){this.q.copy(this.rollingBody.quaternion);this.fur?.updateTufts(this.q);
   if(this.growths){this.layouts.forEach((p,i)=>{this.dir.fromArray(p.direction);const world=this.worldDir.copy(this.dir).applyQuaternion(this.q);
    // A soft clearance around the independent face prevents organs being buried.
    const clearance=1-T.MathUtils.smoothstep(world.z,.54,.84)*(1-T.MathUtils.smoothstep(Math.abs(world.y),.63,.88));

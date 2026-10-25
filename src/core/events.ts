@@ -1,5 +1,6 @@
 import type { Vector3 } from "three";
 export interface GameEvents {
+  berry_pickup: { position: Vector3; count: number; total: number };
   ring_collected: { position: Vector3; count: number; total: number };
   player_jump: {};
   player_dash: {};

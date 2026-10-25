@@ -53,3 +53,9 @@ test("support contact while rolling does not continuously stun the player", asyn
   events.free();
   world.free();
 });
+
+test('dizzy immobilization holds a ball on a hill and releases input without teleporting',async()=>{
+ await R.init();const world=new R.World({x:0,y:-18,z:0});world.timestep=1/60;const d=terrainData();world.createCollider(R.ColliderDesc.trimesh(d.vertices,d.indices));const player=new PhysicsPlayer(world,new EventBus()),input={x:1,z:0,jump:false,dash:false} as Input;
+ for(let i=0;i<60;i++){player.step(1/60,input,new Vector3(0,0,1));world.step();player.sync();}
+ player.setImmobilized(true);const anchor=player.current.clone();for(let i=0;i<120;i++){player.step(1/60,input,new Vector3(0,0,1));world.step();player.sync();}assert.ok(player.current.distanceTo(anchor)<1e-5);player.setImmobilized(false);for(let i=0;i<60;i++){player.step(1/60,input,new Vector3(0,0,1));world.step();player.sync();}assert.ok(player.current.distanceTo(anchor)>.1);assert.ok(player.current.distanceTo(anchor)<20);world.free();
+});

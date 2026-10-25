@@ -11,6 +11,7 @@ export class PhysicsPlayer {
   prevRotation = new Quaternion();
   rotation = new Quaternion();
   heading = 0;
+  private immobilized=false;
   private jumpCooldown = 0;
   private dashCooldown = 0;
   private impactCooldown = 0;
@@ -23,7 +24,7 @@ export class PhysicsPlayer {
   ) {
     this.body = world.createRigidBody(
       R.RigidBodyDesc.dynamic()
-        .setTranslation(0, heightAt(0, 0) + 2, 0)
+        .setTranslation(0, heightAt(0, 0) + 1.1, 0)
         .setCcdEnabled(true)
         .setLinearDamping(0.25)
         .setAngularDamping(0.3),
@@ -39,8 +40,10 @@ export class PhysicsPlayer {
     );
     this.reset();
   }
+  setImmobilized(value:boolean){if(value===this.immobilized)return;this.immobilized=value;this.body.setBodyType(value?R.RigidBodyType.KinematicPositionBased:R.RigidBodyType.Dynamic,true);this.body.setLinvel({x:0,y:0,z:0},true);this.body.setAngvel({x:0,y:0,z:0},true);this.velocityBeforeStep.set(0,0,0);this.collisionSpeedChange=0;}
   reset() {
-    this.body.setTranslation({ x: 0, y: heightAt(0, 0) + 2, z: 0 }, true);
+    this.setImmobilized(false);
+    this.body.setTranslation({ x: 0, y: heightAt(0, 0) + 1.1, z: 0 }, true);
     this.body.setLinvel({ x: 0, y: 0, z: 0 }, true);
     this.body.setAngvel({ x: 0, y: 0, z: 0 }, true);
     this.current.copy(this.body.translation());
@@ -54,6 +57,7 @@ export class PhysicsPlayer {
     this.jumpCooldown -= dt;
     this.dashCooldown -= dt;
     this.impactCooldown -= dt;
+    if(this.immobilized){this.body.setNextKinematicTranslation(this.current);input.jump=false;input.dash=false;return;}
     const ray = new R.Ray(this.body.translation(), { x: 0, y: -1, z: 0 });
     const hit = this.world.castRay(
       ray,

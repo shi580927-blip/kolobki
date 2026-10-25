@@ -1,23 +1,26 @@
 import "./style.css";
+import {RoomEnvironment} from "three/addons/environments/RoomEnvironment.js";
+import {loadAnimationAtlas} from "./face/AnimatedAtlas";
+import {RuntimeVisual} from "./game/RuntimeVisual";
+import {designForGame,gameplayAtlas} from "./game/RuntimeAppearance";
+import {validateDesign} from "./skin/SkinDesign";
+import {BerryCollectibles} from "./game/BerryCollectibles";
 import * as T from "three";
 import R from "@dimforge/rapier3d-compat";
 import { loadSkin, randomFrom } from "./core/skin";
 import { fit16by9 } from "./core/terrain";
 import { EventBus } from "./core/events";
-import { loadGameFaceTexture } from "./face/GameFaceRig";
-import { FaceState } from "./face/FaceState";
 import { Input } from "./game/Input";
 import { CameraRig } from "./game/CameraRig";
 import { createWorld } from "./game/World";
-import { PlayerVisual } from "./game/PlayerVisual";
 import { PhysicsPlayer } from "./game/PhysicsPlayer";
 import { Effects } from "./game/Effects";
 import { ImpactAudio } from "./game/ImpactAudio";
 import { OrbitInput } from "./game/OrbitInput";
-import { RingCollectibles } from "./game/RingCollectibles";
 async function start() {
   await R.init();
-  const gameFaceTexture = await loadGameFaceTexture();
+  const resources=await loadAnimationAtlas(),atlas=gameplayAtlas(resources.data);
+  const appearanceTest=new URLSearchParams(location.search).has("skin-test");
   const stage = document.querySelector<HTMLElement>("#stage")!,
     hud = document.querySelector<HTMLElement>("#hud")!,
     notice = document.querySelector<HTMLElement>("#notice")!;
@@ -54,7 +57,7 @@ async function start() {
   createWorld(scene, world);
   const bus = new EventBus();
   const audio = new ImpactAudio();
-  const rings = new RingCollectibles(scene, bus);
+  const berries = new BerryCollectibles(scene, bus);
   const player = new PhysicsPlayer(world, bus);
   let storage: Storage;
   try {
@@ -66,8 +69,10 @@ async function start() {
     storage,
     () => crypto.getRandomValues(new Uint32Array(1))[0],
   );
-  const face = new FaceState(skin.mood, randomFrom(skin.seed + 17));
-  const visual = new PlayerVisual(skin, face, undefined, gameFaceTexture);
+  let design=designForGame(skin);
+  if(appearanceTest){try{const saved=storage.getItem('sharobesy.author.skin-study.v1');if(saved)design=validateDesign(JSON.parse(saved));}catch{/* Invalid author config does not change the player. */}}
+  function environmentFor(r:T.WebGLRenderer){if(design.gloss<=0||design.surface!=='smooth'||design.growthCount>0)return undefined;const room=new RoomEnvironment(),pmrem=new T.PMREMGenerator(r),texture=pmrem.fromScene(room,.04).texture;room.dispose();pmrem.dispose();return texture;}
+  const visual=new RuntimeVisual(design,atlas,resources.textures,skin.mood,environmentFor(renderer));
   scene.add(visual);
   const input = new Input(),
     effects = new Effects(scene);
@@ -87,35 +92,39 @@ async function start() {
   const portraitLight = new T.DirectionalLight(0xfff1de, 2);
   portraitLight.position.set(-3, 4, 5);
   portraitScene.add(portraitLight);
-  const portraitVisual = new PlayerVisual(skin, face, undefined, gameFaceTexture);
+  const portraitVisual=new RuntimeVisual({...design,furCount:Math.min(design.furCount,24)},atlas,resources.textures,skin.mood,environmentFor(portraitRenderer));
   portraitScene.add(portraitVisual);
   const portraitCamera = new T.PerspectiveCamera(38, 1, 0.1, 10);
   portraitCamera.position.set(0, 0.1, 3.9);
   portraitCamera.lookAt(0, 0, 0);
-  bus.on("player_jump", () => face.react("joy", 0.5));
-  bus.on("player_dash", () => face.react("rage", 0.65));
+  const faces=[visual.face,portraitVisual.face];
+  const react=(name:string)=>faces.forEach(f=>f.play(name));
+  bus.on("player_jump",()=>react("happy"));
+  bus.on("player_dash",()=>react("fury"));
+  let impactWindow=0,impactCount=0;
+  bus.on("combo",()=>faces.forEach(f=>f.combo()));
   bus.on("impact_major", ({ position }) => {
     effects.burst(position);
     audio.play();
     rig.shake = 0.25;
-    face.knockOut(0.75);
+    const now=performance.now()/1000;impactCount=now-impactWindow<3?impactCount+1:1;impactWindow=now;if(impactCount>=3){bus.emit("combo",{count:impactCount});impactCount=0;}else react("dazed");
   });
   bus.on("face_unhinged", () => {
     visual.face.impact();
     portraitVisual.face.impact();
   });
-  const ringCount = document.querySelector<HTMLElement>("#ring-count")!;
-  const updateRingCount = () => {
-    ringCount.textContent =
-      `Кольца: ${rings.count} / ${rings.total}` +
-      (rings.count === rings.total ? " · Все собраны!" : "");
+  const berryCount = document.querySelector<HTMLElement>("#berry-count")!;
+  const updateBerryCount = () => {
+    berryCount.textContent =
+      `Ягоды: ${berries.count} / ${berries.total}` +
+      (berries.count === berries.total ? " · Все собраны!" : "");
   };
-  updateRingCount();
-  bus.on("ring_collected", ({ position }) => {
-    updateRingCount();
+  updateBerryCount();
+  bus.on("berry_pickup", ({ position }) => {
+    updateBerryCount();
     effects.sparkle(position);
     audio.collect();
-    face.react("joy", 0.6);
+    react("happy");
   });
   const cameraButton = document.querySelector<HTMLButtonElement>("#camera")!;
   function setCamera(n: number) {
@@ -140,9 +149,10 @@ async function start() {
   });
   document.querySelector<HTMLButtonElement>("#reset")!.onclick = () => {
     player.reset();
-    rings.reset();
-    updateRingCount();
+    berries.reset();impactCount=0;faces.forEach(f=>{f.rig.combo.phase="IDLE";f.rig.clock.phase="IDLE";});
+    updateBerryCount();
   };
+  if(appearanceTest){const button=document.createElement('button');button.textContent='Проба комбо';button.onclick=()=>bus.emit('combo',{count:3});document.querySelector('#tools')!.appendChild(button);}
   const resize = () => {
     const fit = fit16by9(innerWidth, innerHeight);
     stage.style.width = fit.width + "px";
@@ -196,10 +206,11 @@ async function start() {
     acc += elapsed;
     let steps = 0;
     while (acc >= dt && steps < 6) {
+      player.setImmobilized(visual.face.immobilized);
       player.step(dt, input, direction);
       world.step(events);
       player.sync();
-      rings.checkSegment(player.previous, player.current);
+      berries.checkSegment(player.previous, player.current);
       events.drainContactForceEvents((e) => {
         if (
           e.collider1() === player.collider.handle ||
@@ -217,10 +228,10 @@ async function start() {
       player.rotation,
       alpha,
     );
-    face.update(elapsed);
     visual.face.update(elapsed, player.heading);
     portraitVisual.face.update(elapsed, 0);
     portraitVisual.rollingBody.quaternion.copy(visual.rollingBody.quaternion);
+    visual.updateDecorations();portraitVisual.updateDecorations();
     rig.update(visual.position, player.heading, elapsed);
     effects.update(elapsed);
     sun.position.copy(visual.position).add(new T.Vector3(-25, 45, 20));
@@ -234,7 +245,7 @@ async function start() {
       fpsTime = now;
       const v = player.body.linvel();
       document.querySelector("#diagnostics")!.textContent =
-        `FPS ${fps.toFixed(0)} | speed ${Math.hypot(v.x, v.z).toFixed(1)}\ncam ${rig.names[rig.mode]} | seed ${skin.seed}\nmood ${face.baseMood} | ${face.stun > 0 ? "STUN" : face.phase}\n~ toggles diagnostics`;
+        `FPS ${fps.toFixed(0)} | speed ${Math.hypot(v.x, v.z).toFixed(1)}\ncam ${rig.names[rig.mode]} | seed ${skin.seed}\nmood ${skin.mood} | ${visual.face.rig.combo.phase!=="IDLE"?visual.face.rig.combo.phase:visual.face.rig.clock.phase}\n~ toggles diagnostics`;
     }
     requestAnimationFrame(frame);
   }
@@ -248,7 +259,8 @@ async function start() {
       facePose: visual.face.expression(),
       portraitPose: portraitVisual.face.expression(),
       faceEyes: visual.face.eyes.map(e => e.visible),
-      faceArt: "approved-three-expressions",
+      faceArt: "animated-atlas-v03",
+      design,appearanceTest,faceScale:.9,comboPhase:visual.face.rig.combo.phase,immobilized:visual.face.immobilized,
       heading: player.heading,
       velocity: { ...player.body.linvel() },
       viewForward: direction.toArray(),
@@ -258,9 +270,9 @@ async function start() {
       orbitYaw: rig.orbitYaw,
       orbitPitch: rig.orbitPitch,
       fps,
-      stun: face.stun,
-      phase: face.phase,
-      rings: { count: rings.count, total: rings.total },
+      stun: visual.face.immobilized?1:0,
+      phase: visual.face.rig.clock.phase,
+      berries: {count:berries.count,total:berries.total,positions:berries.items.filter(i=>!i.collected).map(i=>i.mesh.position.toArray())},
       input: { x: input.x, z: input.z },
     }),
   });

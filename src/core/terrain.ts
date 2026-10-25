@@ -1,11 +1,14 @@
 export const WORLD_SIZE = 180;
 export function heightAt(x: number, z: number) {
-  return (
+  const natural = (
     3.8 * Math.sin(x / 19) * Math.cos(z / 23) +
     2.4 * Math.sin(z / 12) +
     1.5 * Math.cos((x + z) / 15) +
     5 * Math.exp(-((x - 30) ** 2 + (z + 20) ** 2) / 500)
   );
+  // Quiet starting patch, then a smooth transition to the existing broad hills.
+  const distance=Math.hypot(x,z),t=Math.max(0,Math.min(1,(distance-5)/7)),blend=t*t*(3-2*t),spawn=1.5+5*Math.exp(-2.6);
+  return spawn*(1-blend)+natural*blend;
 }
 /** Shared vertices and indices: rendering and collision use identical triangles. */
 export function terrainData(segments = 90) {
