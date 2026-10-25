@@ -3,6 +3,8 @@ import {StudyFaceRig,type StudyExpression} from '../face/StudyFaceRig';
 import {growthLayout,type SkinDesign} from './SkinDesign';
 import {makePatternTexture} from './SkinTextures';
 import {makeCellGeometry} from './SurfaceCells';
+import {applyLayout,readLayout,scaleLayoutAboutCenter} from '../face/FaceLayout';
+export const SKIN_STUDY_FACE_SCALE=.9;
 export class SkinSample extends T.Group {
  readonly rollingBody=new T.Group();readonly face:StudyFaceRig;
  private cells:T.Mesh<T.BufferGeometry,T.MeshStandardMaterial>|null=null;
@@ -12,7 +14,7 @@ export class SkinSample extends T.Group {
  private dummy=new T.Object3D();private dir=new T.Vector3();private worldDir=new T.Vector3();private axis=new T.Vector3(0,1,0);private q=new T.Quaternion();
  private angle=0;
  constructor(readonly faceTexture:T.Texture,expression:StudyExpression='sly'){
-  super();this.body=new T.Mesh(new T.SphereGeometry(1,80,56),new T.MeshStandardMaterial({roughness:.55,metalness:0}));this.body.castShadow=true;this.body.receiveShadow=true;this.rollingBody.add(this.body);this.add(this.rollingBody);this.face=new StudyFaceRig(faceTexture,expression);this.add(this.face);
+  super();this.body=new T.Mesh(new T.SphereGeometry(1,80,56),new T.MeshStandardMaterial({roughness:.55,metalness:0}));this.body.castShadow=true;this.body.receiveShadow=true;this.rollingBody.add(this.body);this.add(this.rollingBody);this.face=new StudyFaceRig(faceTexture,expression);applyLayout(this.face,scaleLayoutAboutCenter(readLayout(this.face),SKIN_STUDY_FACE_SCALE));this.add(this.face);
  }
  apply(d:SkinDesign){const material=this.body.material;material.map?.dispose();material.map=d.surface==='smooth'?makePatternTexture(d):null;material.color.set(d.surface==='smooth'?'#ffffff':d.base);material.needsUpdate=true;
   if(this.cells){this.rollingBody.remove(this.cells);this.cells.geometry.dispose();this.cells.material.dispose();this.cells=null;}

@@ -43,3 +43,12 @@ export function applyLayout(face:StudyFaceRig,layout:FaceLayout){
   }
  }
 }
+
+/** Scale the whole assembly about its existing projected bounding-box center. */
+export function scaleLayoutAboutCenter(layout:FaceLayout,factor:number):FaceLayout {
+ if(!Number.isFinite(factor)||factor<=0||factor>2)throw Error('Некорректный масштаб лица');
+ let minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity;
+ for(const l of Object.values(layout)){const c=Math.abs(Math.cos(l.angle)),s=Math.abs(Math.sin(l.angle)),rx=(l.width*c+l.height*s)/2,ry=(l.width*s+l.height*c)/2;minX=Math.min(minX,l.x-rx);maxX=Math.max(maxX,l.x+rx);minY=Math.min(minY,l.y-ry);maxY=Math.max(maxY,l.y+ry);}
+ const cx=(minX+maxX)/2,cy=(minY+maxY)/2;
+ return Object.fromEntries(PART_KEYS.map(key=>{const l=layout[key];return[key,{...l,x:cx+(l.x-cx)*factor,y:cy+(l.y-cy)*factor,width:l.width*factor,height:l.height*factor}];})) as FaceLayout;
+}
