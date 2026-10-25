@@ -46,3 +46,10 @@ test('fear reuses surprised eyes exactly; conscious dazed keeps both eyes open',
  assert.deepEqual(eyes('scared'),eyes('shocked'));
  assert.deepEqual(eyes('dazed'),eyes('shocked'));
 });
+
+test('pride crops exclude the two neighboring brow fragments without changing layout',()=>{
+ const rig=new AnimatedAtlasRig(atlas,[new Texture(),new Texture(),new Texture()]);
+ const brows=rig.poses.proud.children.filter(o=>o.name.startsWith('study-brow-')) as any[];
+ assert.deepEqual(brows.map(b=>b.material.uniforms.trim.value),[2,3]);
+ brows.forEach((b,i)=>assert.deepEqual(b.userData.part.layout,atlas.poses.proud.parts[i].layout));
+});
