@@ -19,3 +19,9 @@ test('growth count is exact, directions are spherical and adding growths preserv
 test('imports reject corrupt, unlimited or nonfinite settings instead of silently changing a design',()=>{
  for(const patch of [{version:2},{base:'red'},{pattern:'unknown'},{pattern:'toString'},{growthCount:241},{growthCount:1.5},{seed:-1},{scale:NaN},{surface:'metal'},{growthAccent:'yes'}])assert.throws(()=>validateDesign({...defaultDesign,...patch}));
 });
+
+test('legacy long details load with small caps while seed, colours and pattern stay intact',()=>{
+ const old={...defaultDesign,furLength:.3,growthSize:.34,growthScatter:.7,growthCount:240};
+ const small=validateDesign(old);assert.equal(small.furLength,.1);assert.equal(small.growthSize,.12);assert.equal(small.seed,old.seed);assert.equal(small.base,old.base);assert.equal(small.pattern,old.pattern);
+ assert.ok(growthLayout(old).every(p=>p.size<=.12));
+});

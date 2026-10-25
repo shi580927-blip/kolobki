@@ -1,7 +1,7 @@
 import * as T from 'three';
 import {randomFrom} from '../core/skin';
 import {applyTipColors} from './TipColors';
-import type {SkinDesign} from './SkinDesign';
+import {limitProtrusions,DETAIL_LIMITS,type SkinDesign} from './SkinDesign';
 export function furLayout(d:SkinDesign){const r=randomFrom(d.seed^0x6fa21);return Array.from({length:d.furCount},(_,i)=>{const y=r()*2-1,a=r()*Math.PI*2,z=Math.sqrt(1-y*y);return{direction:(i===0?[.6,.8,0]:[Math.cos(a)*z,y,Math.sin(a)*z]) as [number,number,number],size:1+(r()*2-1)*d.furScatter*.65,twist:r()*Math.PI*2};});}
 /** Small curved tapered fibres give tufts volume without a solid cone silhouette. */
 export function makeFurGeometry(seed:number){const r=randomFrom(seed^0x3421),positions:number[]=[],colors:number[]=[],indices:number[]=[];
@@ -15,10 +15,10 @@ export function makeFurGeometry(seed:number){const r=randomFrom(seed^0x3421),pos
 }
 export class FurTufts extends T.InstancedMesh<T.BufferGeometry,T.MeshStandardMaterial>{
  private layout:ReturnType<typeof furLayout>;private dummy=new T.Object3D();private direction=new T.Vector3();private world=new T.Vector3();private tuftAxis=new T.Vector3(0,1,0);private twist=new T.Quaternion();
- constructor(readonly design:SkinDesign){const geometry=makeFurGeometry(design.seed);applyTipColors(geometry,design.base,design.accent,i=>T.MathUtils.smoothstep(Math.floor(i/5)%6/5,.55,1));super(geometry,new T.MeshStandardMaterial({color:0xffffff,roughness:.9,vertexColors:true}),design.furCount);this.layout=furLayout(design);this.castShadow=true;this.receiveShadow=false;this.frustumCulled=false;this.updateTufts(new T.Quaternion());}
+ constructor(readonly design:SkinDesign){design=limitProtrusions(design);const geometry=makeFurGeometry(design.seed);applyTipColors(geometry,design.base,design.accent,i=>T.MathUtils.smoothstep(Math.floor(i/5)%6/5,.55,1));super(geometry,new T.MeshStandardMaterial({color:0xffffff,roughness:.9,vertexColors:true}),design.furCount);this.layout=furLayout(design);this.castShadow=true;this.receiveShadow=false;this.frustumCulled=false;this.updateTufts(new T.Quaternion());}
  updateTufts(bodyRotation:T.Quaternion){this.layout.forEach((tuft,i)=>{this.direction.fromArray(tuft.direction).normalize();this.world.copy(this.direction).applyQuaternion(bodyRotation);
   const clear=1-T.MathUtils.smoothstep(this.world.z,.48,.8)*(1-T.MathUtils.smoothstep(Math.abs(this.world.y),.58,.86));
-  const width=this.design.furLength*(this.design.surface==='fuzz'?2.3:1.8)*tuft.size,height=this.design.furLength*(this.design.surface==='fuzz'?.48:1.5)*tuft.size;
+  const width=this.design.furLength*(this.design.surface==='fuzz'?2.3:1.8)*tuft.size,height=Math.min(DETAIL_LIMITS.furHeight,this.design.furLength*(this.design.surface==='fuzz'?.48:1.5)*tuft.size);
   this.dummy.position.copy(this.direction).multiplyScalar(.992);this.dummy.quaternion.setFromUnitVectors(this.tuftAxis,this.direction);this.twist.setFromAxisAngle(this.tuftAxis,tuft.twist);this.dummy.quaternion.multiply(this.twist);this.dummy.scale.set(width*clear,height*clear,width*clear);this.dummy.updateMatrix();this.setMatrixAt(i,this.dummy.matrix);
  });this.instanceMatrix.needsUpdate=true;}
  release(){this.geometry.dispose();this.material.dispose();this.dispose();}

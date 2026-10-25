@@ -58,3 +58,21 @@ test('combo face and its motion trail orbit vertically rather than around the eq
  const rig=new AnimatedAtlasRig(atlas,[new Texture(),new Texture(),new Texture()]);rig.playCombo();rig.update(.1);assert.equal(atlas.combo.axis,'x');assert.equal(rig.poses.unhinged.rotation.x,rig.combo.angle);assert.equal(rig.poses.unhinged.rotation.y,0);
  const poseGroups=new Set(Object.values(rig.poses));const trails=rig.children.filter(o=>!poseGroups.has(o as any)&&o!==rig.dazedStars);assert.equal(trails.length,atlas.combo.trailCopies);assert.ok(trails.every(t=>t.rotation.x!==0&&t.rotation.y===0));
 });
+
+test('combo interrupts a held reaction and restores an opaque base without another event',()=>{
+ const rig=new AnimatedAtlasRig(atlas,[new Texture(),new Texture(),new Texture()]);
+ for(let cycle=0;cycle<4;cycle++){
+  rig.play('dazed');rig.update(.3);assert.equal(rig.clock.weight,1);
+  rig.playCombo();rig.update(.15);assert.equal(rig.expression,'unhinged');
+  rig.update(4);assert.equal(rig.expression,'sly');
+  assert.equal(rig.poses.sly.visible,true,'base must be visible after combo');
+  for(const part of rig.poses.sly.children.filter(o=>o.name.startsWith('study-')) as any[])assert.equal(part.material.uniforms.opacity.value,1);
+  rig.update(10);assert.equal(rig.poses.sly.visible,true,'must stay visible without a jump or berry');
+ }
+});
+
+test('reset during dizziness clears the physical stop and stale expression weight',()=>{
+ const rig=new AnimatedAtlasRig(atlas,[new Texture(),new Texture(),new Texture()]);
+ rig.play('happy');rig.update(.3);rig.playCombo();rig.update(.8);assert.equal(rig.combo.stop,true);
+ rig.reset();assert.equal(rig.combo.phase,'IDLE');assert.equal(rig.combo.stop,false);assert.equal(rig.clock.weight,0);assert.equal(rig.poses.sly.visible,true);
+});

@@ -1,6 +1,6 @@
 import * as T from 'three';
 import {StudyFaceRig,type StudyExpression} from '../face/StudyFaceRig';
-import {growthLayout,type SkinDesign} from './SkinDesign';
+import {growthLayout,limitProtrusions,type SkinDesign} from './SkinDesign';
 import {makePatternTexture} from './SkinTextures';
 import {makeCellGeometry} from './SurfaceCells';
 import {applyTipColors} from './TipColors';
@@ -19,7 +19,7 @@ export class SkinSample extends T.Group {
  constructor(readonly faceTexture:T.Texture,expression:StudyExpression='sly',readonly glossEnvironment?:T.Texture){
   super();this.body=new T.Mesh(new T.SphereGeometry(1,80,56),new T.MeshPhysicalMaterial({roughness:.55,metalness:0}));this.body.castShadow=true;this.body.receiveShadow=true;this.rollingBody.add(this.body);this.add(this.rollingBody);this.face=new StudyFaceRig(faceTexture,expression);applyLayout(this.face,scaleLayoutAboutCenter(readLayout(this.face),SKIN_STUDY_FACE_SCALE));this.add(this.face);
  }
- apply(d:SkinDesign){const material=this.body.material;material.map?.dispose();material.map=d.surface==='smooth'?makePatternTexture(d):null;material.color.set(d.surface==='smooth'?'#ffffff':d.base);const gloss=d.surface==='smooth'&&d.growthCount===0?d.gloss:0;material.roughness=.62-gloss*.43;const physical=material as T.MeshPhysicalMaterial;physical.envMap=gloss>0?(this.glossEnvironment??null):null;physical.envMapIntensity=.65;physical.clearcoat=gloss;physical.clearcoatRoughness=.18;material.needsUpdate=true;
+ apply(d:SkinDesign){d=limitProtrusions(d);const material=this.body.material;material.map?.dispose();material.map=d.surface==='smooth'?makePatternTexture(d):null;material.color.set(d.surface==='smooth'?'#ffffff':d.base);const gloss=d.surface==='smooth'&&d.growthCount===0?d.gloss:0;material.roughness=.62-gloss*.43;const physical=material as T.MeshPhysicalMaterial;physical.envMap=gloss>0?(this.glossEnvironment??null):null;physical.envMapIntensity=.65;physical.clearcoat=gloss;physical.clearcoatRoughness=.18;material.needsUpdate=true;
   if(this.cells){this.rollingBody.remove(this.cells);this.cells.geometry.dispose();this.cells.material.dispose();this.cells=null;}
   if(this.fur){this.rollingBody.remove(this.fur);this.fur.release();this.fur=null;}
   this.body.scale.setScalar(1);
@@ -32,7 +32,9 @@ export class SkinSample extends T.Group {
   }this.update(0,false);
  }
  update(dt:number,rolling:boolean){if(rolling)this.angle+=dt*.65;this.rollingBody.rotation.set(this.angle,0,this.angle*.22);this.syncDecorations();}
- syncDecorations(){this.q.copy(this.rollingBody.quaternion);this.fur?.updateTufts(this.q);
+ syncDecorations(faceOrientation?:T.Quaternion){
+  // Decoration directions must be evaluated in the current face frame, not world +Z.
+  this.q.copy(faceOrientation??this.face.quaternion).invert().multiply(this.rollingBody.quaternion);this.fur?.updateTufts(this.q);
   if(this.growths){this.layouts.forEach((p,i)=>{this.dir.fromArray(p.direction);const world=this.worldDir.copy(this.dir).applyQuaternion(this.q);
    // A soft clearance around the independent face prevents organs being buried.
    const clearance=1-T.MathUtils.smoothstep(world.z,.54,.84)*(1-T.MathUtils.smoothstep(Math.abs(world.y),.63,.88));

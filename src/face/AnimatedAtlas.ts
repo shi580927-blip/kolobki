@@ -38,7 +38,8 @@ export class AnimatedAtlasRig extends T.Group {
  this.update(0);
  }
  play(name:string){if(!this.atlas.poses[name])throw Error('Unknown expression');this.target=name;this.clock.play(this.atlas.clips[name]);}
- playCombo(){this.clock.phase='IDLE';this.combo.play();}
+ reset(){this.clock.reset();this.combo.reset();this.target=this.base;this.blinkStart=-1;this.forcedBlink=false;this.update(0);}
+ playCombo(){this.clock.reset();this.combo.play();}
  private project(mesh:Feature,dx:number,dy:number,sx:number,sy:number,angle:number){const l=(mesh.userData.part as AtlasPart).layout,p=mesh.geometry.attributes.position,uv=mesh.geometry.attributes.uv,c=Math.cos(l.angle+angle),s=Math.sin(l.angle+angle);for(let i=0;i<p.count;i++){const u=(uv.getX(i)-.5)*l.width*sx,v=(uv.getY(i)-.5)*l.height*sy,x=l.x+dx+u*c-v*s,y=l.y+dy+u*s+v*c;p.setXYZ(i,x,y,Math.sqrt(Math.max(.001,1-x*x-y*y))+.025);}p.needsUpdate=true;mesh.geometry.computeBoundingSphere();}
  get blink(){if(this.forcedBlink)return 1;if(this.blinkStart<0)return 0;const t=this.time-this.blinkStart,b=this.atlas.blink;return t<b.close?t/b.close:t<b.close+b.closed?1:Math.max(0,1-(t-b.close-b.closed)/b.open);}
  get expression(){return this.combo.phase==='ORBIT'?'unhinged':this.combo.phase==='DIZZY'?'dizzy':this.clock.phase==='IDLE'?this.base:this.target;}
@@ -48,7 +49,7 @@ export class AnimatedAtlasRig extends T.Group {
  const combo=this.combo.phase!=='IDLE',name=this.expression,w=this.clock.weight;
  const recover=this.combo.phase==='RECOVER'?T.MathUtils.clamp((this.combo.elapsed-this.combo.orbit-this.combo.dizzy)/this.combo.recover,0,1):0;
  for(const [key,group] of Object.entries(this.poses)){
-  const opacity=combo?(this.combo.phase==='RECOVER'?(key===this.base?recover:key==='dizzy'?1-recover:0):key===name?1:0):(this.target===this.base&&key===this.base?1:key===this.target&&this.clock.phase!=='IDLE'?w:key===this.base?1-w:0);
+  const opacity=combo?(this.combo.phase==='RECOVER'?(key===this.base?recover:key==='dizzy'?1-recover:0):key===name?1:0):(this.clock.phase==='IDLE'?(key===this.base?1:0):this.target===this.base&&key===this.base?1:key===this.target?w:key===this.base?1-w:0);
   group.visible=opacity>.005;if(!group.visible)continue;group.rotation.set(0,0,0);
   const blink=this.atlas.poses[key].blink&&this.combo.phase!=='ORBIT'?this.blink:0;
   for(const part of this.parts[key]){const source=part.userData.part as AtlasPart,kind=source.channel;

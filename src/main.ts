@@ -152,7 +152,7 @@ async function start() {
   });
   document.querySelector<HTMLButtonElement>("#reset")!.onclick = () => {
     player.reset();
-    berries.reset();impactCount=0;faces.forEach(f=>{f.rig.combo.phase="IDLE";f.rig.clock.phase="IDLE";});
+    berries.reset();impactCount=0;faces.forEach(f=>f.rig.reset());
     updateBerryCount();
   };
   if(appearanceTest){const button=document.createElement('button');button.textContent='Проба комбо';button.onclick=()=>bus.emit('combo',{count:3});document.querySelector('#tools')!.appendChild(button);}
@@ -264,6 +264,7 @@ async function start() {
       portraitPose: portraitVisual.face.expression(),
       faceEyes: visual.face.eyes.map(e => e.visible),
       faceArt: "animated-atlas-v03",
+      faceVisibility: Object.entries(visual.face.rig.poses).filter(([,g])=>g.visible).map(([name,g])=>({name,rotation:g.rotation.toArray(),opacity:(g.children.find(o=>o.name.startsWith('study-')) as T.Mesh<T.BufferGeometry,T.ShaderMaterial>).material.uniforms.opacity.value})),
       design,appearanceTest,faceScale:.9,comboPhase:visual.face.rig.combo.phase,immobilized:visual.face.immobilized,
       heading: player.heading,
       velocity: { ...player.body.linvel() },

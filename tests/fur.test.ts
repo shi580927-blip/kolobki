@@ -8,7 +8,7 @@ test('ragged fur is seeded, bounded and made of many curved strands',()=>{
  const tufts=new FurTufts(d);tufts.updateTufts(new Quaternion().setFromAxisAngle({x:1,y:0,z:0} as any,1));assert.ok(Array.from(tufts.instanceMatrix.array).every(Number.isFinite));assert.equal(tufts.count,64);tufts.release();
 });
 test('existing author JSON gets fur defaults; bad fur values are rejected',()=>{
- const old:any={...defaultDesign};delete old.furCount;delete old.furLength;delete old.furScatter;const read=validateDesign(old);assert.equal(read.furCount,64);assert.equal(read.furLength,.16);
+ const old:any={...defaultDesign};delete old.furCount;delete old.furLength;delete old.furScatter;const read=validateDesign(old);assert.equal(read.furCount,64);assert.equal(read.furLength,.08);
  for(const patch of [{furCount:161},{furCount:1.1},{furLength:NaN},{furScatter:-1}])assert.throws(()=>validateDesign({...defaultDesign,...patch}));
  assert.ok(patterns.lightning);for(const surface of ['fuzz','shaggy'])assert.equal(validateDesign({...defaultDesign,surface}).surface,surface);
 });
