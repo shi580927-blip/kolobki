@@ -40,6 +40,29 @@ const { chromium } = require("playwright");
   await page.mouse.up({ button: "left" });
   if (await page.evaluate(() => window.__SHAROBESY__.freeOrbit))
     throw Error("left drag must not orbit");
+  const pad=page.locator('#camera-pad'), box=await pad.boundingBox();
+  await page.mouse.move(box.x+box.width/2,box.y+box.height/2);
+  await page.mouse.down();await page.mouse.move(box.x+20,box.y+30,{steps:6});await page.mouse.up();
+  const rightDrag=await page.evaluate(()=>window.__SHAROBESY__);
+  if(!rightDrag.freeOrbit)throw Error('right look pad mouse drag failed');
+  await page.keyboard.press('Digit1');
+  const cdp=await page.context().newCDPSession(page);
+  await cdp.send('Emulation.setTouchEmulationEnabled',{enabled:true,maxTouchPoints:5});
+  const joystick=await page.locator('#stick').boundingBox(),sx=joystick.x+joystick.width/2,sy=joystick.y+joystick.height/2;
+  await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{id:1,x:sx,y:sy},{id:2,x:box.x+100,y:box.y+150}]});
+  await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{id:1,x:sx,y:sy-45},{id:2,x:box.x+30,y:box.y+110}]});
+  await page.waitForTimeout(150);const together=await page.evaluate(()=>window.__SHAROBESY__);
+  if(!together.freeOrbit||together.input.z>-.5)throw Error('simultaneous movement/look failed');
+  await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+  await page.waitForTimeout(100);const ended=await page.evaluate(()=>window.__SHAROBESY__);
+  if(Math.abs(ended.input.z)>.001)throw Error('touch movement stuck');
+  await page.screenshot({path:'test-results/camera-right-pad.png'});
+  await page.keyboard.press('Digit1');
+  await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{id:2,x:box.x+100,y:box.y+150}]});
+  await cdp.send('Input.dispatchTouchEvent',{type:'touchCancel',touchPoints:[]});
+  const canceled=await page.evaluate(()=>window.__SHAROBESY__.orbitYaw);
+  await page.waitForTimeout(100);
+  if(canceled!==await page.evaluate(()=>window.__SHAROBESY__.orbitYaw))throw Error('cancel leaves dragging');
   if (errors.length) throw Error(errors.join("\n"));
   console.log(
     JSON.stringify({
@@ -49,6 +72,7 @@ const { chromium } = require("playwright");
       releaseStops: true,
       presetRestored: true,
       leftDragIgnored: true,
+      rightPadMouse:true,simultaneousTouchLookAndMove:true,touchRelease:true,
       errors,
     }),
   );

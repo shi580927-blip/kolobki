@@ -36,3 +36,13 @@ test("orbit pitch is constrained and invalid input cannot poison camera", () => 
   rig.orbit(1, Infinity);
   assert.ok(Number.isFinite(rig.orbitPitch));
 });
+
+test("rear heading has weight, takes shortest arc and settles without snapping",()=>{
+ const rig=new CameraRig(new PerspectiveCamera()),p=new Vector3(0,4,0);
+ rig.update(p,Math.PI-.05,1/60);rig.update(p,-Math.PI+.05,1/60);
+ assert.ok(rig.followYaw!>Math.PI-.05&&rig.followYaw!<Math.PI+.05);
+ rig.setMode(0);rig.update(p,0,1/60);rig.update(p,Math.PI,1/60);
+ assert.ok(rig.followYaw!>0&&rig.followYaw!<.15);
+ for(let i=0;i<240;i++)rig.update(p,Math.PI,1/60);
+ assert.ok(Math.abs(rig.followYaw!-Math.PI)<.01);
+});

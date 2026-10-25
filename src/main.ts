@@ -139,6 +139,9 @@ async function start() {
       cameraButton.textContent = "Камера: свободная · 1–4 вернуть";
     },
   );
+  new OrbitInput(document.querySelector<HTMLElement>("#camera-pad")!, rig, () => visual.position, () => {
+    cameraButton.textContent = "Камера: свободная · 1–4 вернуть";
+  }, true);
   cameraButton.onclick = () => setCamera((rig.mode + 1) % 4);
   addEventListener("keydown", (e) => {
     if (["Digit1", "Digit2", "Digit3", "Digit4"].includes(e.code))
@@ -232,7 +235,8 @@ async function start() {
     portraitVisual.face.update(elapsed, 0);
     portraitVisual.rollingBody.quaternion.copy(visual.rollingBody.quaternion);
     visual.updateDecorations();portraitVisual.updateDecorations();
-    rig.update(visual.position, player.heading, elapsed);
+    const cameraVelocity = player.body.linvel();
+    rig.update(visual.position, player.heading, elapsed, Math.hypot(cameraVelocity.x, cameraVelocity.z));
     effects.update(elapsed);
     sun.position.copy(visual.position).add(new T.Vector3(-25, 45, 20));
     sun.target.position.copy(visual.position);
@@ -268,6 +272,7 @@ async function start() {
       camera: rig.mode,
       freeOrbit: rig.freeOrbit,
       orbitYaw: rig.orbitYaw,
+      followYaw: rig.followYaw,
       orbitPitch: rig.orbitPitch,
       fps,
       stun: visual.face.immobilized?1:0,

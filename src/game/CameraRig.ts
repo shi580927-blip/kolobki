@@ -7,9 +7,12 @@ export class CameraRig {
   orbitYaw = 0;
   orbitPitch = 0.45;
   private orbitDistance = 11;
+  followYaw: number | null = null;
+  private followDistance = 10;
   setMode(mode: number) {
     this.mode = mode;
     this.freeOrbit = false;
+    this.followYaw = null;
   }
   beginOrbit(position: Vector3) {
     if (this.freeOrbit) return;
@@ -35,16 +38,22 @@ export class CameraRig {
   }
   readonly names = ["сзади", "сверху", "сбоку", "спереди"];
   constructor(readonly camera: PerspectiveCamera) {}
-  update(position: Vector3, heading: number, dt: number) {
+  update(position: Vector3, heading: number, dt: number, speed = 0) {
+    dt = Math.max(0, Math.min(dt, 1));
+    if (this.followYaw === null) this.followYaw = heading;
+    const angle = Math.atan2(Math.sin(heading - this.followYaw), Math.cos(heading - this.followYaw));
+    // Heading lags separately from translation: a quick turn reveals the face.
+    this.followYaw += angle * (1 - Math.exp(-1.8 * dt));
+    this.followDistance += (10 + Math.min(2, Math.max(0, speed) * .1) - this.followDistance) * (1 - Math.exp(-2 * dt));
     const offsets = [
-      new Vector3(0, 5.2, -10),
+      new Vector3(0, 5.2, -this.followDistance),
       new Vector3(0, 15, -8),
       new Vector3(11, 5, 0),
       new Vector3(0, 4, 9),
     ];
     const offset = offsets[this.mode].applyAxisAngle(
       new Vector3(0, 1, 0),
-      heading,
+      this.mode === 0 ? this.followYaw : heading,
     );
     if (this.freeOrbit) {
       const horizontal = Math.cos(this.orbitPitch) * this.orbitDistance;

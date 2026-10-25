@@ -12,3 +12,8 @@ test('existing author JSON gets fur defaults; bad fur values are rejected',()=>{
  for(const patch of [{furCount:161},{furCount:1.1},{furLength:NaN},{furScatter:-1}])assert.throws(()=>validateDesign({...defaultDesign,...patch}));
  assert.ok(patterns.lightning);for(const surface of ['fuzz','shaggy'])assert.equal(validateDesign({...defaultDesign,surface}).surface,surface);
 });
+
+test('fur uses base roots and accent tips in the same mesh',()=>{
+ const d={...defaultDesign,base:'#000000',accent:'#ffffff',surface:'shaggy' as const},fur=new FurTufts(d),c=fur.geometry.attributes.color;
+ assert.equal(c.getX(0),0);assert.equal(c.getX(25),1);assert.ok(c.getX(20)>0&&c.getX(20)<1);fur.release();
+});

@@ -3,6 +3,7 @@ import {StudyFaceRig,type StudyExpression} from '../face/StudyFaceRig';
 import {growthLayout,type SkinDesign} from './SkinDesign';
 import {makePatternTexture} from './SkinTextures';
 import {makeCellGeometry} from './SurfaceCells';
+import {applyTipColors} from './TipColors';
 import {FurTufts} from './FurTufts';
 import {applyLayout,readLayout,scaleLayoutAboutCenter} from '../face/FaceLayout';
 export const SKIN_STUDY_FACE_SCALE=.9;
@@ -27,7 +28,7 @@ export class SkinSample extends T.Group {
   if(this.growths){this.rollingBody.remove(this.growths);this.growths.geometry.dispose();this.growths.material.dispose();this.growths.dispose();this.growths=null;}
   this.layouts=growthLayout(d);
   if(this.layouts.length){const points=d.growthShape==='soft'?[new T.Vector2(0,0),new T.Vector2(.47,.03),new T.Vector2(.50,.17),new T.Vector2(.40,.47),new T.Vector2(.22,.80),new T.Vector2(.08,.96),new T.Vector2(0,1)]:[new T.Vector2(0,0),new T.Vector2(.42,.02),new T.Vector2(.40,.12),new T.Vector2(.20,.65),new T.Vector2(.045,.96),new T.Vector2(0,1)];
-   const geo=new T.LatheGeometry(points,12),mat=new T.MeshStandardMaterial({color:d.growthAccent?d.accent:d.base,roughness:.55});this.growths=new T.InstancedMesh(geo,mat,this.layouts.length);this.growths.castShadow=true;this.growths.frustumCulled=false;this.rollingBody.add(this.growths);
+   const geo=new T.LatheGeometry(points,12);applyTipColors(geo,d.base,d.growthAccent?d.accent:d.base,i=>T.MathUtils.smoothstep(geo.attributes.position.getY(i),.5,.97));const mat=new T.MeshStandardMaterial({color:0xffffff,roughness:.55,vertexColors:true});this.growths=new T.InstancedMesh(geo,mat,this.layouts.length);this.growths.castShadow=true;this.growths.frustumCulled=false;this.rollingBody.add(this.growths);
   }this.update(0,false);
  }
  update(dt:number,rolling:boolean){if(rolling)this.angle+=dt*.65;this.rollingBody.rotation.set(this.angle,0,this.angle*.22);this.syncDecorations();}

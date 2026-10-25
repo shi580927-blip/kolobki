@@ -1,13 +1,14 @@
 import type { Vector3 } from "three";
 import type { CameraRig } from "./CameraRig";
 
-/** Middle-button drag only; touch joystick and primary clicks are untouched. */
+/** Middle drag on the scene, or one captured pointer in the right look pad. */
 export class OrbitInput {
   constructor(
     element: HTMLElement,
     rig: CameraRig,
     position: () => Vector3,
     onOrbit: () => void,
+    primaryDrag = false,
   ) {
     let active: number | null = null,
       lastX = 0,
@@ -21,8 +22,8 @@ export class OrbitInput {
     };
     element.addEventListener("pointerdown", (event) => {
       if (
-        event.pointerType !== "mouse" ||
-        event.button !== 1 ||
+        (!primaryDrag && (event.pointerType !== "mouse" || event.button !== 1)) ||
+        (primaryDrag && event.button !== 0) ||
         active !== null
       )
         return;
@@ -37,7 +38,7 @@ export class OrbitInput {
     });
     element.addEventListener("pointermove", (event) => {
       if (event.pointerId !== active) return;
-      if (!(event.buttons & 4)) {
+      if (!(event.buttons & (primaryDrag ? 1 : 4))) {
         release();
         return;
       }
@@ -51,7 +52,7 @@ export class OrbitInput {
       lastY = event.clientY;
     });
     element.addEventListener("pointerup", (event) => {
-      if (event.pointerId === active && event.button === 1) release();
+      if (event.pointerId === active && event.button === (primaryDrag ? 0 : 1)) release();
     });
     element.addEventListener("pointercancel", (event) => {
       if (event.pointerId === active) release();
