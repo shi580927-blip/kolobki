@@ -4,7 +4,7 @@ import {growthLayout,limitProtrusions,type SkinDesign} from './SkinDesign';
 import {makePatternTexture} from './SkinTextures';
 import {makeCellGeometry} from './SurfaceCells';
 import {applyTipColors} from './TipColors';
-import {FurTufts} from './FurTufts';
+import {FurTufts,makeFurUndercoat} from './FurTufts';
 import {applyLayout,readLayout,scaleLayoutAboutCenter} from '../face/FaceLayout';
 export const SKIN_STUDY_FACE_SCALE=.9;
 export class SkinSample extends T.Group {
@@ -19,11 +19,12 @@ export class SkinSample extends T.Group {
  constructor(readonly faceTexture:T.Texture,expression:StudyExpression='sly',readonly glossEnvironment?:T.Texture){
   super();this.body=new T.Mesh(new T.SphereGeometry(1,80,56),new T.MeshPhysicalMaterial({roughness:.55,metalness:0}));this.body.castShadow=true;this.body.receiveShadow=true;this.rollingBody.add(this.body);this.add(this.rollingBody);this.face=new StudyFaceRig(faceTexture,expression);applyLayout(this.face,scaleLayoutAboutCenter(readLayout(this.face),SKIN_STUDY_FACE_SCALE));this.add(this.face);
  }
- apply(d:SkinDesign){d=limitProtrusions(d);const material=this.body.material;material.map?.dispose();material.map=d.surface==='smooth'?makePatternTexture(d):null;material.color.set(d.surface==='smooth'?'#ffffff':d.base);const gloss=d.surface==='smooth'&&d.growthCount===0?d.gloss:0;material.roughness=.62-gloss*.43;const physical=material as T.MeshPhysicalMaterial;physical.envMap=gloss>0?(this.glossEnvironment??null):null;physical.envMapIntensity=.65;physical.clearcoat=gloss;physical.clearcoatRoughness=.18;material.needsUpdate=true;
+ apply(d:SkinDesign){d=limitProtrusions(d);const material=this.body.material;material.map?.dispose();material.map=d.surface==='smooth'?makePatternTexture(d):null;material.color.set(d.surface==='smooth'?'#ffffff':d.base);material.bumpMap?.dispose();material.bumpMap=null;const plush=d.surface==='fuzz'||d.surface==='shaggy';if(plush){material.bumpMap=makeFurUndercoat(d.seed);material.bumpScale=.012;}
+  const gloss=d.surface==='smooth'&&d.growthCount===0?d.gloss:0;material.roughness=plush?.95:.62-gloss*.43;const physical=material as T.MeshPhysicalMaterial;physical.envMap=gloss>0?(this.glossEnvironment??null):null;physical.envMapIntensity=.65;physical.sheen=plush?.35:0;physical.sheenColor.set(d.base);physical.clearcoat=gloss;physical.clearcoatRoughness=.18;material.needsUpdate=true;
   if(this.cells){this.rollingBody.remove(this.cells);this.cells.geometry.dispose();this.cells.material.dispose();this.cells=null;}
   if(this.fur){this.rollingBody.remove(this.fur);this.fur.release();this.fur=null;}
   this.body.scale.setScalar(1);
-  if(d.surface==='scales'||d.surface==='segments'){const geometry=makeCellGeometry(d),mat=new T.MeshStandardMaterial({color:d.base,roughness:.53});this.cells=new T.Mesh(geometry,mat);this.cells.castShadow=true;this.cells.receiveShadow=true;this.rollingBody.add(this.cells);this.body.scale.setScalar(geometry.userData.coreRadius);}
+  if(d.surface==='scales'||d.surface==='segments'){const geometry=makeCellGeometry(d),mat=new T.MeshStandardMaterial({color:0xffffff,vertexColors:true,roughness:.53});this.cells=new T.Mesh(geometry,mat);this.cells.castShadow=true;this.cells.receiveShadow=true;this.rollingBody.add(this.cells);material.color.set(d.surfaceAccent?d.accent:d.base);this.body.scale.setScalar(geometry.userData.coreRadius);}
   if(d.surface==='fuzz'||d.surface==='shaggy'){this.fur=new FurTufts(d);this.rollingBody.add(this.fur);}
   if(this.growths){this.rollingBody.remove(this.growths);this.growths.geometry.dispose();this.growths.material.dispose();this.growths.dispose();this.growths=null;}
   this.layouts=growthLayout(d);

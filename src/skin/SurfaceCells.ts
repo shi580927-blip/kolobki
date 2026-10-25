@@ -1,5 +1,6 @@
 import * as T from 'three';
 import {randomFrom} from '../core/skin';
+import {applyTipColors} from './TipColors';
 import type {SkinDesign} from './SkinDesign';
 interface Cell {center:T.Vector3;corners:T.Vector3[]}
 /** Dual of an icosphere: no latitude rows, polar pinch or texture seam. */
@@ -16,9 +17,9 @@ export function sphericalCells(surfaceScale:number):Cell[]{
 }
 function tangents(n:T.Vector3){const reference=Math.abs(n.y)<.9?new T.Vector3(0,1,0):new T.Vector3(1,0,0);const u=new T.Vector3().crossVectors(reference,n).normalize();return[u,new T.Vector3().crossVectors(n,u).normalize()];}
 export function makeCellGeometry(d:SkinDesign){
- const cells=sphericalCells(d.surfaceScale),random=randomFrom(d.seed^0x573aa),positions:number[]=[],indices:number[]=[],details:{direction:number[];sides:number;depth:number;tilt:number;radius:number}[]=[];
+ const cells=sphericalCells(d.surfaceScale),random=randomFrom(d.seed^0x573aa),positions:number[]=[],colourDepth:number[]=[],indices:number[]=[],details:{direction:number[];sides:number;depth:number;tilt:number;radius:number}[]=[];
  const coreRadius=1-d.relief*1.1-.014;
- function vertex(direction:T.Vector3,radius:number){positions.push(direction.x*radius,direction.y*radius,direction.z*radius);return positions.length/3-1;}
+ function vertex(direction:T.Vector3,radius:number,tone=0){colourDepth.push(tone);positions.push(direction.x*radius,direction.y*radius,direction.z*radius);return positions.length/3-1;}
  function triangle(a:number,b:number,c:number){indices.push(a,b,c);}
  for(const cell of cells){const n=cell.center,[u,v]=tangents(n),rough=random()<.48;
   const depth=rough?random()*d.relief*.65:random()*d.relief*.035;
@@ -34,9 +35,9 @@ export function makeCellGeometry(d:SkinDesign){
   // Each cell has its own seating depth and tip lift. Keep the entire surface
   // inside the unit sphere so the approved independent FaceRig stays above it.
   const top=vertex(n,Math.min(.999,base+.004)),inner:number[]=[],outer:number[]=[],bottom:number[]=[];
-  for(const b of boundary){const inset=n.clone().lerp(b,.83).normalize();inner.push(vertex(inset,T.MathUtils.clamp(height(inset)+.004,coreRadius+.006,.999)));outer.push(vertex(b,T.MathUtils.clamp(height(b)-.003,coreRadius+.004,.999)));bottom.push(vertex(b,coreRadius-.002));}
+  for(const b of boundary){const inset=n.clone().lerp(b,.83).normalize();inner.push(vertex(inset,T.MathUtils.clamp(height(inset)+.004,coreRadius+.006,.999)));outer.push(vertex(b,T.MathUtils.clamp(height(b)-.003,coreRadius+.004,.999),.25));bottom.push(vertex(b,coreRadius-.002,1));}
   for(let k=0;k<boundary.length;k++){const next=(k+1)%boundary.length;triangle(top,inner[k],inner[next]);triangle(inner[k],outer[k],outer[next]);triangle(inner[k],outer[next],inner[next]);triangle(outer[k],bottom[k],bottom[next]);triangle(outer[k],bottom[next],outer[next]);}
   details.push({direction:n.toArray(),sides:cell.corners.length,depth,tilt,radius});
  }
- const geometry=new T.BufferGeometry();geometry.setAttribute('position',new T.Float32BufferAttribute(positions,3));geometry.setIndex(indices);geometry.computeVertexNormals();geometry.computeBoundingSphere();geometry.userData.cells=details;geometry.userData.coreRadius=coreRadius;return geometry;
+ const geometry=new T.BufferGeometry();geometry.setAttribute('position',new T.Float32BufferAttribute(positions,3));geometry.setIndex(indices);applyTipColors(geometry,d.base,d.surfaceAccent?d.accent:d.base,i=>colourDepth[i]);geometry.computeVertexNormals();geometry.computeBoundingSphere();geometry.userData.cells=details;geometry.userData.coreRadius=coreRadius;return geometry;
 }

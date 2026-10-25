@@ -6,7 +6,7 @@ const assert=require('node:assert/strict');
  page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
  const url=process.env.GAME_TEST_URL||'http://127.0.0.1:4255',results=[];
  const state=()=>page.evaluate(()=>window.__SHAROBESY__);
- for(const appearance of (process.env.GROWTH_ONLY?['soft','spike']:['fuzz','shaggy','soft','spike'])){
+ for(const appearance of (process.env.GROWTH_ONLY?['soft','spike']:process.env.FUR_ONLY?['fuzz','shaggy']:['fuzz','shaggy','soft','spike'])){
   const growth=appearance==='soft'||appearance==='spike',surface=growth?'smooth':appearance;
   await page.goto(url+'/?skin-study');await page.waitForFunction(()=>window.__SKIN_STUDY__);
   await page.locator('#skin-surface').selectOption(surface);

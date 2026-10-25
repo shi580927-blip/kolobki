@@ -18,3 +18,10 @@ test('surface size changes cell count and relief changes seating depth',()=>{
  assert.ok(sphericalCells(.5).length>sphericalCells(2).length);
  const shallow=makeCellGeometry({...defaultDesign,surface:'segments',relief:.005}),deep=makeCellGeometry({...defaultDesign,surface:'segments',relief:.1});assert.ok(deep.userData.coreRadius<shallow.userData.coreRadius);shallow.dispose();deep.dispose();
 });
+
+test('two-tone cells keep base caps and accent recesses, with a true monochrome switch',()=>{
+ const d={...defaultDesign,surface:'scales' as const,base:'#ff0000',accent:'#0000ff',surfaceAccent:true},g=makeCellGeometry(d),c=g.attributes.color;
+ assert.equal(c.getX(0),1);assert.equal(c.getZ(0),0);assert.equal(c.getX(3),0);assert.equal(c.getZ(3),1);
+ const mono=makeCellGeometry({...d,surfaceAccent:false}),m=mono.attributes.color;
+ for(let i=0;i<m.count;i++){assert.equal(m.getX(i),1);assert.equal(m.getZ(i),0);}g.dispose();mono.dispose();
+});
