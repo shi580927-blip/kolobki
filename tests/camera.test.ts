@@ -46,3 +46,15 @@ test("rear heading has weight, takes shortest arc and settles without snapping",
  for(let i=0;i<240;i++)rig.update(p,Math.PI,1/60);
  assert.ok(Math.abs(rig.followYaw!-Math.PI)<.01);
 });
+
+
+test('train expands the rear view without changing FOV or manual orbit',()=>{
+ const camera=new PerspectiveCamera(52,16/9),rig=new CameraRig(camera),p=new Vector3(0,10,0);
+ for(let i=0;i<180;i++)rig.update(p,0,1/60,0,0);
+ const solo=camera.position.distanceTo(p);
+ for(let i=0;i<180;i++)rig.update(p,0,1/60,0,5);
+ assert.ok(camera.position.distanceTo(p)>solo+8);assert.equal(camera.fov,52);assert.equal(camera.aspect,16/9);
+ rig.beginOrbit(p);const manual=camera.position.clone();
+ for(let i=0;i<120;i++)rig.update(p,0,1/60,0,0);
+ assert.ok(camera.position.distanceTo(manual)<.05);
+});

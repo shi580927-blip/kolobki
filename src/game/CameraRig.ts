@@ -38,15 +38,15 @@ export class CameraRig {
   }
   readonly names = ["сзади", "сверху", "сбоку", "спереди"];
   constructor(readonly camera: PerspectiveCamera) {}
-  update(position: Vector3, heading: number, dt: number, speed = 0) {
+  update(position: Vector3, heading: number, dt: number, speed = 0, wagons = 0) {
     dt = Math.max(0, Math.min(dt, 1));
     if (this.followYaw === null) this.followYaw = heading;
     const angle = Math.atan2(Math.sin(heading - this.followYaw), Math.cos(heading - this.followYaw));
     // Heading lags separately from translation: a quick turn reveals the face.
     this.followYaw += angle * (1 - Math.exp(-1.8 * dt));
-    this.followDistance += (10 + Math.min(2, Math.max(0, speed) * .1) - this.followDistance) * (1 - Math.exp(-2 * dt));
+    this.followDistance += (10 + Math.min(2, Math.max(0, speed) * .1) + Math.max(0,Math.min(5,wagons))*2 - this.followDistance) * (1 - Math.exp(-2 * dt));
     const offsets = [
-      new Vector3(0, 5.2, -this.followDistance),
+      new Vector3(0, 5.2 + Math.max(0,Math.min(5,wagons))*.7, -this.followDistance),
       new Vector3(0, 15, -8),
       new Vector3(11, 5, 0),
       new Vector3(0, 4, 9),

@@ -22,9 +22,10 @@ export class NpcSystem {
   bus.on('impact_major',e=>{brain.hit();visual.face.play('dazed');this.events.emit('npc_impact',{id:entry.id,position:e.position,strength:e.strength});});
   return {entry,physics,brain,visual,input,lastState};
  }
- step(dt:number,player:PhysicsPlayer){
+ step(dt:number,player:PhysicsPlayer,isAttached:(id:number)=>boolean=()=>false){
   this.playerHandle=player.collider.handle;
   for(const a of this.actors){
+   if(isAttached(a.entry.id))continue;
    const v=a.physics.body.linvel(),ray=new R.Ray(a.physics.body.translation(),{x:Math.sin(a.physics.heading),y:0,z:Math.cos(a.physics.heading)}),hit=this.world.castRay(ray,4,true,undefined,undefined,a.physics.collider,a.physics.body);
    const blocked=!!hit&&!(a.entry.kind==='bully'&&hit.collider.handle===player.collider.handle);
    const intent=a.brain.step(dt,{x:a.physics.current.x,z:a.physics.current.z,vx:v.x,vz:v.z,playerX:player.current.x,playerZ:player.current.z,neighbors:this.actors.filter(b=>b!==a).map(b=>({x:b.physics.current.x,z:b.physics.current.z})),blocked});
