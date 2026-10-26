@@ -47,6 +47,4 @@ export function addValleyArt(scene:T.Scene,world:R.World) {
  const blade=new T.BufferGeometry();blade.setAttribute('position',new T.Float32BufferAttribute(bladePositions,3));blade.setAttribute('color',new T.Float32BufferAttribute(bladeColors,3));blade.setIndex(bladeIndices);blade.computeVertexNormals();
  const grass=new T.InstancedMesh(blade,new T.MeshStandardMaterial({vertexColors:true,roughness:.9,side:T.DoubleSide}),720);grass.name='valley-art-curved-grass';scene.add(grass);
  for(let i=0;i<720;i++){const [cx,cz]=shrubsAt[i%shrubsAt.length],x=cx+(random()-.5)*5,z=cz+(random()-.5)*5,h=.16+random()*.28;put(grass,i,x,heightAt(x,z)+.01,z,.8,h,.8);}
- const clouds=instances('valley-art-clouds',15,'#fff8ec');clouds.castShadow=false;clouds.receiveShadow=false;
- for(let i=0;i<5;i++)for(let j=0;j<3;j++)put(clouds,i*3+j,-70+i*32+(j-1)*4,28+(i%2)*8+(j===1?2:0),55+(i%3)*12,6,3+j%2,3.5);
 }

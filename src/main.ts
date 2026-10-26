@@ -12,6 +12,7 @@ import { fit16by9, heightAt } from "./core/terrain";
 import { EventBus } from "./core/events";
 import { Input } from "./game/Input";
 import { CameraRig } from "./game/CameraRig";
+import {addCloudSky} from "./game/CloudSky";
 import {addValleyStudy} from "./game/ValleyStudy";
 import { createWorld } from "./game/World";
 import { PhysicsPlayer } from "./game/PhysicsPlayer";
@@ -40,6 +41,7 @@ async function start() {
   const scene = new T.Scene();
   scene.background = new T.Color(0x91cbed);
   scene.fog = new T.Fog(0xb7dbea, 60, 150);
+  const sky=addCloudSky(scene);
   scene.add(new T.HemisphereLight(0xfff5df, 0x738b83, 1.8));
   const sun = new T.DirectionalLight(0xfff1de, 2);
   sun.position.set(-25, 45, 20);
@@ -254,6 +256,7 @@ async function start() {
     sun.position.copy(visual.position).add(new T.Vector3(-25, 45, 20));
     sun.target.position.copy(visual.position);
     if(berryDetail){const ground=heightAt(0,5);camera.position.set(-2.8,ground+1.7,2.7);camera.lookAt(0,ground+.5,5);}
+    sky.update(elapsed,camera);
     renderer.render(scene, camera);
     portraitRenderer.render(portraitScene, portraitCamera);
     frames++;
@@ -279,6 +282,7 @@ async function start() {
       faceEyes: visual.face.eyes.map(e => e.visible),
       faceArt: "animated-atlas-v03",
       faceVisibility: Object.entries(visual.face.rig.poses).filter(([,g])=>g.visible).map(([name,g])=>({name,rotation:g.rotation.toArray(),opacity:(g.children.find(o=>o.name.startsWith('study-')) as T.Mesh<T.BufferGeometry,T.ShaderMaterial>).material.uniforms.opacity.value})),
+      skyArt:"soft-clouds-v1",cloudCount:sky.clouds.length,cameraFov:camera.fov,
       berryDetail,
       shadowSettings:{mapSize:sun.shadow.mapSize.x,normalBias:sun.shadow.normalBias,contactCount:contactPositions.length},berryArt:"raspberry-plants-v1",
       valleyStudy:!!casting,studyActors:casting?.actors.map(a=>({seed:a.design.seed,surface:a.design.surface,pattern:a.design.pattern,position:a.position.toArray(),facePose:a.face.expression()})),drawCalls:renderer.info.render.calls,
