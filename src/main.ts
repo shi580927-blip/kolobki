@@ -128,7 +128,7 @@ async function start() {
   bus.on("player_dash",()=>react("fury"));
   let npcSoundCooldown=0;
   bus.on("npc_impact",({position})=>{if(position.distanceTo(visual.position)<24){effects.burst(position);if(performance.now()>npcSoundCooldown){audio.play();npcSoundCooldown=performance.now()+250;}}});
-  const trainStatus=()=>{const label=document.querySelector('#train-status');if(label)label.textContent=`Поезд: ${train?.count??0} / 5 · Сильный удар разрывает состав`;};
+  const trainStatus=()=>{const label=document.querySelector('#train-status');if(label){const text=`Поезд: ${train?.count??0} / 5 · ${train?.snapshot().joining!==undefined?"Новичок подкатывается к хвосту":"Сильный удар разрывает состав"}`;if(label.textContent!==text)label.textContent=text;}};
   bus.on('train_attach',e=>{trainStatus();effects.sparkle(e.position);audio.collect();react('happy');npcs?.actors.find(a=>a.entry.id===e.id)?.visual.face.play('shocked');});
   bus.on('train_break',e=>{trainStatus();effects.burst(e.position);audio.play();rig.shake=.2;react('scared');for(const a of npcs?.actors??[])if(e.ids.includes(a.entry.id)){a.brain.hit();a.visual.face.play('dazed');}});
   const impactMeter=new ImpactMeter();let physicsTime=0;
@@ -246,7 +246,7 @@ async function start() {
       physicsTime+=dt;
       player.setImmobilized(visual.face.immobilized);
       player.step(dt, input, direction);
-      npcs?.step(dt,player,id=>train?.has(id)??false);
+      npcs?.step(dt,player,id=>(train?.has(id)||train?.isJoining(id))??false);
       train?.step(dt);
       world.step(events);
       player.sync();
@@ -285,6 +285,7 @@ async function start() {
     effects.update(elapsed);
     casting?.update(elapsed);
     npcs?.update(elapsed,alpha);
+    if(train)trainStatus();
     groundLighting.setContacts(contactPositions);
     sun.position.copy(visual.position).add(new T.Vector3(-25, 45, 20));
     sun.target.position.copy(visual.position);
@@ -321,7 +322,7 @@ async function start() {
       faceArt: "animated-atlas-v03",
       faceVisibility: Object.entries(visual.face.rig.poses).filter(([,g])=>g.visible).map(([name,g])=>({name,rotation:g.rotation.toArray(),opacity:(g.children.find(o=>o.name.startsWith('study-')) as T.Mesh<T.BufferGeometry,T.ShaderMaterial>).material.uniforms.opacity.value})),
       physicsTime,impactCharge:impactMeter.value,train:train?.snapshot(),
-      npcs:npcs?.snapshot().map(a=>({...a,state:train?.has(a.id)?"wagon":a.state}))??[],npcContacts:npcs?.collisionsWithPlayer??0,npcSeed:npcs?.seed,
+      npcs:npcs?.snapshot().map(a=>({...a,state:train?.has(a.id)?"wagon":train?.isJoining(a.id)?"joining":a.state}))??[],npcContacts:npcs?.collisionsWithPlayer??0,npcSeed:npcs?.seed,
       buildVersion,skyArt:skyState,cloudCount:sky?.clouds.length??0,cameraFov:camera.fov,
       berryDetail,
       shadowSettings:{mapSize:sun.shadow.mapSize.x,normalBias:sun.shadow.normalBias,contactCount:contactPositions.length},berryArt:"raspberry-plants-v1",

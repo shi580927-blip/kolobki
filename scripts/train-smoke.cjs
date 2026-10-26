@@ -10,7 +10,7 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict'),fs=r
  const state=()=>page.evaluate(()=>window.__SHAROBESY__),first=await state();
  let held=new Set(),captured;
  for(let attempt=0;attempt<220;attempt++){
-  const s=await state();if(s.train.attachedTotal>0){captured=s;break;}
+  const s=await state();if(s.train.joining!==undefined){for(const key of held)await page.keyboard.up(key);held=new Set();await page.waitForTimeout(100);continue;}if(s.train.attachedTotal>0){captured=s;break;}
   const target=s.npcs.find(n=>n.kind==='sleepy'),dx=target.position[0]-s.position[0],dz=target.position[2]-s.position[2];
   const length=Math.hypot(s.viewForward[0],s.viewForward[2]),fx=s.viewForward[0]/length,fz=s.viewForward[2]/length;
   // Desired low approach speed with velocity braking, in the current camera frame.

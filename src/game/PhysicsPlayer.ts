@@ -54,11 +54,12 @@ export class PhysicsPlayer {
     }
     this.collisionSpeedChange=0;
   }
-  private hasGroundSupport(){
+  hasSurfaceSupport(){
     let supported=false;
     const center=this.body.translation();
     // A nearby ray is insufficient: wait for a real lower-surface contact.
     this.world.contactPairsWith(this.collider,other=>{
+      if(other.parent()&&!other.parent()!.isFixed())return;
       this.world.contactPair(this.collider,other,manifold=>{
         if(Math.abs(manifold.normal().y)<.45)return;
         for(let i=0;i<manifold.numSolverContacts();i++){
@@ -88,7 +89,7 @@ export class PhysicsPlayer {
     if(this.immobilized){
       input.jump=false;input.dash=false;
       // In the air only input is locked; gravity and ballistic momentum continue.
-      if(!this.groundHold&&this.body.linvel().y<=.5&&this.hasGroundSupport()){
+      if(!this.groundHold&&this.body.linvel().y<=.5&&this.hasSurfaceSupport()){
         this.body.setBodyType(R.RigidBodyType.KinematicPositionBased,true);
         this.body.setLinvel({x:0,y:0,z:0},true);this.body.setAngvel({x:0,y:0,z:0},true);
         this.groundHold=true;
@@ -102,7 +103,7 @@ export class PhysicsPlayer {
       ray,
       1.18,
       true,
-      undefined,
+      R.QueryFilterFlags.EXCLUDE_DYNAMIC | R.QueryFilterFlags.EXCLUDE_KINEMATIC,
       undefined,
       this.collider,
       this.body,

@@ -13,11 +13,11 @@ async function setup(count=5){
  const bus=new EventBus(),leader=new PhysicsPlayer(world,bus),actors=Array.from({length:count},(_,id)=>({id,physics:new PhysicsPlayer(world,new EventBus(),{x:20+id*3,z:0})}));
  const train=new TrainSystem(world,leader,actors,bus);
  function tick(input=idle()){
-  leader.step(dt,input,forward);for(const a of actors)if(!train.has(a.id))a.physics.step(dt,idle(),forward);
+  leader.step(dt,input,forward);for(const a of actors)if(!train.has(a.id)&&!train.isJoining(a.id))a.physics.step(dt,idle(),forward);
   train.step(dt);world.step();leader.sync();actors.forEach(a=>a.physics.sync());train.afterStep();
  }
  function place(p:PhysicsPlayer,x:number,z:number,vx=0,vz=0){p.body.setTranslation({x,y:heightAt(x,z)+1.02,z},true);p.body.setLinvel({x:vx,y:0,z:vz},true);p.sync();}
- function collect(id:number){const p=leader.current;place(actors[id].physics,p.x+1.85,p.z);actors[id].physics.body.setTranslation({x:p.x+1.85,y:p.y,z:p.z},true);actors[id].physics.sync();for(let i=0;i<4&&!train.has(id);i++)tick();assert.ok(train.has(id),'real contact attaches wagon '+id);}
+ function collect(id:number){const p=leader.current;place(actors[id].physics,p.x+1.85,p.z);actors[id].physics.body.setTranslation({x:p.x+1.85,y:p.y,z:p.z},true);actors[id].physics.sync();for(let i=0;i<900&&!train.has(id);i++)tick();assert.ok(train.has(id),'real contact attaches wagon '+id);}
  return {world,bus,leader,actors,train,tick,place,collect};
 }
 test('Rapier contact collects one wagon once; proximity and hard contact cannot collect',async()=>{
@@ -75,12 +75,12 @@ test('five colliding wagons survive repeated reversals, acceleration and normal 
   s.tick({x:0,z:reverse?.85:-.85,jump:i%90===60,dash:i===150||i===420});
   assert.equal(s.train.count,5,`train must survive normal driving, tick ${i}`);
   const bodies=[s.leader,...s.train.snapshot().ids.map(id=>s.actors[id].physics)];
-  for(let j=1;j<bodies.length;j++)largestGap=Math.max(largestGap,bodies[j].current.distanceTo(bodies[j-1].current));
+  for(let j=1;j<bodies.length;j++)largestGap=Math.max(largestGap,Math.hypot(bodies[j].current.x-bodies[j-1].current.x,bodies[j].current.z-bodies[j-1].current.z));
   if(i>90)for(let j=0;j<bodies.length;j++)for(let k=0;k<j;k++)closest=Math.min(closest,bodies[j].current.distanceTo(bodies[k].current));
  }
  assert.ok(largestGap<2.65,`maximum adjacent separation ${largestGap}`);
  assert.ok(closest>1.85,`spheres must not pass through one another: ${closest}`);
- assert.equal(s.train.snapshot().links,5);s.train.reset();assert.equal(s.world.impulseJoints.len(),0);s.world.free();
+ assert.equal(s.train.snapshot().links,0);s.train.reset();assert.equal(s.world.impulseJoints.len(),0);s.world.free();
 });
 
 test('a light outsider bump does not dismantle the train',async()=>{

@@ -79,3 +79,15 @@ test('stun onset and recovery in midair do not cancel upward velocity',async()=>
  const input={x:0,z:0,jump:false,dash:false} as Input;player.step(1/60,input,new Vector3(0,0,1));world.step();player.sync();assert.ok(player.body.linvel().y>4);
  const velocity=player.body.linvel().y;player.setImmobilized(false);assert.equal(player.body.linvel().y,velocity);world.free();
 });
+
+test('another character is neither a jump platform nor the support for dizzy hold',async()=>{
+ await R.init();const world=new R.World({x:0,y:-18,z:0});world.timestep=1/60;
+ world.createCollider(R.ColliderDesc.cuboid(20,.5,20).setTranslation(0,-.5,0));
+ const pedestal=world.createRigidBody(R.RigidBodyDesc.kinematicPositionBased().setTranslation(0,1,0));world.createCollider(R.ColliderDesc.ball(1),pedestal);
+ const bus=new EventBus(),player=new PhysicsPlayer(world,bus);let jumps=0;bus.on('player_jump',()=>jumps++);
+ player.body.setTranslation({x:0,y:3.01,z:0},true);player.body.setLinvel({x:0,y:0,z:0},true);player.sync();
+ for(let i=0;i<90;i++){player.step(1/60,{x:0,z:0,jump:true,dash:false},new Vector3(0,0,1));world.step();player.sync();}
+ assert.equal(jumps,0,'jump ray excludes dynamic and kinematic characters');
+ player.setImmobilized(true);for(let i=0;i<30;i++){player.step(1/60,{x:0,z:0,jump:false,dash:false},new Vector3(0,0,1));world.step();player.sync();}
+ assert.equal(player.body.bodyType(),R.RigidBodyType.Dynamic,'dizzy hold waits for a static surface');world.free();
+});
