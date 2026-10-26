@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import RAPIER from "@dimforge/rapier3d-compat";
 import { terrainData, heightAt, WORLD_SIZE } from "../core/terrain";
+import {addValleyArt,valleyGroundColor} from "./ValleyArt";
 import {randomFrom} from "../core/skin";
 export function createWorld(scene: THREE.Scene, world: RAPIER.World) {
   const { vertices, indices } = terrainData();
@@ -11,8 +12,8 @@ export function createWorld(scene: THREE.Scene, world: RAPIER.World) {
   const colors = new Float32Array(vertices.length);
   const color = new THREE.Color();
   for (let i = 0; i < vertices.length; i += 3) {
-    const x=vertices[i],y=vertices[i+1],z=vertices[i+2],patch=Math.sin(x*.11)*Math.cos(z*.09)*.035;
-    color.setHSL(.27+patch+y*.0009,.30,.50+y*.004,THREE.SRGBColorSpace);
+    const x=vertices[i],y=vertices[i+1],z=vertices[i+2];
+    color.copy(valleyGroundColor(x,y,z));
     colors.set([color.r, color.g, color.b], i);
   }
   geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
@@ -39,6 +40,7 @@ export function createWorld(scene: THREE.Scene, world: RAPIER.World) {
     world.createCollider(d);
   }
   addValleyScenery(scene,world);
+  addValleyArt(scene,world);
   // Sparse collision targets: original primitive geometry, no third-party assets.
   for (const [x, z, r] of [
     [12, 6, 1.8],
@@ -47,8 +49,8 @@ export function createWorld(scene: THREE.Scene, world: RAPIER.World) {
     [-25, 20, 1.6],
   ]) {
     const rock = new THREE.Mesh(
-      new THREE.DodecahedronGeometry(r, 1),
-      new THREE.MeshStandardMaterial({ color: 0x8c9c87, roughness: 0.95 }),
+      new THREE.DodecahedronGeometry(r, 2),
+      new THREE.MeshStandardMaterial({ color: 0xb1b3a2, roughness: 0.95 }),
     );
     rock.position.set(x, heightAt(x, z) + r * 0.6, z);
     rock.castShadow = true;

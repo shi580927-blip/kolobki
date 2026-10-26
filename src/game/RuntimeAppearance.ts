@@ -5,7 +5,7 @@ import type {AnimationAtlas} from '../face/AnimatedAtlas';
 import {scaleLayoutAboutCenter,type FaceLayout} from '../face/FaceLayout';
 /** Stable art mapping: keep the existing saved seed, base color and character. */
 export function designForGame(skin:Skin):SkinDesign {
- const r=randomFrom(skin.seed^0x52a1),surfaceRoll=r(),surface=surfaceRoll<.70?'smooth':surfaceRoll<.82?'scales':surfaceRoll<.92?'segments':surfaceRoll<.96?'fuzz':'shaggy';
+ const r=randomFrom(skin.seed^0x52a1),surfaceRoll=r(),surface=surfaceRoll<.70?'smooth':surfaceRoll<.82?'scales':surfaceRoll<.92?'segments':'shaggy';
  const patternRoll=r(),glossRoll=r(),patternChoices=['dots','hearts','cow','giraffe','zebra','leopard','diamonds','lightning'] as const;
  const pattern=surface==='smooth'&&patternRoll<.60?patternChoices[Math.floor(r()*patternChoices.length)]:'none';
  const gloss=surface==='smooth'&&glossRoll<.70?.65+r()*.30:0;

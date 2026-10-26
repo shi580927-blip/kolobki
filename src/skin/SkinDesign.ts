@@ -5,7 +5,7 @@ export interface SkinDesign {version:1;seed:number;regular:boolean;gloss:number;
 export const defaultDesign:SkinDesign={version:1,seed:4321,regular:false,gloss:0,surfaceAccent:true,base:'#28b8bd',accent:'#157b87',pattern:'none',scale:1,density:.55,sizeScatter:.25,positionScatter:.6,rotationScatter:.35,surface:'smooth',furCount:64,furLength:.08,furScatter:.65,surfaceScale:1,relief:.045,growthCount:0,growthSize:.10,growthScatter:.3,growthShape:'soft',growthAccent:false};
 export const DETAIL_LIMITS={furLength:.10,growthSize:.12,furHeight:.12} as const;
 /** Old valid author saves are kept compatible, but cannot restore oversized details. */
-export function limitProtrusions(d:SkinDesign):SkinDesign{return{...d,furLength:Math.min(d.furLength,DETAIL_LIMITS.furLength),growthSize:Math.min(d.growthSize,DETAIL_LIMITS.growthSize)};}
+export function limitProtrusions(d:SkinDesign):SkinDesign{return{...d,surface:d.surface==='fuzz'?'shaggy':d.surface,furLength:Math.min(d.furLength,DETAIL_LIMITS.furLength),growthSize:Math.min(d.growthSize,DETAIL_LIMITS.growthSize)};}
 export const connectedPatterns=new Set<Pattern>(['hex','checker','zigzag','waves']);
 export function validateDesign(value:unknown):SkinDesign {
  if(!value||typeof value!=='object')throw Error('Нужен JSON с настройками скина');

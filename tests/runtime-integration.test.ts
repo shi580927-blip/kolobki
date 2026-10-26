@@ -49,3 +49,11 @@ test('seeded appearance pool includes frequent patterns and real eligible gloss'
  for(let seed=0;seed<10000;seed++){const skin=skinFrom(seed),d=designForGame(skin);colors.add(d.base);if(isVividSeed(seed))vivid++;if(d.pattern!=='none'&&d.scale<=.6&&d.density<=.22)smallSparse++;assert.deepEqual(d,designForGame(skin));if(d.surface==='smooth')smooth++;if(d.pattern!=='none'){patterned++;assert.equal(d.surface,'smooth');}if(d.gloss>0){glossy++;assert.equal(d.surface,'smooth');assert.equal(d.growthCount,0);assert.ok(d.gloss>=.65&&d.gloss<=.95);}}
  assert.equal(colors.size,24);assert.ok(vivid>6500&&vivid<7500);assert.ok(smallSparse>1800&&smallSparse<2500);assert.ok(patterned>3500&&patterned<5000);assert.ok(glossy>4200&&glossy<5500);assert.ok(smooth>6500&&smooth<7500);
 });
+
+
+test('retired straight fur keeps old author seed and colours while showing the curly coat',()=>{
+ const old={...defaultDesign,surface:'fuzz' as const,seed:12345,base:'#123456',accent:'#abcdef'};
+ const visual=new RuntimeVisual(old,gameplayAtlas(source),[new Texture(),new Texture(),new Texture()],'sly');
+ assert.equal(visual.design.surface,'shaggy');assert.equal(visual.design.seed,old.seed);assert.equal(visual.design.base,old.base);assert.equal(visual.design.accent,old.accent);
+ for(let seed=0;seed<1000;seed++)assert.notEqual(designForGame(skinFrom(seed)).surface,'fuzz');
+});

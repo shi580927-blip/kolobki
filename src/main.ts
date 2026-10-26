@@ -12,6 +12,7 @@ import { fit16by9 } from "./core/terrain";
 import { EventBus } from "./core/events";
 import { Input } from "./game/Input";
 import { CameraRig } from "./game/CameraRig";
+import {addValleyStudy} from "./game/ValleyStudy";
 import { createWorld } from "./game/World";
 import { PhysicsPlayer } from "./game/PhysicsPlayer";
 import { Effects } from "./game/Effects";
@@ -21,6 +22,7 @@ async function start() {
   await R.init();
   const resources=await loadAnimationAtlas(),atlas=gameplayAtlas(resources.data);
   const appearanceTest=new URLSearchParams(location.search).has("skin-test");
+  const valleyStudy=new URLSearchParams(location.search).has("valley-study");
   const stage = document.querySelector<HTMLElement>("#stage")!,
     hud = document.querySelector<HTMLElement>("#hud")!,
     notice = document.querySelector<HTMLElement>("#notice")!;
@@ -71,9 +73,12 @@ async function start() {
   );
   let design=designForGame(skin);
   if(appearanceTest){try{const saved=storage.getItem('sharobesy.author.skin-study.v1');if(saved)design=validateDesign(JSON.parse(saved));}catch{/* Invalid author config does not change the player. */}}
-  function environmentFor(r:T.WebGLRenderer){if(design.gloss<=0||design.surface!=='smooth'||design.growthCount>0)return undefined;const room=new RoomEnvironment(),pmrem=new T.PMREMGenerator(r),texture=pmrem.fromScene(room,.04).texture;room.dispose();pmrem.dispose();return texture;}
-  const visual=new RuntimeVisual(design,atlas,resources.textures,skin.mood,environmentFor(renderer));
+  function environmentFor(r:T.WebGLRenderer,force=false){if(!force&&(design.gloss<=0||design.surface!=='smooth'||design.growthCount>0))return undefined;const room=new RoomEnvironment(),pmrem=new T.PMREMGenerator(r),texture=pmrem.fromScene(room,.04).texture;room.dispose();pmrem.dispose();return texture;}
+  const worldEnvironment=environmentFor(renderer,valleyStudy);
+  const visual=new RuntimeVisual(design,atlas,resources.textures,skin.mood,worldEnvironment);
   scene.add(visual);
+  const casting=valleyStudy?addValleyStudy(scene,atlas,resources.textures,worldEnvironment):undefined;
+  if(casting){const label=document.createElement("div");label.textContent="ПРОБА ДОЛИНЫ · 10 образцов без поведения и столкновений";label.style.cssText="position:absolute;left:24px;bottom:76px;font-size:15px;color:#24463c;background:#fff6dfdf;padding:8px 12px;border-radius:12px;text-shadow:none";hud.appendChild(label);}
   const input = new Input(),
     effects = new Effects(scene);
   const events = new R.EventQueue(true);
@@ -238,6 +243,7 @@ async function start() {
     const cameraVelocity = player.body.linvel();
     rig.update(visual.position, player.heading, elapsed, Math.hypot(cameraVelocity.x, cameraVelocity.z));
     effects.update(elapsed);
+    casting?.update(elapsed);
     sun.position.copy(visual.position).add(new T.Vector3(-25, 45, 20));
     sun.target.position.copy(visual.position);
     renderer.render(scene, camera);
@@ -265,6 +271,7 @@ async function start() {
       faceEyes: visual.face.eyes.map(e => e.visible),
       faceArt: "animated-atlas-v03",
       faceVisibility: Object.entries(visual.face.rig.poses).filter(([,g])=>g.visible).map(([name,g])=>({name,rotation:g.rotation.toArray(),opacity:(g.children.find(o=>o.name.startsWith('study-')) as T.Mesh<T.BufferGeometry,T.ShaderMaterial>).material.uniforms.opacity.value})),
+      valleyStudy:!!casting,studyActors:casting?.actors.map(a=>({seed:a.design.seed,surface:a.design.surface,pattern:a.design.pattern,position:a.position.toArray(),facePose:a.face.expression()})),drawCalls:renderer.info.render.calls,
       design,appearanceTest,faceScale:.9,comboPhase:visual.face.rig.combo.phase,immobilized:visual.face.immobilized,
       heading: player.heading,
       velocity: { ...player.body.linvel() },
