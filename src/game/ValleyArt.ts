@@ -1,5 +1,6 @@
 import * as T from 'three';
 import R from '@dimforge/rapier3d-compat';
+import {makeLeafGeometry} from './BerryArt';
 import {heightAt} from '../core/terrain';
 import {randomFrom} from '../core/skin';
 /** Local art sample around the quiet start; the playfield remains open. */
@@ -25,9 +26,14 @@ export function addValleyArt(scene:T.Scene,world:R.World) {
  spots.forEach(([x,z],i)=>{const y=heightAt(x,z),s=.9+random()*.35;put(trunks,i,x,y+2*s,z,1,4*s,1);world.createCollider(R.ColliderDesc.cylinder(2*s,.48).setTranslation(x,y+2*s,z));
   for(let j=0;j<7;j++){const a=j/6*Math.PI*2,r=j===6?0:1.25*s;put(crowns,i*7+j,x+Math.cos(a)*r,y+(4.1+(j===6?1.15:0))*s,z+Math.sin(a)*r,1.8*s,1.65*s,1.65*s,['#729747','#8eae50','#a3bd61'][j%3]);}
  });
- const shrubsAt=[[-10,6],[10,11],[-13,19],[13,25],[-8,29],[19,6]];
- const shrubs=instances('valley-art-shrubs',shrubsAt.length*4,'#ffffff');
- shrubsAt.forEach(([x,z],i)=>{for(let j=0;j<4;j++){const px=x+(random()-.5)*2,pz=z+(random()-.5)*2,s=.55+random()*.4;put(shrubs,i*4+j,px,heightAt(px,pz)+s*.55,pz,s,s*.8,s,['#668e4f','#7fa653','#9bb666'][j%3]);}});
+ const shrubsAt=[[-3,2],[3,5],[-10,6],[10,11],[-13,19],[13,25],[-8,29],[19,6]];
+ const shrubs=new T.InstancedMesh(makeLeafGeometry(),new T.MeshStandardMaterial({vertexColors:true,roughness:.7,side:T.DoubleSide}),shrubsAt.length*30);shrubs.name='valley-art-leaf-shrubs';shrubs.castShadow=true;shrubs.receiveShadow=true;scene.add(shrubs);
+ const leafAxis=new T.Vector3(0,0,1);
+ shrubsAt.forEach(([x,z],i)=>{for(let j=0;j<30;j++){
+  const a=j*2.39996,ring=Math.floor(j/10),r=ring*.13,size=1.0+random()*.7;
+  dummy.position.set(x+Math.cos(a)*r,heightAt(x,z)+ring*.12,z+Math.sin(a)*r);
+  dummy.quaternion.setFromUnitVectors(leafAxis,new T.Vector3(Math.cos(a),.15+ring*.32,Math.sin(a)).normalize());dummy.scale.set(size,size,size);dummy.updateMatrix();shrubs.setMatrixAt(i*30+j,dummy.matrix);
+ }});
  const stones=instances('valley-art-small-stones',16,'#ffffff',new T.DodecahedronGeometry(1,2));
  for(let i=0;i<16;i++){const x=(i%2?1:-1)*(8+random()*10),z=1+random()*31,s=.3+random()*.5;put(stones,i,x,heightAt(x,z)+s*.35,z,s,s*.65,s*.8,['#b8b3a0','#a9b0a2','#c9bba5'][i%3]);}
  const flowers=instances('valley-art-petals',350,'#fff2d8'),centers=instances('valley-art-flower-centers',70,'#edbe52'),leaves=instances('valley-art-leaves',140,'#6e9b47');
@@ -36,8 +42,11 @@ export function addValleyArt(scene:T.Scene,world:R.World) {
   for(let j=0;j<5;j++){const a=j/5*Math.PI*2;put(flowers,i*5+j,x+Math.cos(a)*.14*s,y,z+Math.sin(a)*.14*s,.14*s,.055*s,.10*s,i%5===0?'#e0c2df':'#fff2d8');}
   put(leaves,i*2,x-.12,y-.18,z,.24,.055,.10);put(leaves,i*2+1,x+.10,y-.19,z,.10,.055,.24);
  }
- const grass=instances('valley-art-grass',480,'#ffffff',new T.ConeGeometry(1,1,4));grass.castShadow=false;
- for(let i=0;i<480;i++){const [cx,cz]=shrubsAt[i%shrubsAt.length],x=cx+(random()-.5)*7,z=cz+(random()-.5)*7,h=.13+random()*.22;put(grass,i,x,heightAt(x,z)+h*.45,z,.07,h,.045,i%3===0?'#92b54e':'#719a43');}
+ const bladePositions:number[]=[],bladeColors:number[]=[],bladeIndices:number[]=[];
+ for(let j=0;j<=7;j++){const t=j/7;for(const side of [-1,1]){bladePositions.push(.18*t*t+side*.09*(1-t),t,.15*t*t);const c=new T.Color().lerpColors(new T.Color('#4f8738'),new T.Color('#adc15c'),t);bladeColors.push(c.r,c.g,c.b);}if(j<7){const a=j*2;bladeIndices.push(a,a+1,a+2,a+1,a+3,a+2);}}
+ const blade=new T.BufferGeometry();blade.setAttribute('position',new T.Float32BufferAttribute(bladePositions,3));blade.setAttribute('color',new T.Float32BufferAttribute(bladeColors,3));blade.setIndex(bladeIndices);blade.computeVertexNormals();
+ const grass=new T.InstancedMesh(blade,new T.MeshStandardMaterial({vertexColors:true,roughness:.9,side:T.DoubleSide}),720);grass.name='valley-art-curved-grass';scene.add(grass);
+ for(let i=0;i<720;i++){const [cx,cz]=shrubsAt[i%shrubsAt.length],x=cx+(random()-.5)*5,z=cz+(random()-.5)*5,h=.16+random()*.28;put(grass,i,x,heightAt(x,z)+.01,z,.8,h,.8);}
  const clouds=instances('valley-art-clouds',15,'#fff8ec');clouds.castShadow=false;clouds.receiveShadow=false;
  for(let i=0;i<5;i++)for(let j=0;j<3;j++)put(clouds,i*3+j,-70+i*32+(j-1)*4,28+(i%2)*8+(j===1?2:0),55+(i%3)*12,6,3+j%2,3.5);
 }

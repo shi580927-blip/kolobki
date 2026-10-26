@@ -8,7 +8,7 @@ import {BerryCollectibles} from "./game/BerryCollectibles";
 import * as T from "three";
 import R from "@dimforge/rapier3d-compat";
 import { loadSkin, randomFrom } from "./core/skin";
-import { fit16by9 } from "./core/terrain";
+import { fit16by9, heightAt } from "./core/terrain";
 import { EventBus } from "./core/events";
 import { Input } from "./game/Input";
 import { CameraRig } from "./game/CameraRig";
@@ -23,6 +23,7 @@ async function start() {
   const resources=await loadAnimationAtlas(),atlas=gameplayAtlas(resources.data);
   const appearanceTest=new URLSearchParams(location.search).has("skin-test");
   const valleyStudy=new URLSearchParams(location.search).has("valley-study");
+  let berryDetail=valleyStudy&&new URLSearchParams(location.search).has("berry-detail");
   const stage = document.querySelector<HTMLElement>("#stage")!,
     hud = document.querySelector<HTMLElement>("#hud")!,
     notice = document.querySelector<HTMLElement>("#notice")!;
@@ -43,12 +44,15 @@ async function start() {
   const sun = new T.DirectionalLight(0xfff1de, 2);
   sun.position.set(-25, 45, 20);
   sun.castShadow = true;
-  sun.shadow.mapSize.set(1024, 1024);
-  sun.shadow.camera.left = -30;
-  sun.shadow.camera.right = 30;
-  sun.shadow.camera.top = 30;
-  sun.shadow.camera.bottom = -30;
-  sun.shadow.normalBias = 0.04;
+  sun.shadow.mapSize.set(2048, 2048);
+  sun.shadow.camera.left = -24;
+  sun.shadow.camera.right = 24;
+  sun.shadow.camera.top = 24;
+  sun.shadow.camera.bottom = -24;
+  sun.shadow.normalBias = 0.008;
+  sun.shadow.bias = -0.000025;
+  sun.shadow.camera.near = 1;
+  sun.shadow.camera.far = 110;
   scene.add(sun);
   scene.add(sun.target);
   const camera = new T.PerspectiveCamera(52, 16 / 9, 0.1, 220);
@@ -56,10 +60,9 @@ async function start() {
   const rig = new CameraRig(camera);
   const world = new R.World({ x: 0, y: -18, z: 0 });
   world.timestep = 1 / 60;
-  createWorld(scene, world);
+  const groundLighting=createWorld(scene, world);
   const bus = new EventBus();
   const audio = new ImpactAudio();
-  const berries = new BerryCollectibles(scene, bus);
   const player = new PhysicsPlayer(world, bus);
   let storage: Storage;
   try {
@@ -74,11 +77,13 @@ async function start() {
   let design=designForGame(skin);
   if(appearanceTest){try{const saved=storage.getItem('sharobesy.author.skin-study.v1');if(saved)design=validateDesign(JSON.parse(saved));}catch{/* Invalid author config does not change the player. */}}
   function environmentFor(r:T.WebGLRenderer,force=false){if(!force&&(design.gloss<=0||design.surface!=='smooth'||design.growthCount>0))return undefined;const room=new RoomEnvironment(),pmrem=new T.PMREMGenerator(r),texture=pmrem.fromScene(room,.04).texture;room.dispose();pmrem.dispose();return texture;}
-  const worldEnvironment=environmentFor(renderer,valleyStudy);
+  const worldEnvironment=environmentFor(renderer,true);
+  const berries = new BerryCollectibles(scene, bus,worldEnvironment);
   const visual=new RuntimeVisual(design,atlas,resources.textures,skin.mood,worldEnvironment);
   scene.add(visual);
   const casting=valleyStudy?addValleyStudy(scene,atlas,resources.textures,worldEnvironment):undefined;
-  if(casting){const label=document.createElement("div");label.textContent="ПРОБА ДОЛИНЫ · 10 образцов без поведения и столкновений";label.style.cssText="position:absolute;left:24px;bottom:76px;font-size:15px;color:#24463c;background:#fff6dfdf;padding:8px 12px;border-radius:12px;text-shadow:none";hud.appendChild(label);}
+  const contactPositions=[visual.position,...(casting?.actors.map(a=>a.position)??[])];
+  if(casting){const label=document.createElement("div");label.textContent="ПРОБА ДОЛИНЫ · 10 образцов без поведения и столкновений";label.style.cssText="position:absolute;left:24px;bottom:76px;font-size:15px;color:#24463c;background:#fff6dfdf;padding:8px 12px;border-radius:12px;text-shadow:none";hud.appendChild(label);const detailButton=document.createElement('button');detailButton.textContent='Ягоды крупно / общий вид';detailButton.onclick=()=>{berryDetail=!berryDetail;};document.querySelector('#tools')!.appendChild(detailButton);}
   const input = new Input(),
     effects = new Effects(scene);
   const events = new R.EventQueue(true);
@@ -133,6 +138,7 @@ async function start() {
   });
   const cameraButton = document.querySelector<HTMLButtonElement>("#camera")!;
   function setCamera(n: number) {
+    berryDetail=false;
     rig.setMode(n);
     cameraButton.textContent = "Камера: " + rig.names[n];
   }
@@ -244,8 +250,10 @@ async function start() {
     rig.update(visual.position, player.heading, elapsed, Math.hypot(cameraVelocity.x, cameraVelocity.z));
     effects.update(elapsed);
     casting?.update(elapsed);
+    groundLighting.setContacts(contactPositions);
     sun.position.copy(visual.position).add(new T.Vector3(-25, 45, 20));
     sun.target.position.copy(visual.position);
+    if(berryDetail){const ground=heightAt(0,5);camera.position.set(-2.8,ground+1.7,2.7);camera.lookAt(0,ground+.5,5);}
     renderer.render(scene, camera);
     portraitRenderer.render(portraitScene, portraitCamera);
     frames++;
@@ -271,6 +279,8 @@ async function start() {
       faceEyes: visual.face.eyes.map(e => e.visible),
       faceArt: "animated-atlas-v03",
       faceVisibility: Object.entries(visual.face.rig.poses).filter(([,g])=>g.visible).map(([name,g])=>({name,rotation:g.rotation.toArray(),opacity:(g.children.find(o=>o.name.startsWith('study-')) as T.Mesh<T.BufferGeometry,T.ShaderMaterial>).material.uniforms.opacity.value})),
+      berryDetail,
+      shadowSettings:{mapSize:sun.shadow.mapSize.x,normalBias:sun.shadow.normalBias,contactCount:contactPositions.length},berryArt:"raspberry-plants-v1",
       valleyStudy:!!casting,studyActors:casting?.actors.map(a=>({seed:a.design.seed,surface:a.design.surface,pattern:a.design.pattern,position:a.position.toArray(),facePose:a.face.expression()})),drawCalls:renderer.info.render.calls,
       design,appearanceTest,faceScale:.9,comboPhase:visual.face.rig.combo.phase,immobilized:visual.face.immobilized,
       heading: player.heading,

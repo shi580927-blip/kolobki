@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import RAPIER from "@dimforge/rapier3d-compat";
 import { terrainData, heightAt, WORLD_SIZE } from "../core/terrain";
+import {makeGroundLighting} from "./GroundLighting";
 import {addValleyArt,valleyGroundColor} from "./ValleyArt";
 import {randomFrom} from "../core/skin";
 export function createWorld(scene: THREE.Scene, world: RAPIER.World) {
@@ -17,9 +18,10 @@ export function createWorld(scene: THREE.Scene, world: RAPIER.World) {
     colors.set([color.r, color.g, color.b], i);
   }
   geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+  const lighting=makeGroundLighting();
   const mesh = new THREE.Mesh(
     geometry,
-    new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 1 }),
+    lighting.material,
   );
   mesh.receiveShadow = true;
   scene.add(mesh);
@@ -63,6 +65,7 @@ export function createWorld(scene: THREE.Scene, world: RAPIER.World) {
       ),
     );
   }
+  return lighting;
 }
 
 /** First color/layout pass: keep the center open for rolling and future trains. */
