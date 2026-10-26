@@ -24,12 +24,26 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict'),fs=r
  assert.ok(captured,'real player controls collect an NPC');
  assert.ok(captured.train.count>0);assert.match(await page.locator('#train-status').innerText(),/Поезд: [1-5]/);
  await page.screenshot({path:'test-results/train-collected.png',timeout:120000});
- await page.keyboard.down('KeyW');await page.waitForTimeout(2000);await page.keyboard.up('KeyW');
+ // Lock camera bearing, then drive forwards and backwards through the tail.
+ await page.mouse.move(400,250);await page.mouse.down({button:'middle'});await page.mouse.move(405,250);await page.mouse.up({button:'middle'});
+ let maxGap=0,minSeparation=100;
+ for(const key of ['KeyW','KeyS','KeyW']){
+  const start=(await state()).physicsTime;await page.keyboard.down(key);await page.keyboard.press('Space');
+  while((await state()).physicsTime<start+1.3){
+   const s=await state();maxGap=Math.max(maxGap,...s.train.gaps,0);
+   const positions=[s.position,...s.train.ids.map(id=>s.npcs.find(n=>n.id===id).position)];
+   for(let i=0;i<positions.length;i++)for(let j=0;j<i;j++)minSeparation=Math.min(minSeparation,Math.hypot(...positions[i].map((v,k)=>v-positions[j][k])));
+   assert.notEqual(s.comboPhase,'DIZZY','ordinary jump must not cause dizziness');await page.waitForTimeout(100);
+  }
+  await page.keyboard.up(key);
+ }
+ assert.ok(maxGap<2.7,'linked bodies do not trail by two body lengths');assert.ok(minSeparation>1.8,'leader cannot pass through wagons');
+ await page.screenshot({path:'test-results/train-reversal.png',timeout:120000});
  const following=await state();assert.ok(following.npcs.every(n=>n.position.every(Number.isFinite)));
  await page.getByRole('button',{name:'На старт',exact:true}).click();const reset=await state();assert.equal(reset.train.count,0);assert.equal(reset.train.attachedTotal,0);assert.equal(reset.skin.seed,4321);assert.deepEqual(reset.npcs.map(n=>n.appearanceSeed),first.npcs.map(n=>n.appearanceSeed));
  for(let i=1;i<=4;i++){await page.keyboard.press('Digit'+i);assert.equal((await state()).camera,i-1);}
  await page.setViewportSize({width:1170,height:540});const box=await page.locator('#stage').boundingBox();assert.ok(Math.abs(box.width/box.height-16/9)<.001);assert.equal((await state()).cameraFov,52);
  await page.goto(url+'/?skin-test');await page.waitForFunction(()=>window.__SHAROBESY__&&document.querySelector('#boot').hidden);assert.equal((await state()).train,undefined);assert.equal((await state()).npcs.length,0);
  await page.getByRole('button',{name:'Проба комбо',exact:true}).click();await page.waitForFunction(()=>window.__SHAROBESY__.comboPhase==='DIZZY');await page.waitForFunction(()=>window.__SHAROBESY__.comboPhase==='IDLE');assert.ok((await state()).faceVisibility.length>0);assert.equal((await state()).immobilized,false);
- assert.deepEqual(errors,[]);console.log(JSON.stringify({capture:captured.train,following:following.train,reset:true,seed:4321,cameras:4,aspect16by9:true,authorIsolated:true,comboRecovery:true,errors}));await browser.close();
+ assert.deepEqual(errors,[]);console.log(JSON.stringify({capture:captured.train,following:following.train,maxGap,minSeparation,reversalAndJumps:true,reset:true,seed:4321,cameras:4,aspect16by9:true,authorIsolated:true,comboRecovery:true,errors}));await browser.close();
 })().catch(e=>{console.error(e);process.exit(1)});

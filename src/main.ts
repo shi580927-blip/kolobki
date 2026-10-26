@@ -11,6 +11,7 @@ import R from "@dimforge/rapier3d-compat";
 import { loadSkin, randomFrom } from "./core/skin";
 import { fit16by9, heightAt } from "./core/terrain";
 import { EventBus } from "./core/events";
+import {ImpactMeter} from "./game/ImpactModel";
 import {TrainSystem} from "./game/TrainSystem";
 import {NpcSystem} from "./game/NpcSystem";
 import { Input } from "./game/Input";
@@ -130,13 +131,13 @@ async function start() {
   const trainStatus=()=>{const label=document.querySelector('#train-status');if(label)label.textContent=`Поезд: ${train?.count??0} / 5 · Сильный удар разрывает состав`;};
   bus.on('train_attach',e=>{trainStatus();effects.sparkle(e.position);audio.collect();react('happy');npcs?.actors.find(a=>a.entry.id===e.id)?.visual.face.play('shocked');});
   bus.on('train_break',e=>{trainStatus();effects.burst(e.position);audio.play();rig.shake=.2;react('scared');for(const a of npcs?.actors??[])if(e.ids.includes(a.entry.id)){a.brain.hit();a.visual.face.play('dazed');}});
-  let impactWindow=0,impactCount=0;
+  const impactMeter=new ImpactMeter();let physicsTime=0;
   bus.on("combo",()=>faces.forEach(f=>f.combo()));
-  bus.on("impact_major", ({ position }) => {
+  bus.on("impact_major", ({ position,source="collision",closingSpeed=0,severity=0 }) => {
     effects.burst(position);
     audio.play();
     rig.shake = 0.25;
-    const now=performance.now()/1000;impactCount=now-impactWindow<3?impactCount+1:1;impactWindow=now;if(impactCount>=3){bus.emit("combo",{count:impactCount});impactCount=0;}else react("dazed");
+    if(impactMeter.add({source,closingSpeed,severity},physicsTime))bus.emit("combo",{count:1});else react("dazed");
   });
   bus.on("face_unhinged", () => {
     visual.face.impact();
@@ -184,7 +185,7 @@ async function start() {
     player.reset();
     npcs?.reset();
     train?.reset();trainStatus();
-    berries.reset();impactCount=0;faces.forEach(f=>f.rig.reset());
+    berries.reset();impactMeter.reset();physicsTime=0;faces.forEach(f=>f.rig.reset());
     updateBerryCount();
   };
   if(appearanceTest){const button=document.createElement('button');button.textContent='Проба комбо';button.onclick=()=>bus.emit('combo',{count:3});document.querySelector('#tools')!.appendChild(button);}
@@ -242,6 +243,7 @@ async function start() {
     acc += elapsed;
     let steps = 0;
     while (acc >= dt && steps < 6) {
+      physicsTime+=dt;
       player.setImmobilized(visual.face.immobilized);
       player.step(dt, input, direction);
       npcs?.step(dt,player,id=>train?.has(id)??false);
@@ -251,12 +253,17 @@ async function start() {
       npcs?.sync();
       berries.checkSegment(player.previous, player.current);
       events.drainContactForceEvents((e) => {
-        npcs?.contact(e.collider1(),e.collider2(),e.totalForceMagnitude());
+        const internal=train?.isInternalContact(e.collider1(),e.collider2())??false;
+        npcs?.contact(e.collider1(),e.collider2(),e.totalForceMagnitude(),internal,player);
         if (
           e.collider1() === player.collider.handle ||
           e.collider2() === player.collider.handle
         )
-          player.contact(e.totalForceMagnitude());
+          {
+          const handle=e.collider1()===player.collider.handle?e.collider2():e.collider1();
+          const otherNpc=npcs?.actors.find(a=>a.physics.collider.handle===handle);
+          player.contact(e.totalForceMagnitude(),world.getCollider(handle),otherNpc?.physics.impactVelocity,internal);
+        }
       });
       train?.afterStep();
       acc -= dt;
@@ -313,7 +320,7 @@ async function start() {
       faceEyes: visual.face.eyes.map(e => e.visible),
       faceArt: "animated-atlas-v03",
       faceVisibility: Object.entries(visual.face.rig.poses).filter(([,g])=>g.visible).map(([name,g])=>({name,rotation:g.rotation.toArray(),opacity:(g.children.find(o=>o.name.startsWith('study-')) as T.Mesh<T.BufferGeometry,T.ShaderMaterial>).material.uniforms.opacity.value})),
-      train:train?.snapshot(),
+      physicsTime,impactCharge:impactMeter.value,train:train?.snapshot(),
       npcs:npcs?.snapshot().map(a=>({...a,state:train?.has(a.id)?"wagon":a.state}))??[],npcContacts:npcs?.collisionsWithPlayer??0,npcSeed:npcs?.seed,
       buildVersion,skyArt:skyState,cloudCount:sky?.clouds.length??0,cameraFov:camera.fov,
       berryDetail,

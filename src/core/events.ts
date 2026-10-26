@@ -7,7 +7,7 @@ export interface GameEvents {
   ring_collected: { position: Vector3; count: number; total: number };
   player_jump: {};
   player_dash: {};
-  impact_major: { position: Vector3; strength: number };
+  impact_major: { position: Vector3; strength: number; source?: "collision"|"landing"; closingSpeed?:number; severity?:number };
   face_unhinged: { duration: number };
   combo: { count: number };
   capture_moment: { time: number };

@@ -1,6 +1,7 @@
 import R from "@dimforge/rapier3d-compat";
 import { Vector3, Quaternion } from "three";
 import { heightAt, headingFromVelocity } from "../core/terrain";
+import {impactSeverity} from "./ImpactModel";
 import type { Input } from "./Input";
 import type { EventBus } from "../core/events";
 export type DriveInput = Pick<Input,"x"|"z"|"jump"|"dash">;
@@ -69,6 +70,7 @@ export class PhysicsPlayer {
   }
   reset() {
     this.setImmobilized(false);
+    this.jumpCooldown=this.dashCooldown=this.impactCooldown=0;
     this.body.setTranslation({ x: this.spawn.x, y: heightAt(this.spawn.x, this.spawn.z) + 1.1, z: this.spawn.z }, true);
     this.body.setLinvel({ x: 0, y: 0, z: 0 }, true);
     this.body.setAngvel({ x: 0, y: 0, z: 0 }, true);
@@ -168,7 +170,27 @@ export class PhysicsPlayer {
     this.heading = headingFromVelocity(v.x, v.z, this.heading);
     if (this.current.y < -30) this.reset();
   }
-  contact(strength: number) {
+  get impactVelocity(){return this.velocityBeforeStep;}
+  captureVelocity(){this.velocityBeforeStep.copy(this.body.linvel());}
+  contact(strength: number, other?:R.Collider, otherVelocity?:Vector3, internal=false) {
+    if(internal)return;
+    let source:'collision'|'landing'='collision',closingSpeed=this.collisionSpeedChange;
+    if(other){
+      let sideSpeed=0,landingSpeed=0;
+      const relative=this.velocityBeforeStep.clone().sub(otherVelocity??new Vector3().copy(other.parent()?.linvel()??{x:0,y:0,z:0}));
+      this.world.contactPair(this.collider,other,m=>{
+        for(let i=0;i<m.numSolverContacts();i++){
+          if(m.solverContactDist(i)>.02)continue;
+          const point=new Vector3().copy(m.solverContactPoint(i));
+          const speed=Math.max(0,relative.dot(point.clone().sub(this.current).normalize()));
+          if(Math.abs(m.normal().y)>.55&&point.y<this.current.y-.35)landingSpeed=Math.max(landingSpeed,speed);
+          else sideSpeed=Math.max(sideSpeed,speed);
+        }
+      });
+      source=sideSpeed>=5?'collision':'landing';closingSpeed=source==='collision'?sideSpeed:landingSpeed;
+    }
+    const severity=impactSeverity(closingSpeed,source);
+    if(severity===0)return;
     if (
       this.immobilized ||
       strength < 90 ||
@@ -177,7 +199,7 @@ export class PhysicsPlayer {
     )
       return;
     this.impactCooldown = 0.55;
-    this.bus.emit("impact_major", { position: this.current.clone(), strength });
+    this.bus.emit("impact_major", { position: this.current.clone(), strength,source,closingSpeed,severity });
     this.bus.emit("face_unhinged", { duration: 0.85 });
   }
 }

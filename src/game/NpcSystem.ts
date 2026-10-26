@@ -36,7 +36,8 @@ export class NpcSystem {
   }
  }
  sync(){this.actors.forEach(a=>a.physics.sync());}
- contact(first:number,second:number,strength:number){if((first===this.playerHandle&&this.byCollider.has(second))||(second===this.playerHandle&&this.byCollider.has(first)))this.collisionsWithPlayer++;for(const handle of [first,second]){const index=this.byCollider.get(handle);if(index!==undefined){const a=this.actors[index];a.physics.contact(strength);}}}
+ contact(first:number,second:number,strength:number,internal=false,player?:PhysicsPlayer){if((first===this.playerHandle&&this.byCollider.has(second))||(second===this.playerHandle&&this.byCollider.has(first)))this.collisionsWithPlayer++;for(const handle of [first,second]){const index=this.byCollider.get(handle);if(index!==undefined){const a=this.actors[index];const otherHandle=handle===first?second:first,other=this.world.getCollider(otherHandle),otherActor=this.actors.find(b=>b.physics.collider.handle===otherHandle);
+ a.physics.contact(strength,other,otherHandle===player?.collider.handle?player.impactVelocity:otherActor?.physics.impactVelocity,internal);}}}
  update(dt:number,alpha:number){for(const a of this.actors){a.visual.position.lerpVectors(a.physics.previous,a.physics.current,alpha);a.visual.rollingBody.quaternion.slerpQuaternions(a.physics.prevRotation,a.physics.rotation,alpha);a.visual.face.update(dt,a.physics.heading);a.visual.updateDecorations();}}
  reset(){this.collisionsWithPlayer=0;for(const a of this.actors){a.physics.reset();a.brain.reset();a.lastState=a.brain.state;a.visual.face.rig.reset();a.input.x=a.input.z=0;a.input.jump=a.input.dash=false;}}
  snapshot(){return this.actors.map(a=>({id:a.entry.id,kind:a.entry.kind,appearanceSeed:a.entry.appearanceSeed,state:a.brain.state,position:a.physics.current.toArray(),heading:a.physics.heading,rotation:a.physics.rotation.toArray(),facePose:a.visual.face.expression()}));}
