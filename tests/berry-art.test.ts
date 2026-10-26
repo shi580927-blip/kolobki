@@ -11,7 +11,7 @@ test('ground berries touch the meadow, plant berries have a stem and picking lea
  for(let i=0;i<12;i++){
   const p=berryPlacement(i),fruit=berries.items[i].mesh;assert.equal(fruit.position.y,p.centerY);
   if(!p.onPlant)assert.ok(p.centerY-.48-heightAt(p.x,p.z)<=.02&&p.centerY-.48-heightAt(p.x,p.z)>=-.06);
-  const flesh=fruit.getObjectByName('raspberry-flesh') as InstancedMesh;assert.equal(flesh.count,46);
+  const flesh=fruit.getObjectByName('raspberry-flesh') as InstancedMesh;assert.equal(flesh.count,15);
  }
  const leaves=scene.getObjectByName('berry-plant-leaves') as InstancedMesh,stems=scene.getObjectByName('berry-plant-stems') as Mesh;
  assert.equal(leaves.count,216);assert.ok(stems.geometry.getAttribute('position').count>0);

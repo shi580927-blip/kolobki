@@ -25,7 +25,7 @@ export class BerryArt {
  readonly leafGeometry=makeLeafGeometry();
  readonly leafMaterial=new T.MeshStandardMaterial({vertexColors:true,roughness:.65,side:T.DoubleSide});
  readonly fruitMaterial:T.MeshPhysicalMaterial;
- private drupeGeometry=new T.SphereGeometry(1,12,9);
+ private drupeGeometry=new T.SphereGeometry(1,16,12);
  private stemMaterial=new T.MeshStandardMaterial({color:'#56813a',roughness:.78});
  constructor(environment?:T.Texture){
   this.fruitMaterial=new T.MeshPhysicalMaterial({color:'#df1544',roughness:.23,metalness:0,clearcoat:.8,clearcoatRoughness:.14,transmission:0,thickness:.24,ior:1.36,attenuationColor:new T.Color('#ff3150'),attenuationDistance:.65,envMap:environment,envMapIntensity:.75});
@@ -40,11 +40,11 @@ export class BerryArt {
   this.fruitMaterial.customProgramCacheKey=()=> 'raspberry-flesh-v1';
  }
  fruit(seed:number){
-  const group=new T.Group(),random=randomFrom(seed),counts=[7,9,10,9,7,4],radii=[.23,.32,.35,.32,.24,.12];
+  const group=new T.Group(),random=randomFrom(seed),counts=[5,7,3],radii=[.22,.30,.12];
   const drupes=new T.InstancedMesh(this.drupeGeometry,this.fruitMaterial,counts.reduce((a,b)=>a+b,0)),dummy=new T.Object3D();let index=0;
   counts.forEach((count,row)=>{for(let j=0;j<count;j++){
-   const a=j/count*Math.PI*2+row*.43,r=.125+random()*.025;
-   dummy.position.set(Math.cos(a)*radii[row],.32-row*.13+(random()-.5)*.015,Math.sin(a)*radii[row]);dummy.scale.set(r,r*.94,r);dummy.updateMatrix();drupes.setMatrixAt(index,dummy.matrix);
+   const a=j/count*Math.PI*2+row*.43,r=.19+random()*.025;
+   dummy.position.set(Math.cos(a)*radii[row],.26-row*.26+(random()-.5)*.015,Math.sin(a)*radii[row]);dummy.scale.set(r,r*.94,r);dummy.updateMatrix();drupes.setMatrixAt(index,dummy.matrix);
    drupes.setColorAt(index,new T.Color().setHSL(.965+random()*.02,.91,.47+random()*.09));index++;
   }});
   drupes.name='raspberry-flesh';drupes.castShadow=true;drupes.receiveShadow=true;group.add(drupes);
