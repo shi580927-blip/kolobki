@@ -1,3 +1,4 @@
+import {bootReady} from "./core/BootStatus";
 import * as T from "three";
 import {fit16by9} from "./core/terrain";
 import {randomFrom} from "./core/skin";
@@ -36,6 +37,6 @@ export async function startFaceStudy(){
  button('Спереди / ¾',()=>{angle=angle===0?.55:0;});button('Свет / тень',()=>{shadow=!shadow;hemi.intensity=shadow?.3:2;sun.position.z=shadow?-8:8;});button('Качение',()=>{rolling=!rolling;});button('Моргание',()=>{closed=!closed;});button('Реакция',()=>faces.forEach(f=>f.impact()));
  const note=document.createElement('div');note.textContent='Внизу — уменьшенный образец (~80 px). «Реакция» — тест анимации, не физическое столкновение.';note.style.cssText='position:absolute;left:30px;bottom:14px;color:#233d41;font-size:14px';hud.appendChild(note);
  function resize(){const f=fit16by9(innerWidth,innerHeight);stage.style.width=f.width+'px';stage.style.height=f.height+'px';hud.style.transform=`scale(${f.scale})`;renderer.setSize(f.width,f.height,false);}addEventListener('resize',resize);resize();
- let last=performance.now();function frame(now:number){const dt=Math.min(.05,(now-last)/1000);last=now;groups.forEach(g=>g.rotation.y=angle);bodies.forEach(b=>{if(rolling)b.rotation.x+=dt*.7;});states.forEach((s,i)=>{s.update(dt);faces[i].update(dt,closed?1:s.blink);});renderer.render(scene,camera);requestAnimationFrame(frame);}requestAnimationFrame(frame);
+ let last=performance.now();function frame(now:number){const dt=Math.min(.05,(now-last)/1000);last=now;groups.forEach(g=>g.rotation.y=angle);bodies.forEach(b=>{if(rolling)b.rotation.x+=dt*.7;});states.forEach((s,i)=>{s.update(dt);faces[i].update(dt,closed?1:s.blink);});renderer.render(scene,camera);bootReady();requestAnimationFrame(frame);}requestAnimationFrame(frame);
  Object.defineProperty(window,'__FACE_STUDY__',{get:()=>({expressions,angle,shadow,rolling,closed,eyes:faces.map(f=>f.eyeParts.map(e=>e.visible))})});
 }

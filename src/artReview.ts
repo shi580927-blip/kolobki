@@ -1,3 +1,4 @@
+import {bootReady} from "./core/BootStatus";
 import * as T from "three";
 import { loadFaceAtlas } from "./face/FaceAtlas";
 import { FaceState } from "./face/FaceState";
@@ -93,7 +94,7 @@ export async function startArtReview() {
       visuals[i].rollingBody.rotation.z += dt * 0.08;
       visuals[i].face.update(dt, 0);
     });
-    renderer.render(scene, camera);
+    renderer.render(scene, camera);bootReady();
     requestAnimationFrame(frame);
   };
   requestAnimationFrame(frame);

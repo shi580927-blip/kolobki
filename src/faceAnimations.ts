@@ -1,3 +1,4 @@
+import {bootReady} from "./core/BootStatus";
 import * as T from 'three';
 import {fit16by9} from './core/terrain';
 import {randomFrom} from './core/skin';
@@ -33,7 +34,7 @@ export async function startFaceAnimations(){
  function frame(now:number){const dt=Math.min(.1,(now-last)/1000);last=now;rig.update(dt);root.rotation.y=yaw;const rock=rig.combo.stop?1:rig.combo.phase==='RECOVER'?1-Math.min(1,(rig.combo.elapsed-rig.combo.orbit-rig.combo.dizzy)/rig.combo.recover):0;root.rotation.z=Math.sin(rig.time*9)*.045*rock;
  if(rolling&&!rig.combo.stop&&rig.expression!=='knockout')body.rotation.x+=dt*.8;
  if(auto&&rig.clock.phase==='IDLE'&&rig.time-lastAuto>1){rig.play(names[index++%names.length]);lastAuto=rig.time;}
- const phase=rig.combo.phase==='IDLE'?rig.clock.phase:rig.combo.phase;status.textContent=`${data.poses[rig.expression].label} · ${phase}\nУдержание: ${data.clips[rig.target].hold.toFixed(1)} с${rig.expression==='knockout'?' · рот временный':''}\n${rig.combo.stop?'Шар остановлен и качается':'База: '+data.poses[rig.base].label}`;status.style.whiteSpace='pre-line';caption.textContent=rig.combo.phase==='ORBIT'?'Срыв лица: 3 оборота со следом':rig.combo.stop?'Головокружение: остановка и покачивание':data.poses[rig.expression].label;renderer.render(scene,camera);requestAnimationFrame(frame);}
+ const phase=rig.combo.phase==='IDLE'?rig.clock.phase:rig.combo.phase;status.textContent=`${data.poses[rig.expression].label} · ${phase}\nУдержание: ${data.clips[rig.target].hold.toFixed(1)} с${rig.expression==='knockout'?' · рот временный':''}\n${rig.combo.stop?'Шар остановлен и качается':'База: '+data.poses[rig.base].label}`;status.style.whiteSpace='pre-line';caption.textContent=rig.combo.phase==='ORBIT'?'Срыв лица: 3 оборота со следом':rig.combo.stop?'Головокружение: остановка и покачивание':data.poses[rig.expression].label;renderer.render(scene,camera);bootReady();requestAnimationFrame(frame);}
  requestAnimationFrame(frame);
  Object.defineProperty(window,'__FACE_ANIMATIONS__',{get:()=>({poses:names,expression:rig.expression,phase:rig.clock.phase,weight:rig.clock.weight,comboPhase:rig.combo.phase,comboAngle:rig.combo.angle,turns:rig.combo.turns,stopped:rig.combo.stop,blink:rig.blink,visibleEyes:Object.values(rig.poses).filter(g=>g.visible).flatMap(g=>g.children.filter(o=>o.name.startsWith('study-eye-')).map(o=>o.visible)),bodyRotation:body.rotation.x,base:rig.base,gaze:rig.gaze})});
 }

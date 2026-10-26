@@ -1,3 +1,4 @@
+import {bootReady} from "./core/BootStatus";
 import * as T from 'three';
 import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
 import {skinFrom,isVividSeed} from './core/skin';
@@ -69,6 +70,6 @@ export async function startSkinStudy(){
  const faceSelect=document.createElement('select');faceSelect.setAttribute('aria-label','Выражение лица');faceSelect.style.cssText='padding:7px;border-radius:8px';for(const [value,text] of [['sly','Хитрый'],['happy','Довольный'],['grumpy','Хмурый']]){const o=document.createElement('option');o.value=value;o.textContent=text;faceSelect.appendChild(o);}faceSelect.onchange=()=>{expression=faceSelect.value as StudyExpression;rebuildFaces();};toolbar.appendChild(faceSelect);
  const caption=document.createElement('div');caption.className='skin-caption';caption.textContent='Слева внизу — игровой размер (~68 px). Узор и наросты катятся с корпусом; лицо не переворачивается.\nЭто художественный образец, без изменения основного геймплея.';caption.style.whiteSpace='pre-line';hud.appendChild(caption);
  function resize(){const f=fit16by9(innerWidth,innerHeight);stage.style.width=f.width+'px';stage.style.height=f.height+'px';hud.style.transform=`scale(${f.scale})`;renderer.setSize(f.width,f.height,false);}addEventListener('resize',resize);resize();refresh();
- let last=performance.now();function frame(now:number){const dt=Math.min(.05,(now-last)/1000);last=now;elapsed+=dt;for(const s of [sample,mini]){s.rotation.y=angle;s.update(dt,rolling);const phase=elapsed%4,blink=closed?1:phase<.15?phase/.15:phase<.25?1:phase<.4?1-(phase-.25)/.15:0;s.face.update(dt,blink);}renderer.render(scene,camera);requestAnimationFrame(frame);}requestAnimationFrame(frame);
+ let last=performance.now();function frame(now:number){const dt=Math.min(.05,(now-last)/1000);last=now;elapsed+=dt;for(const s of [sample,mini]){s.rotation.y=angle;s.update(dt,rolling);const phase=elapsed%4,blink=closed?1:phase<.15?phase/.15:phase<.25?1:phase<.4?1-(phase-.25)/.15:0;s.face.update(dt,blink);}renderer.render(scene,camera);bootReady();requestAnimationFrame(frame);}requestAnimationFrame(frame);
  Object.defineProperty(window,'__SKIN_STUDY__',{get:()=>({design:{...design},expression,rolling,shadow,angle,faceScale:SKIN_STUDY_FACE_SCALE,bodyAngle:sample.rotationAngle,faceQuaternion:sample.face.quaternion.toArray(),growthInstances:sample.growthInstances,surfaceCells:sample.cellCount,furInstances:sample.furInstances,drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles,storageKey})});
 }

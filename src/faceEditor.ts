@@ -1,3 +1,4 @@
+import {bootReady} from "./core/BootStatus";
 import * as T from 'three';
 import {fit16by9} from './core/terrain';
 import {randomFrom} from './core/skin';
@@ -42,7 +43,7 @@ export async function startFaceEditor(){
  button('Зафиксировать',()=>{try{localStorage.setItem(STORAGE,JSON.stringify(file));status.textContent='Зафиксировано в этом браузере. Скачай JSON и пришли его в чат.';}catch{status.textContent='Браузер не сохранил настройки. Скачай JSON — он содержит все правки.';}},save);
  function download(blob:Blob,name:string){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),10000);}
  button('Скачать JSON',()=>download(new Blob([JSON.stringify(file,null,2)],{type:'application/json'}),'sharobesy-face-layout.json'),save);
- button('Скачать PNG',()=>{outline.visible=false;renderer.render(scene,camera);renderer.domElement.toBlob(blob=>{if(blob)download(blob,'sharobesy-face-'+exp+'.png');else status.textContent='Не удалось сохранить снимок.';});outline.visible=true;},save);
+ button('Скачать PNG',()=>{outline.visible=false;renderer.render(scene,camera);bootReady();renderer.domElement.toBlob(blob=>{if(blob)download(blob,'sharobesy-face-'+exp+'.png');else status.textContent='Не удалось сохранить снимок.';});outline.visible=true;},save);
  const importRow=document.createElement('div');importRow.className='row';panel.appendChild(importRow);const importInput=document.createElement('input');importInput.type='file';importInput.accept='.json,application/json';importInput.hidden=true;panel.appendChild(importInput);button('Открыть JSON',()=>importInput.click(),importRow);importInput.onchange=async()=>{try{const f=importInput.files?.[0];if(!f)return;const next=validateLayoutFile(JSON.parse(await f.text()));checkpoint();file=next;update();status.textContent='Настройки загружены.';}catch(e){status.textContent=(e as Error).message;}importInput.value='';};
  button('Сброс выражения',()=>{checkpoint();file.faces[exp]=structuredClone(defaults[exp]);update();status.textContent='Выражение сброшено. Можно отменить.';},importRow);panel.appendChild(status);
  const help=document.createElement('p');help.textContent='JSON хранит точные размеры и позиции всех трёх выражений. Пришли его сюда вместе с PNG. Перетаскивание доступно в ракурсе спереди.';panel.appendChild(help);
@@ -56,6 +57,6 @@ export async function startFaceEditor(){
  const end=()=>{drag=null;};renderer.domElement.onpointerup=end;renderer.domElement.onpointercancel=end;renderer.domElement.onlostpointercapture=end;addEventListener('blur',end);
  renderer.domElement.addEventListener('wheel',e=>{e.preventDefault();checkpoint();const b=bounds(),factor=Math.exp(-e.deltaY*.001);change('width',T.MathUtils.clamp(b.width*factor,.1,2.5));change('height',T.MathUtils.clamp(b.height*factor,.05,2));},{passive:false});
  function resize(){const f=fit16by9(innerWidth,innerHeight);stage.style.width=f.width+'px';stage.style.height=f.height+'px';hud.style.transform=`scale(${f.scale})`;renderer.setSize(f.width,f.height,false);}addEventListener('resize',resize);resize();update();
- function frame(){renderer.render(scene,camera);requestAnimationFrame(frame);}requestAnimationFrame(frame);
+ function frame(){renderer.render(scene,camera);bootReady();requestAnimationFrame(frame);}requestAnimationFrame(frame);
  Object.defineProperty(window,'__FACE_EDITOR__',{get:()=>({file:structuredClone(file),expression:exp,selected:selection.value})});
 }

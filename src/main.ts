@@ -1,4 +1,5 @@
 import "./style.css";
+import {version as buildVersion} from "../package.json";
 import {RoomEnvironment} from "three/addons/environments/RoomEnvironment.js";
 import {loadAnimationAtlas} from "./face/AnimatedAtlas";
 import {RuntimeVisual} from "./game/RuntimeVisual";
@@ -10,9 +11,10 @@ import R from "@dimforge/rapier3d-compat";
 import { loadSkin, randomFrom } from "./core/skin";
 import { fit16by9, heightAt } from "./core/terrain";
 import { EventBus } from "./core/events";
+import {NpcSystem} from "./game/NpcSystem";
 import { Input } from "./game/Input";
 import { CameraRig } from "./game/CameraRig";
-import {addCloudSky} from "./game/CloudSky";
+import {bootProgress,bootReady,bootFail} from "./core/BootStatus";
 import {addValleyStudy} from "./game/ValleyStudy";
 import { createWorld } from "./game/World";
 import { PhysicsPlayer } from "./game/PhysicsPlayer";
@@ -20,7 +22,10 @@ import { Effects } from "./game/Effects";
 import { ImpactAudio } from "./game/ImpactAudio";
 import { OrbitInput } from "./game/OrbitInput";
 async function start() {
+  document.querySelector(".brand small")!.textContent=`АЛЬФА 0.1 · ${buildVersion.replace("0.1.0-", "")} · ТЕХНИЧЕСКИЙ ТЕСТ`;
+  bootProgress("Готовим игру…");
   await R.init();
+  bootProgress("Загружаем персонажа…");
   const resources=await loadAnimationAtlas(),atlas=gameplayAtlas(resources.data);
   const appearanceTest=new URLSearchParams(location.search).has("skin-test");
   const valleyStudy=new URLSearchParams(location.search).has("valley-study");
@@ -37,11 +42,13 @@ async function start() {
   renderer.setPixelRatio(Math.min(devicePixelRatio, 1.75));
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = T.PCFSoftShadowMap;
+  renderer.domElement.addEventListener("webglcontextlost",event=>{event.preventDefault();bootFail("Не удалось продолжить отображение игры. Повторите загрузку.");});
   stage.appendChild(renderer.domElement);
   const scene = new T.Scene();
   scene.background = new T.Color(0x91cbed);
   scene.fog = new T.Fog(0xb7dbea, 60, 150);
-  const sky=addCloudSky(scene);
+  let sky:ReturnType<typeof import("./game/CloudSky").addCloudSky>|undefined;
+  let skyState="pending";
   scene.add(new T.HemisphereLight(0xfff5df, 0x738b83, 1.8));
   const sun = new T.DirectionalLight(0xfff1de, 2);
   sun.position.set(-25, 45, 20);
@@ -62,6 +69,7 @@ async function start() {
   const rig = new CameraRig(camera);
   const world = new R.World({ x: 0, y: -18, z: 0 });
   world.timestep = 1 / 60;
+  bootProgress("Создаём долину…");
   const groundLighting=createWorld(scene, world);
   const bus = new EventBus();
   const audio = new ImpactAudio();
@@ -86,6 +94,8 @@ async function start() {
   const casting=valleyStudy?addValleyStudy(scene,atlas,resources.textures,worldEnvironment):undefined;
   const contactPositions=[visual.position,...(casting?.actors.map(a=>a.position)??[])];
   if(casting){const label=document.createElement("div");label.textContent="ПРОБА ДОЛИНЫ · 10 образцов без поведения и столкновений";label.style.cssText="position:absolute;left:24px;bottom:76px;font-size:15px;color:#24463c;background:#fff6dfdf;padding:8px 12px;border-radius:12px;text-shadow:none";hud.appendChild(label);const detailButton=document.createElement('button');detailButton.textContent='Ягоды крупно / общий вид';detailButton.onclick=()=>{berryDetail=!berryDetail;};document.querySelector('#tools')!.appendChild(detailButton);}
+  const npcs=!appearanceTest&&!valleyStudy?new NpcSystem(scene,world,bus,atlas,resources.textures,worldEnvironment,crypto.getRandomValues(new Uint32Array(1))[0]):undefined;
+  if(npcs){const label=document.createElement("div");label.textContent="Свободное катание · 5 шаробесов";label.style.cssText="position:absolute;left:30px;top:123px;font-size:13px;color:#fff";hud.appendChild(label);}
   const input = new Input(),
     effects = new Effects(scene);
   const events = new R.EventQueue(true);
@@ -113,6 +123,8 @@ async function start() {
   const react=(name:string)=>faces.forEach(f=>f.play(name));
   bus.on("player_jump",()=>react("happy"));
   bus.on("player_dash",()=>react("fury"));
+  let npcSoundCooldown=0;
+  bus.on("npc_impact",({position})=>{if(position.distanceTo(visual.position)<24){effects.burst(position);if(performance.now()>npcSoundCooldown){audio.play();npcSoundCooldown=performance.now()+250;}}});
   let impactWindow=0,impactCount=0;
   bus.on("combo",()=>faces.forEach(f=>f.combo()));
   bus.on("impact_major", ({ position }) => {
@@ -165,10 +177,12 @@ async function start() {
   });
   document.querySelector<HTMLButtonElement>("#reset")!.onclick = () => {
     player.reset();
+    npcs?.reset();
     berries.reset();impactCount=0;faces.forEach(f=>f.rig.reset());
     updateBerryCount();
   };
   if(appearanceTest){const button=document.createElement('button');button.textContent='Проба комбо';button.onclick=()=>bus.emit('combo',{count:3});document.querySelector('#tools')!.appendChild(button);}
+  if(npcs)contactPositions.push(...npcs.actors.map(a=>a.visual.position));
   const resize = () => {
     const fit = fit16by9(innerWidth, innerHeight);
     stage.style.width = fit.width + "px";
@@ -207,7 +221,7 @@ async function start() {
     fps = 0,
     fpsTime = last;
   const dt = 1 / 60;
-  notice.hidden = true;
+  let firstFrame=true;
   const direction = new T.Vector3();
   function frame(now: number) {
     const elapsed = Math.min((now - last) / 1000, 0.1);
@@ -224,10 +238,13 @@ async function start() {
     while (acc >= dt && steps < 6) {
       player.setImmobilized(visual.face.immobilized);
       player.step(dt, input, direction);
+      npcs?.step(dt,player);
       world.step(events);
       player.sync();
+      npcs?.sync();
       berries.checkSegment(player.previous, player.current);
       events.drainContactForceEvents((e) => {
+        npcs?.contact(e.collider1(),e.collider2(),e.totalForceMagnitude());
         if (
           e.collider1() === player.collider.handle ||
           e.collider2() === player.collider.handle
@@ -252,13 +269,19 @@ async function start() {
     rig.update(visual.position, player.heading, elapsed, Math.hypot(cameraVelocity.x, cameraVelocity.z));
     effects.update(elapsed);
     casting?.update(elapsed);
+    npcs?.update(elapsed,alpha);
     groundLighting.setContacts(contactPositions);
     sun.position.copy(visual.position).add(new T.Vector3(-25, 45, 20));
     sun.target.position.copy(visual.position);
     if(berryDetail){const ground=heightAt(0,5);camera.position.set(-2.8,ground+1.7,2.7);camera.lookAt(0,ground+.5,5);}
-    sky.update(elapsed,camera);
+    sky?.update(elapsed,camera);
     renderer.render(scene, camera);
     portraitRenderer.render(portraitScene, portraitCamera);
+    if(firstFrame&&!renderer.getContext().isContextLost()){
+      firstFrame=false;notice.hidden=true;bootReady();
+      // The playable scene starts even if an optional sky chunk cannot be loaded.
+      setTimeout(()=>{void import("./game/CloudSky").then(m=>{sky=m.addCloudSky(scene);skyState="soft-clouds-v1";}).catch(error=>{skyState="clear-sky";console.warn("Optional sky unavailable; keeping the playable scene",error);});},0);
+    }
     frames++;
     if (now - fpsTime > 500) {
       fps = (frames * 1000) / (now - fpsTime);
@@ -282,7 +305,8 @@ async function start() {
       faceEyes: visual.face.eyes.map(e => e.visible),
       faceArt: "animated-atlas-v03",
       faceVisibility: Object.entries(visual.face.rig.poses).filter(([,g])=>g.visible).map(([name,g])=>({name,rotation:g.rotation.toArray(),opacity:(g.children.find(o=>o.name.startsWith('study-')) as T.Mesh<T.BufferGeometry,T.ShaderMaterial>).material.uniforms.opacity.value})),
-      skyArt:"soft-clouds-v1",cloudCount:sky.clouds.length,cameraFov:camera.fov,
+      npcs:npcs?.snapshot()??[],npcContacts:npcs?.collisionsWithPlayer??0,npcSeed:npcs?.seed,
+      buildVersion,skyArt:skyState,cloudCount:sky?.clouds.length??0,cameraFov:camera.fov,
       berryDetail,
       shadowSettings:{mapSize:sun.shadow.mapSize.x,normalBias:sun.shadow.normalBias,contactCount:contactPositions.length},berryArt:"raspberry-plants-v1",
       valleyStudy:!!casting,studyActors:casting?.actors.map(a=>({seed:a.design.seed,surface:a.design.surface,pattern:a.design.pattern,position:a.position.toArray(),facePose:a.face.expression()})),drawCalls:renderer.info.render.calls,
@@ -317,12 +341,14 @@ const launch = new URLSearchParams(location.search).has("skin-study")
   : start();
 launch.catch((error) => {
   console.error(error);
+  bootFail();
   let errorNotice = document.querySelector<HTMLElement>("#notice");
   if (!errorNotice) {
     errorNotice = document.createElement("div");
     errorNotice.id = "notice";
     document.querySelector("#hud")?.appendChild(errorNotice);
   }
+  errorNotice.hidden = false;
   errorNotice.textContent =
-    "Не удалось запустить 3D-сцену. Обновите страницу или проверьте WebGL.";
+    "Не удалось загрузить игру. Обновите страницу и попробуйте ещё раз.";
 });

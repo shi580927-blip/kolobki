@@ -3,6 +3,7 @@ import { Vector3, Quaternion } from "three";
 import { heightAt, headingFromVelocity } from "../core/terrain";
 import type { Input } from "./Input";
 import type { EventBus } from "../core/events";
+export type DriveInput = Pick<Input,"x"|"z"|"jump"|"dash">;
 export class PhysicsPlayer {
   readonly body: R.RigidBody;
   readonly collider: R.Collider;
@@ -22,10 +23,11 @@ export class PhysicsPlayer {
   constructor(
     private world: R.World,
     private bus: EventBus,
+    private spawn: {x:number;z:number} = {x:0,z:0},
   ) {
     this.body = world.createRigidBody(
       R.RigidBodyDesc.dynamic()
-        .setTranslation(0, heightAt(0, 0) + 1.1, 0)
+        .setTranslation(spawn.x, heightAt(spawn.x, spawn.z) + 1.1, spawn.z)
         .setCcdEnabled(true)
         .setLinearDamping(0.25)
         .setAngularDamping(0.3),
@@ -67,7 +69,7 @@ export class PhysicsPlayer {
   }
   reset() {
     this.setImmobilized(false);
-    this.body.setTranslation({ x: 0, y: heightAt(0, 0) + 1.1, z: 0 }, true);
+    this.body.setTranslation({ x: this.spawn.x, y: heightAt(this.spawn.x, this.spawn.z) + 1.1, z: this.spawn.z }, true);
     this.body.setLinvel({ x: 0, y: 0, z: 0 }, true);
     this.body.setAngvel({ x: 0, y: 0, z: 0 }, true);
     this.current.copy(this.body.translation());
@@ -75,7 +77,7 @@ export class PhysicsPlayer {
     this.rotation.copy(this.body.rotation());
     this.prevRotation.copy(this.rotation);
   }
-  step(dt: number, input: Input, viewForward: Vector3) {
+  step(dt: number, input: DriveInput, viewForward: Vector3) {
     this.previous.copy(this.current);
     this.prevRotation.copy(this.rotation);
     this.jumpCooldown -= dt;
