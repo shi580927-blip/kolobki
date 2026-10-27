@@ -17,10 +17,10 @@ export class MatchRouteVisual {
     const x=from.x+dx*d/length+nx*side*3,z=from.z+dz*d/length+nz*side*3;
     dummy.position.set(x,heightAt(x,z)+.12,z);dummy.rotation.set(0,Math.atan2(dx,dz),0);dummy.updateMatrix();pieces.push(dummy.matrix.clone());
    }
-   // Repeated chevrons show travel direction, including in the opening view.
+   // Arm tips meet ahead of their tails in route direction (+local Z).
    for(let d=3;d<length;d+=7)for(const side of [-1,1]){
     const x=from.x+dx*d/length-nx*side*.45,z=from.z+dz*d/length-nz*side*.45;
-    dummy.position.set(x,heightAt(x,z)+.13,z);dummy.rotation.set(0,Math.atan2(dx,dz)+side*.8,0);dummy.updateMatrix();pieces.push(dummy.matrix.clone());
+    dummy.position.set(x,heightAt(x,z)+.13,z);dummy.rotation.set(0,Math.atan2(dx,dz)-side*.8,0);dummy.updateMatrix();pieces.push(dummy.matrix.clone());
    }
    const gate=new T.Group();gate.position.set(point.x,heightAt(point.x,point.z),point.z);
    const ring=new T.Mesh(new T.TorusGeometry(3.6,.09,5,40),this.routeMaterial);ring.rotation.x=-Math.PI/2;ring.position.y=.18;gate.add(ring);
