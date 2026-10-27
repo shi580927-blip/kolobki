@@ -1,7 +1,7 @@
 import * as T from 'three';
 import R from '@dimforge/rapier3d-compat';
 import {makeLeafGeometry} from './BerryArt';
-import {heightAt,WORLD_SIZE} from '../core/terrain';
+import {heightAt,WORLD_SIZE,POND} from '../core/terrain';
 import {clearRoutePosition,nearestRoutePoint,VALLEY_ROUTE} from '../core/valleyRoute';
 import {randomFrom} from '../core/skin';
 
@@ -30,14 +30,16 @@ export function valleyArtLayout(){
   const a=i/24*Math.PI*2+(random()-.5)*.2,r=76+random()*24,point=clearRoutePosition(Math.cos(a)*r,Math.sin(a)*r,4.2);
   if(!trees.some(p=>Math.hypot(p.x-point.x,p.z-point.z)<5))trees.push({...point,scale:1+random()*.5,kind:i%3});
  }
+ // Keep trees away from the water and its gentle shoreline.
+ for(const tree of trees){const dx=tree.x-POND.x,dz=tree.z-POND.z,d=Math.hypot(dx,dz);if(d<11.5){const k=11.5/(d||1);tree.x=POND.x+dx*k;tree.z=POND.z+dz*k;}}
  const flowers:{x:number;z:number;height:number;size:number;kind:number}[]=[],grass:{x:number;z:number;height:number;angle:number}[]=[],rocks:{x:number;z:number;radius:number}[]=[],pebbles:{x:number;z:number;size:number}[]=[];
  for(let i=0;i<480;i++){
   const p=patches[i%patches.length],a=random()*Math.PI*2,r=Math.sqrt(random())*2.7,x=p.x+Math.cos(a)*r,z=p.z+Math.sin(a)*r;
-  if(nearestRoutePoint(x,z).distance<6.5)continue;
+  if(nearestRoutePoint(x,z).distance<6.5||Math.hypot(x-POND.x,z-POND.z)<8)continue;
   flowers.push({x,z,height:.26+random()*.42,size:.7+random()*.7,kind:Math.floor(random()*10)});
  }
  for(let i=0;i<2800;i++){
-  const p=patches[i%patches.length],x=p.x+(random()-.5)*8,z=p.z+(random()-.5)*8;if(nearestRoutePoint(x,z).distance<6.2)continue;
+  const p=patches[i%patches.length],x=p.x+(random()-.5)*8,z=p.z+(random()-.5)*8;if(nearestRoutePoint(x,z).distance<6.2||Math.hypot(x-POND.x,z-POND.z)<8)continue;
   grass.push({x,z,height:.16+random()*.35,angle:random()*Math.PI*2});
  }
  for(let i=0;i<16;i++){

@@ -1,4 +1,5 @@
 export const WORLD_SIZE = 220;
+export const POND = {x:-18,z:22,water:2.15,radius:5.6};
 export function heightAt(x: number, z: number) {
   const natural = (
     3.8 * Math.sin(x / 19) * Math.cos(z / 23) +
@@ -13,7 +14,10 @@ export function heightAt(x: number, z: number) {
   const hills=8*Math.exp(-((x-34)**2+(z-4)**2)/850)
     +7*Math.exp(-((x+34)**2+(z+28)**2)/700)
     +5*Math.exp(-((x+18)**2+(z-44)**2)/850);
-  return spawn*(1-blend)+natural*blend+hills*rise;
+  const original=spawn*(1-blend)+natural*blend+hills*rise;
+  // A shallow, gently blended basin off the route. Its bottom remains solid terrain.
+  const d=Math.hypot(x-POND.x,z-POND.z),tpond=Math.max(0,Math.min(1,(d-5.8)/5.2)),shore=tpond*tpond*(3-2*tpond);
+  return (POND.water-.38)*(1-shore)+original*shore;
 }
 /** Shared vertices and indices: rendering and collision use identical triangles. */
 export function terrainData(segments = 110) {

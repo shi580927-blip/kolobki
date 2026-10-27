@@ -297,6 +297,7 @@ async function start() {
     visual.updateDecorations();portraitVisual.updateDecorations();
     const cameraVelocity = player.body.linvel();
     rig.update(visual.position, player.heading, elapsed, Math.hypot(cameraVelocity.x, cameraVelocity.z),train?.count??0);
+    groundLighting.pond.update(elapsed);
     effects.update(elapsed);
     dust.render();
     casting?.update(elapsed);
