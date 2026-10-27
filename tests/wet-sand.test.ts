@@ -21,3 +21,6 @@ test('bridge, grass and standing still do not add sand; drying sheds and reset c
 test('sand overlay disappears on clearing and keeps the face-facing region free',()=>{
  const coat=new SandCoat();coat.update(1,new Quaternion(),new Quaternion(),1);assert.equal(coat.count,72);coat.update(0,new Quaternion(),new Quaternion(),0);assert.equal(coat.count,0);
 });
+test('a light touch of shallow water wets the body, while the bridge stays dry',()=>{
+ const s=new WetSand();s.update(1/60,{x:POND.x,y:POND.water+.98,z:POND.z},0,false);assert.equal(s.wetness,1);s.reset();s.update(1/60,{x:POND.x,y:POND.water+1.23,z:POND.z},0,true);assert.equal(s.wetness,0);
+});

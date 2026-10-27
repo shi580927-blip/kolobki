@@ -41,13 +41,13 @@ test('player can cross the shallow water beside the bridge and return',async()=>
  const {Vector3}=await import('three'),{createWorld}=await import('../src/game/World'),{PhysicsPlayer}=await import('../src/game/PhysicsPlayer'),{EventBus}=await import('../src/core/events');
  await R.init();const world=new R.World({x:0,y:-18,z:0});world.timestep=1/60;createWorld(new Scene(),world);
  const player=new PhysicsPlayer(world,new EventBus(),{x:-29,z:26}),forward=new Vector3(0,0,1);
- const tick=(x:number)=>{const z=Math.max(-.35,Math.min(.35,(player.current.z-26)*.2));player.step(1/60,{x,z,jump:false,dash:false,touchDrive:true},forward);player.applySandDrag(1/60);applyPondWater(player.body,1/60);world.step();player.sync();player.updateCoating(1/60);};
- let crossed=false;
+ const tick=(x:number)=>{const z=Math.max(-.35,Math.min(.35,(player.current.z-26)*.2));player.step(1/60,{x,z,jump:false,dash:false,touchDrive:true},forward);player.applySandDrag(1/60);applyPondWater(player.body,1/60);world.step();player.sync();player.updateCoating(1/60);maxWetness=Math.max(maxWetness,player.coating.wetness);maxSand=Math.max(maxSand,player.coating.sand);};
+ let crossed=false,maxWetness=0,maxSand=0;
  for(let i=0;i<1200&&player.current.x<-8;i++){tick(-.4);if(Math.abs(player.current.x-POND.x)<.3&&player.current.z>POND.z+3)crossed=true;}
  assert.ok(crossed&&player.current.x>=-8,`water crossing: ${player.current.toArray()}`);
  for(let i=0;i<90;i++)tick(0);
  for(let i=0;i<1500&&player.current.x>-28;i++)tick(.4);
- assert.ok(player.current.x<=-28,`water return: ${player.current.toArray()}`);world.free();
+ assert.ok(player.current.x<=-28,`water return: ${player.current.toArray()}`);assert.ok(maxWetness>.8,`wetness ${maxWetness}`);assert.ok(maxSand>.05,`sand ${maxSand}`);world.free();
 });
 test('bridge side guards block ordinary sideways rolling, with open end entrances',async()=>{
  const {Vector3}=await import('three'),{createWorld}=await import('../src/game/World'),{PhysicsPlayer}=await import('../src/game/PhysicsPlayer'),{EventBus}=await import('../src/core/events');
