@@ -1,10 +1,12 @@
 import * as T from 'three';
 import R from '@dimforge/rapier3d-compat';
-import {POND,heightAt} from '../core/terrain';
+import {POND,heightAt,pondRadius} from '../core/terrain';
 
 /** A small shallow pond; water is visual and the sloped terrain remains solid. */
 export function addPondStudy(scene:T.Scene,world:R.World){
- const water=new T.Mesh(new T.CircleGeometry(POND.radius,48),new T.ShaderMaterial({transparent:true,depthWrite:false,uniforms:{time:{value:0}},vertexShader:`varying vec2 v; void main(){v=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,fragmentShader:`varying vec2 v; uniform float time; void main(){float drift=v.y*19.+v.x*3.+time*.28; float ripple=sin(drift+sin(v.x*7.+time*.13)*.35)*.5+.5; float soft=sin(v.y*8.-v.x*2.-time*.17)*.5+.5; vec3 color=mix(vec3(.08,.50,.53),vec3(.30,.76,.72),.30+.13*ripple+.10*soft); float streak=smoothstep(.91,.99,ripple)*smoothstep(.30,.72,soft)*.24; color+=vec3(.65,.78,.70)*streak;gl_FragColor=vec4(color,.80);}`}));
+ const outline=new T.Shape();
+ for(let i=0;i<=64;i++){const a=i/64*Math.PI*2,r=pondRadius(a),x=Math.cos(a)*r,y=Math.sin(a)*r;if(i===0)outline.moveTo(x,y);else outline.lineTo(x,y);}
+ const water=new T.Mesh(new T.ShapeGeometry(outline),new T.ShaderMaterial({transparent:true,depthWrite:false,uniforms:{time:{value:0}},vertexShader:`varying vec2 v; void main(){v=uv/11.+.5;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,fragmentShader:`varying vec2 v; uniform float time; void main(){float drift=v.y*19.+v.x*3.+time*.28; float ripple=sin(drift+sin(v.x*7.+time*.13)*.35)*.5+.5; float soft=sin(v.y*8.-v.x*2.-time*.17)*.5+.5; vec3 color=mix(vec3(.04,.48,.59),vec3(.34,.86,.80),.30+.13*ripple+.10*soft); float streak=smoothstep(.91,.99,ripple)*smoothstep(.30,.72,soft)*.24; color+=vec3(.65,.78,.70)*streak;gl_FragColor=vec4(color,.80);}`}));
  water.rotation.x=-Math.PI/2;water.position.set(POND.x,POND.water,POND.z);water.name='pond-water';scene.add(water);
  // Broad walkable deck: planks, side beams, rails and posts use a few batches.
  const deckLength=13,deckWidth=4.6,top=POND.water+.23;
@@ -18,6 +20,6 @@ export function addPondStudy(scene:T.Scene,world:R.World){
  const posts=new T.InstancedMesh(new T.BoxGeometry(.20,1.42,.20),beamMat,10);
  for(let side=0;side<2;side++)for(let i=0;i<5;i++){dummy.position.set(POND.x-6+i*3,top+.52,POND.z+(side?1:-1)*(deckWidth/2+.12));dummy.rotation.set(0,0,0);dummy.scale.set(1,1,1);dummy.updateMatrix();posts.setMatrixAt(side*5+i,dummy.matrix);}posts.name='pond-bridge-posts';posts.castShadow=true;scene.add(posts);
  const stones=new T.InstancedMesh(new T.IcosahedronGeometry(1,1),new T.MeshStandardMaterial({color:0xc1b698,roughness:1}),7);
- for(let i=0;i<7;i++){const a=.45+i*.55,r=8.1,x=POND.x+Math.cos(a)*r,z=POND.z+Math.sin(a)*r,scale=.6+(i%3)*.25;dummy.position.set(x,heightAt(x,z)+scale*.35,z);dummy.rotation.set(0,a,0);dummy.scale.set(scale,scale*.75,scale*.9);dummy.updateMatrix();stones.setMatrixAt(i,dummy.matrix);}stones.name='pond-shore-stones';scene.add(stones);
+ for(let i=0;i<7;i++){const a=.70+(i<4?i*.20:1.65+(i-4)*.22),r=6.7+(i%2)*.45,x=POND.x+Math.cos(a)*r,z=POND.z+Math.sin(a)*r,scale=.75+(i%3)*.42;dummy.position.set(x,heightAt(x,z)+scale*.35,z);dummy.rotation.set(0,a,0);dummy.scale.set(scale,scale*.75,scale*.9);dummy.updateMatrix();stones.setMatrixAt(i,dummy.matrix);}stones.name='pond-shore-stones';scene.add(stones);
  return {update:(dt:number)=>{(water.material as T.ShaderMaterial).uniforms.time.value+=dt;}};
 }

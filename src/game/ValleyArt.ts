@@ -1,7 +1,7 @@
 import * as T from 'three';
 import R from '@dimforge/rapier3d-compat';
 import {makeLeafGeometry} from './BerryArt';
-import {heightAt,WORLD_SIZE,POND} from '../core/terrain';
+import {heightAt,WORLD_SIZE,POND,pondDistance} from '../core/terrain';
 import {clearRoutePosition,nearestRoutePoint,VALLEY_ROUTE} from '../core/valleyRoute';
 import {randomFrom} from '../core/skin';
 
@@ -12,7 +12,9 @@ export function valleyGroundColor(x:number,y:number,z:number){
  const grass=meadowDark.clone().lerp(meadowLight,Math.max(0,Math.min(1,patch))).lerp(sunGrass,Math.max(0,Math.min(.23,(y+2)*.016)));
  const distance=nearestRoutePoint(x,z).distance,edge=4.5+.35*Math.sin(x*.9+z*.5)+.2*Math.sin(z*1.3);
  const path=1-T.MathUtils.smoothstep(distance,edge-.6,edge+1);
- return grass.lerp(soil,path*.96);
+ const ground=grass.lerp(soil,path*.96),shore=pondDistance(x,z);
+ const sand=1-T.MathUtils.smoothstep(shore,1.05,1.55);
+ return ground.lerp(new T.Color("#dec58b"),sand*.85);
 }
 
 /** Seeded composition follows the whole playable loop, with space around every solid prop. */
