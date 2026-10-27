@@ -1,6 +1,7 @@
 import * as T from 'three';
 import R from '@dimforge/rapier3d-compat';
 import {addShoreArt} from './ShoreArt';
+import {addShoreCascade} from './ShoreCascade';
 import {POND,heightAt,pondRadius} from '../core/terrain';
 
 /** A small shallow pond; water is visual and the sloped terrain remains solid. */
@@ -34,5 +35,6 @@ export function addPondStudy(scene:T.Scene,world:R.World){
  const posts=new T.InstancedMesh(new T.BoxGeometry(.20,1.42,.20),beamMat,10);
  for(let side=0;side<2;side++)for(let i=0;i<5;i++){dummy.position.set(POND.x-6+i*3,top+.52,POND.z+(side?1:-1)*(deckWidth/2+.12));dummy.rotation.set(0,0,0);dummy.scale.set(1,1,1);dummy.updateMatrix();posts.setMatrixAt(side*5+i,dummy.matrix);}posts.name='pond-bridge-posts';posts.castShadow=true;scene.add(posts);
  addShoreArt(scene,world);
- return {update:(dt:number)=>{(water.material as T.ShaderMaterial).uniforms.time.value+=dt;}};
+ const cascade=addShoreCascade(scene,world);
+ return {update:(dt:number)=>{(water.material as T.ShaderMaterial).uniforms.time.value+=dt;cascade.update(dt);}};
 }

@@ -7,12 +7,13 @@ import {makeLeafGeometry} from './BerryArt';
 export function addShoreArt(scene:T.Scene,world:R.World){
  const dummy=new T.Object3D();
  const batch=(name:string,g:T.BufferGeometry,m:T.Material,n:number,shadow=false)=>{const mesh=new T.InstancedMesh(g,m,n);mesh.name=name;mesh.castShadow=shadow;mesh.receiveShadow=true;scene.add(mesh);return mesh;};
- const rock=makeBoulderGeometry();
- const cliffs=batch('shore-rock-clusters',rock,new T.MeshStandardMaterial({vertexColors:true,roughness:.95}),8,true);
+ const rockMaterial=new T.MeshStandardMaterial({vertexColors:true,roughness:1});
+ const variants=Array.from({length:3},(_,i)=>batch('shore-rock-clusters-'+i,makeBoulderGeometry(i),rockMaterial,3,true));
+ variants[2].count=2;
  const groups=[[-5,9.5,1.35],[-3.3,9.8,1.7],[-4,11.3,1.2],[.8,10.2,1.1],[2.2,10.8,1.65],[3.1,11.5,1.25],[5.4,9.2,.8],[5.9,10.4,1.0]];
  for(let i=0;i<8;i++){
   const [dx,dz,s]=groups[i],x=POND.x+dx,z=POND.z+dz,a=i*1.37,y=heightAt(x,z);
-  dummy.position.set(x,y+s*.5,z);dummy.rotation.set(0,a*.7,0);dummy.scale.set(s*1.25,s*(i%2?.95:1.1),s*.9);dummy.updateMatrix();cliffs.setMatrixAt(i,dummy.matrix);
+  dummy.position.set(x,y+s*.5,z);dummy.rotation.set(0,a*.7,0);dummy.scale.set(s*1.25,s*(i%2?.95:1.1),s*.9);dummy.updateMatrix();variants[i%3].setMatrixAt(Math.floor(i/3),dummy.matrix);
   // Conservative rounded support matches the visible mass without enclosing the bank.
   world.createCollider(R.ColliderDesc.ball(s*.75).setTranslation(x,y+s*.45,z).setFriction(.9));
 

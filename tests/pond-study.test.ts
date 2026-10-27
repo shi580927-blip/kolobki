@@ -13,7 +13,7 @@ test('shallow pond has a continuous shore and remains outside the driving corrid
  for(let a=0;a<Math.PI*2;a+=Math.PI/8){let last=heightAt(POND.x,POND.z);for(let r=.25;r<12;r+=.25){const next=heightAt(POND.x+Math.cos(a)*r,POND.z+Math.sin(a)*r);assert.ok(Math.abs(next-last)<.25,'shore slope remains gentle');last=next;}}
 });
 test('bridge has physical support and pond surface does not add a water collider',async()=>{
- await R.init();const world=new R.World({x:0,y:-18,z:0}),scene=new Scene();addPondStudy(scene,world);assert.equal(world.colliders.len(),11);const ray=new R.Ray({x:POND.x,y:POND.water+4,z:POND.z},{x:0,y:-1,z:0});world.step();assert.ok(world.castRay(ray,10,true));world.free();
+ await R.init();const world=new R.World({x:0,y:-18,z:0}),scene=new Scene();addPondStudy(scene,world);assert.equal(world.colliders.len(),12);const ray=new R.Ray({x:POND.x,y:POND.water+4,z:POND.z},{x:0,y:-1,z:0});world.step();assert.ok(world.castRay(ray,10,true));world.free();
 });
 
 // Exercise the actual rolling body and current train controller against the real terrain and bridge.
@@ -55,4 +55,13 @@ test('bridge side guards block ordinary sideways rolling, with open end entrance
  const p=new PhysicsPlayer(world,new EventBus(),{x:POND.x,z:POND.z});p.body.setTranslation({x:POND.x,y:POND.water+1.26,z:POND.z},true);p.sync();
  for(let i=0;i<180;i++){p.step(1/60,{x:0,z:-.5,jump:false,dash:false,touchDrive:true},new Vector3(0,0,1));world.step();p.sync();}
  assert.ok(p.current.z<POND.z+2.4,`passed side rail ${p.current.toArray()}`);world.free();
+});
+
+test('cascade is solid at the bank and leaves the pond ford and bridge entrances open',async()=>{
+ const {SHORE_CASCADE,addShoreCascade}=await import('../src/game/ShoreCascade');
+ await R.init();const w=new R.World({x:0,y:-18,z:0}),scene=new Scene(),cascade=addShoreCascade(scene,w);w.step();
+ const {x,z,crest}=SHORE_CASCADE;
+ const hit=w.castRay(new R.Ray({x,y:crest+3,z},{x:0,y:-1,z:0}),10,true);assert.ok(hit);assert.ok(Math.abs(hit.timeOfImpact-3)<.3);
+ for(const px of [-29,-18,-8])assert.equal(w.castRay(new R.Ray({x:px,y:10,z:26},{x:0,y:-1,z:0}),12,true),null);
+ cascade.update(1/60);assert.ok(scene.getObjectByName('shore-cascade-water'));w.free();
 });
