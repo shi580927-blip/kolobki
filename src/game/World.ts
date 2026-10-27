@@ -3,6 +3,7 @@ import RAPIER from "@dimforge/rapier3d-compat";
 import { terrainData, heightAt, WORLD_SIZE } from "../core/terrain";
 import {makeGroundLighting} from "./GroundLighting";
 import {addValleyArt,valleyGroundColor} from "./ValleyArt";
+import {clearRoutePosition} from '../core/valleyRoute';
 import {randomFrom} from "../core/skin";
 export function createWorld(scene: THREE.Scene, world: RAPIER.World) {
   const { vertices, indices } = terrainData();
@@ -44,12 +45,13 @@ export function createWorld(scene: THREE.Scene, world: RAPIER.World) {
   addValleyScenery(scene,world);
   addValleyArt(scene,world);
   // Sparse collision targets: original primitive geometry, no third-party assets.
-  for (const [x, z, r] of [
+  for (const [originalX, originalZ, r] of [
     [12, 6, 1.8],
     [-12, -14, 2],
     [22, -18, 2.4],
     [-25, 20, 1.6],
   ]) {
+    const {x,z}=clearRoutePosition(originalX,originalZ,r);
     const rock = new THREE.Mesh(
       new THREE.DodecahedronGeometry(r, 2),
       new THREE.MeshStandardMaterial({ color: 0xb1b3a2, roughness: 0.95 }),
@@ -71,7 +73,7 @@ export function createWorld(scene: THREE.Scene, world: RAPIER.World) {
 /** First color/layout pass: keep the center open for rolling and future trains. */
 function addValleyScenery(scene:THREE.Scene,world:RAPIER.World){
  const random=randomFrom(7391),count=18,trunks=new THREE.InstancedMesh(new THREE.CylinderGeometry(.3,.44,2.7,7),new THREE.MeshStandardMaterial({color:'#927054',roughness:1}),count),crowns=new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1,1),new THREE.MeshStandardMaterial({color:'#7caa68',roughness:1}),count*3),dummy=new THREE.Object3D();trunks.castShadow=true;crowns.castShadow=true;
- for(let i=0;i<count;i++){const a=i/count*Math.PI*2,radius=44+random()*22,x=Math.cos(a)*radius,z=Math.sin(a)*radius,y=heightAt(x,z),size=.85+random()*.45;dummy.position.set(x,y+1.35*size,z);dummy.scale.setScalar(size);dummy.updateMatrix();trunks.setMatrixAt(i,dummy.matrix);world.createCollider(RAPIER.ColliderDesc.cylinder(1.35*size,.4*size).setTranslation(x,y+1.35*size,z));
+ for(let i=0;i<count;i++){const a=i/count*Math.PI*2,radius=44+random()*22,{x,z}=clearRoutePosition(Math.cos(a)*radius,Math.sin(a)*radius,2.3),y=heightAt(x,z),size=.85+random()*.45;dummy.position.set(x,y+1.35*size,z);dummy.scale.setScalar(size);dummy.updateMatrix();trunks.setMatrixAt(i,dummy.matrix);world.createCollider(RAPIER.ColliderDesc.cylinder(1.35*size,.4*size).setTranslation(x,y+1.35*size,z));
   for(let j=0;j<3;j++){dummy.position.set(x+(j-1)*.9*size,y+(3.1+(j===1?.7:0))*size,z+(j===1?.2:0));dummy.scale.set(1.6*size,1.7*size,1.5*size);dummy.updateMatrix();crowns.setMatrixAt(i*3+j,dummy.matrix);crowns.setColorAt(i*3+j,new THREE.Color().setHSL(.23+random()*.04,.27,.45+random()*.12));}}
  scene.add(trunks,crowns);
  const flowers=new THREE.InstancedMesh(new THREE.IcosahedronGeometry(.16,0),new THREE.MeshStandardMaterial({color:'#e9d8a3',roughness:.85}),100);

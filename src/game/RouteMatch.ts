@@ -1,7 +1,8 @@
+import {VALLEY_ROUTE,ROUTE_HALF_WIDTH} from '../core/valleyRoute';
 /** First test format: everyone starts alone. Checkpoints, not train size,
  * decide this race. No permanent currency or rewards in the prototype. */
-export const MATCH_RULES={laps:2,duration:180,radius:4.5};
-export const MATCH_ROUTE=[{x:0,z:15},{x:0,z:30},{x:-18,z:32},{x:-28,z:14},{x:-18,z:-4},{x:0,z:0}];
+export const MATCH_RULES={laps:2,duration:180,radius:6};
+export const MATCH_ROUTE=VALLEY_ROUTE;
 type Point={x:number;z:number};
 export type MatchPhase='sandbox'|'countdown'|'running'|'finished';
 export class RouteMatch {
@@ -11,7 +12,7 @@ export class RouteMatch {
  start(positions:Point[]){this.phase='countdown';this.remaining=MATCH_RULES.duration;this.countdown=3;this.progress=[0,0];this.winner=undefined;this.previous=positions.map(p=>({...p}));}
  reset(){this.phase='sandbox';this.progress=[0,0];this.winner=undefined;this.previous=[];}
  target(index:number){return MATCH_ROUTE[this.progress[index]%MATCH_ROUTE.length];}
- snapshot(){return {phase:this.phase,remaining:this.remaining,countdown:this.countdown,progress:[...this.progress],laps:MATCH_RULES.laps,checkpoints:MATCH_ROUTE.length,winner:this.winner,targets:[this.target(0),this.target(1)]};}
+ snapshot(){return {phase:this.phase,remaining:this.remaining,countdown:this.countdown,progress:[...this.progress],laps:MATCH_RULES.laps,checkpoints:MATCH_ROUTE.length,width:ROUTE_HALF_WIDTH*2,winner:this.winner,targets:[this.target(0),this.target(1)]};}
  step(dt:number,positions:Point[]){
   if(this.phase==='countdown'){this.countdown=Math.max(0,this.countdown-dt);this.previous=positions.map(p=>({...p}));if(this.countdown===0)this.phase='running';return;}
   if(this.phase!=='running')return;

@@ -69,7 +69,7 @@ export class MatchSession {
   const dx=target.x-p.x,dz=target.z-p.z,d=Math.hypot(dx,dz)||1,v=rival.body.linvel(),speed=recruit?Math.min(4.5,d*2):6.5;
   let ax=(dx/d*speed-v.x)*.28,az=(dz/d*speed-v.z)*.28;
   // Local obstacle steering only; never teleport the opponent to a gate.
-  const hit=this.world.castRay(new R.Ray(p,{x:dx/d,y:0,z:dz/d}),3,true,R.QueryFilterFlags.EXCLUDE_DYNAMIC|R.QueryFilterFlags.EXCLUDE_KINEMATIC,undefined,rival.collider,rival.body);
+  const hit=this.world.castRay(new R.Ray(p,{x:dx/d,y:0,z:dz/d}),3,true,R.QueryFilterFlags.EXCLUDE_DYNAMIC|R.QueryFilterFlags.EXCLUDE_KINEMATIC,undefined,rival.collider,rival.body,collider=>collider.shapeType()!==R.ShapeType.TriMesh);
   if(hit){const x=ax;ax=-az;az=x;}
   const n=Math.max(1,Math.hypot(ax,az));rival.step(dt,{x:-ax/n,z:-az/n,jump:false,dash:false},new T.Vector3(0,0,1));
  }

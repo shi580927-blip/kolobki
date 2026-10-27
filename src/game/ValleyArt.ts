@@ -2,6 +2,7 @@ import * as T from 'three';
 import R from '@dimforge/rapier3d-compat';
 import {makeLeafGeometry} from './BerryArt';
 import {heightAt} from '../core/terrain';
+import {clearRoutePosition} from '../core/valleyRoute';
 import {randomFrom} from '../core/skin';
 /** Local art sample around the quiet start; the playfield remains open. */
 export function valleyGroundColor(x:number,y:number,z:number) {
@@ -23,7 +24,7 @@ export function addValleyArt(scene:T.Scene,world:R.World) {
  const spots=[[-16,8],[-19,18],[-14,30],[17,14],[20,29],[10,37]];
  const trunks=instances('valley-art-trunks',spots.length,'#9c7654',new T.CylinderGeometry(.28,.48,1,9));
  const crowns=instances('valley-art-crowns',spots.length*7,'#ffffff');
- spots.forEach(([x,z],i)=>{const y=heightAt(x,z),s=.9+random()*.35;put(trunks,i,x,y+2*s,z,1,4*s,1);world.createCollider(R.ColliderDesc.cylinder(2*s,.48).setTranslation(x,y+2*s,z));
+ spots.forEach(([originalX,originalZ],i)=>{const {x,z}=clearRoutePosition(originalX,originalZ,2.8);const y=heightAt(x,z),s=.9+random()*.35;put(trunks,i,x,y+2*s,z,1,4*s,1);world.createCollider(R.ColliderDesc.cylinder(2*s,.48).setTranslation(x,y+2*s,z));
   for(let j=0;j<7;j++){const a=j/6*Math.PI*2,r=j===6?0:1.25*s;put(crowns,i*7+j,x+Math.cos(a)*r,y+(4.1+(j===6?1.15:0))*s,z+Math.sin(a)*r,1.8*s,1.65*s,1.65*s,['#729747','#8eae50','#a3bd61'][j%3]);}
  });
  const shrubsAt=[[-3,2],[3,5],[-10,6],[10,11],[-13,19],[13,25],[-8,29],[19,6]];

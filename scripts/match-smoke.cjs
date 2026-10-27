@@ -13,10 +13,10 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict'),fs=r
  await page.screenshot({path:'test-results/match-countdown.png'});
  await page.waitForFunction(()=>window.__SHAROBESY__.match.phase==='running');
  // Actual keyboard steering toward a free NPC, then the route. No mutation hooks.
- let held=new Set(),captured=false,maxRivalWagons=0,maxRivalProgress=0,maxGap=0;
+ let held=new Set(),captured=false,maxRivalWagons=0,maxRivalProgress=0,maxGap=0,minY=100,maxY=-100,hillShot=false,descentShot=false;
  const started=Date.now();let loops=0;
- while(Date.now()-started<240000){
-  const s=await state();maxRivalWagons=Math.max(maxRivalWagons,s.match.rivalTrain.count);maxRivalProgress=Math.max(maxRivalProgress,s.match.progress[1]);maxGap=Math.max(maxGap,...s.train.gaps,...s.match.rivalTrain.gaps,0);
+ while(Date.now()-started<600000){
+  const s=await state();minY=Math.min(minY,s.position[1]);maxY=Math.max(maxY,s.position[1]);if(s.match.progress[0]>=2&&!hillShot){hillShot=true;await page.screenshot({path:'test-results/valley-east-hills.png'});}if(s.match.progress[0]>=4&&!descentShot){descentShot=true;await page.screenshot({path:'test-results/valley-wide-descent.png'});}maxRivalWagons=Math.max(maxRivalWagons,s.match.rivalTrain.count);maxRivalProgress=Math.max(maxRivalProgress,s.match.progress[1]);maxGap=Math.max(maxGap,...s.train.gaps,...s.match.rivalTrain.gaps,0);
   assert.equal(new Set([...s.train.ids,...s.match.rivalTrain.ids]).size,s.train.count+s.match.rivalTrain.count,'exclusive ownership');
   if(s.train.count)captured=true;
   if(s.match.phase==='finished')break;
@@ -38,5 +38,5 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict'),fs=r
  await page.setViewportSize({width:1170,height:540});const box=await page.locator('#stage').boundingBox();assert.ok(Math.abs(box.width/box.height-16/9)<.001);for(let i=1;i<=4;i++){await page.keyboard.press('Digit'+i);assert.equal((await state()).camera,i-1);}assert.equal((await state()).cameraFov,52);
  await page.goto(url+'/?skin-test');await page.waitForFunction(()=>window.__SHAROBESY__&&document.querySelector('#boot').hidden);assert.equal(await page.locator('#match-start').count(),0);
  await page.getByRole('button',{name:'Проба комбо',exact:true}).click();await page.waitForFunction(()=>window.__SHAROBESY__.comboPhase==='DIZZY');await page.waitForFunction(()=>window.__SHAROBESY__.comboPhase==='IDLE');assert.ok((await state()).faceVisibility.length>0);assert.equal((await state()).immobilized,false);
- assert.deepEqual(errors,[]);console.log(JSON.stringify({winner:end.match.winner,progress:end.match.progress,maxRivalWagons,maxRivalProgress,maxGap,captured,replay:true,reset:true,seed:true,cameras:4,aspect16by9:true,comboRecovery:true,errors}));await browser.close();
+ assert.deepEqual(errors,[]);console.log(JSON.stringify({winner:end.match.winner,progress:end.match.progress,maxRivalWagons,maxRivalProgress,maxGap,captured,replay:true,reset:true,seed:true,cameras:4,aspect16by9:true,comboRecovery:true,minY,maxY,heightTravel:maxY-minY,errors}));await browser.close();
 })().catch(e=>{console.error(e);process.exit(1)});

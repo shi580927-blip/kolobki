@@ -26,7 +26,7 @@ export class NpcSystem {
   this.playerHandle=player.collider.handle;
   for(const a of this.actors){
    if(isAttached(a.entry.id))continue;
-   const v=a.physics.body.linvel(),ray=new R.Ray(a.physics.body.translation(),{x:Math.sin(a.physics.heading),y:0,z:Math.cos(a.physics.heading)}),hit=this.world.castRay(ray,4,true,undefined,undefined,a.physics.collider,a.physics.body);
+   const v=a.physics.body.linvel(),ray=new R.Ray(a.physics.body.translation(),{x:Math.sin(a.physics.heading),y:0,z:Math.cos(a.physics.heading)}),hit=this.world.castRay(ray,4,true,undefined,undefined,a.physics.collider,a.physics.body,collider=>collider.shapeType()!==R.ShapeType.TriMesh);
    const blocked=!!hit&&!(a.entry.kind==='bully'&&hit.collider.handle===player.collider.handle);
    const intent=a.brain.step(dt,{x:a.physics.current.x,z:a.physics.current.z,vx:v.x,vz:v.z,playerX:player.current.x,playerZ:player.current.z,neighbors:this.actors.filter(b=>b!==a).map(b=>({x:b.physics.current.x,z:b.physics.current.z})),blocked});
    if(a.brain.state!==a.lastState){if(a.brain.state==='flee')a.visual.face.play('scared');if(a.brain.state==='rest')a.visual.face.play('sleepy');a.lastState=a.brain.state;}

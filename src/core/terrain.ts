@@ -1,4 +1,4 @@
-export const WORLD_SIZE = 180;
+export const WORLD_SIZE = 220;
 export function heightAt(x: number, z: number) {
   const natural = (
     3.8 * Math.sin(x / 19) * Math.cos(z / 23) +
@@ -7,11 +7,16 @@ export function heightAt(x: number, z: number) {
     5 * Math.exp(-((x - 30) ** 2 + (z + 20) ** 2) / 500)
   );
   // Quiet starting patch, then a smooth transition to the existing broad hills.
-  const distance=Math.hypot(x,z),t=Math.max(0,Math.min(1,(distance-5)/7)),blend=t*t*(3-2*t),spawn=1.5+5*Math.exp(-2.6);
-  return spawn*(1-blend)+natural*blend;
+  const distance=Math.hypot(x,z),t=Math.max(0,Math.min(1,(distance-5)/13)),blend=t*t*(3-2*t),spawn=1.5+5*Math.exp(-2.6);
+  // Broad outer rises leave the accepted starting area (radius 24) unchanged.
+  const outer=Math.max(0,Math.min(1,(distance-24)/20)),rise=outer*outer*(3-2*outer);
+  const hills=8*Math.exp(-((x-34)**2+(z-4)**2)/850)
+    +7*Math.exp(-((x+34)**2+(z+28)**2)/700)
+    +5*Math.exp(-((x+18)**2+(z-44)**2)/850);
+  return spawn*(1-blend)+natural*blend+hills*rise;
 }
 /** Shared vertices and indices: rendering and collision use identical triangles. */
-export function terrainData(segments = 90) {
+export function terrainData(segments = 110) {
   const vertices = new Float32Array((segments + 1) ** 2 * 3);
   const indices = new Uint32Array(segments * segments * 6);
   for (let z = 0; z <= segments; z++)

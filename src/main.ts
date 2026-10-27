@@ -9,7 +9,7 @@ import {BerryCollectibles} from "./game/BerryCollectibles";
 import * as T from "three";
 import R from "@dimforge/rapier3d-compat";
 import { loadSkin, randomFrom } from "./core/skin";
-import { fit16by9, heightAt } from "./core/terrain";
+import { fit16by9, heightAt, WORLD_SIZE } from "./core/terrain";
 import { EventBus } from "./core/events";
 import {ImpactMeter} from "./game/ImpactModel";
 import {TrainSystem,type TrainOptions} from "./game/TrainSystem";
@@ -335,7 +335,7 @@ async function start() {
       faceVisibility: Object.entries(visual.face.rig.poses).filter(([,g])=>g.visible).map(([name,g])=>({name,rotation:g.rotation.toArray(),opacity:(g.children.find(o=>o.name.startsWith('study-')) as T.Mesh<T.BufferGeometry,T.ShaderMaterial>).material.uniforms.opacity.value})),
       physicsTime,impactCharge:impactMeter.value,train:train?.snapshot(),match:match?.snapshot(),audio:audio.snapshot(),fullscreen:!!document.fullscreenElement,
       npcs:npcs?.snapshot().map(a=>({...a,state:train?.has(a.id)?"wagon":train?.isJoining(a.id)?"joining":match?.controlled(a.id)?a.id===0?"rival":"rival-wagon":a.state}))??[],npcContacts:npcs?.collisionsWithPlayer??0,npcSeed:npcs?.seed,
-      buildVersion,skyArt:skyState,cloudCount:sky?.clouds.length??0,cameraFov:camera.fov,
+      buildVersion,worldSize:WORLD_SIZE,skyArt:skyState,cloudCount:sky?.clouds.length??0,cameraFov:camera.fov,
       berryDetail,
       shadowSettings:{mapSize:sun.shadow.mapSize.x,normalBias:sun.shadow.normalBias,contactCount:contactPositions.length},berryArt:"raspberry-plants-v1",
       valleyStudy:!!casting,studyActors:casting?.actors.map(a=>({seed:a.design.seed,surface:a.design.surface,pattern:a.design.pattern,position:a.position.toArray(),facePose:a.face.expression()})),drawCalls:renderer.info.render.calls,
