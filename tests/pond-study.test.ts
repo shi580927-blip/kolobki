@@ -4,6 +4,7 @@ import {POND,heightAt} from '../src/core/terrain';
 import {nearestRoutePoint,ROUTE_HALF_WIDTH} from '../src/core/valleyRoute';
 import {Scene} from 'three';
 import R from '@dimforge/rapier3d-compat';
+import {applyPondWater} from '../src/game/WaterPhysics';
 import {addPondStudy} from '../src/game/PondStudy';
 
 test('shallow pond has a continuous shore and remains outside the driving corridor',()=>{
@@ -22,7 +23,7 @@ test('a three-wagon train can cross the bridge and return',async()=>{
  const leader=new PhysicsPlayer(world,new EventBus(),{x:-29,z:22});
  const actors=Array.from({length:3},(_,id)=>({id,physics:new PhysicsPlayer(world,new EventBus(),{x:80+id*3,z:0})}));
  const train=new TrainSystem(world,leader,actors,new EventBus(),{breakOnContact:false}),forward=new Vector3(0,0,1);
- const tick=(x=0,z=0)=>{leader.step(1/60,{x,z,jump:false,dash:false,touchDrive:true},forward);for(const a of actors)if(!train.has(a.id)&&!train.isJoining(a.id))a.physics.step(1/60,{x:0,z:0,jump:false,dash:false},forward);train.step(1/60);world.step();leader.sync();actors.forEach(a=>a.physics.sync());train.afterStep();};
+ const tick=(x=0,z=0)=>{leader.step(1/60,{x,z,jump:false,dash:false,touchDrive:true},forward);for(const a of actors)if(!train.has(a.id)&&!train.isJoining(a.id))a.physics.step(1/60,{x:0,z:0,jump:false,dash:false},forward);train.step(1/60);applyPondWater(leader.body,1/60);for(const a of actors)applyPondWater(a.physics.body,1/60);world.step();leader.sync();actors.forEach(a=>a.physics.sync());train.afterStep();};
  for(let i=0;i<60;i++)tick();
  for(const a of actors){a.physics.body.setTranslation({x:leader.current.x+1.95,y:leader.current.y,z:leader.current.z},true);a.physics.body.setLinvel({x:0,y:0,z:0},true);a.physics.sync();for(let i=0;i<900&&!train.has(a.id);i++)tick();assert.ok(train.has(a.id),'wagon attaches');}
  let maxGap=0;let crossing: number[]|undefined;
@@ -40,7 +41,7 @@ test('player can cross the shallow water beside the bridge and return',async()=>
  const {Vector3}=await import('three'),{createWorld}=await import('../src/game/World'),{PhysicsPlayer}=await import('../src/game/PhysicsPlayer'),{EventBus}=await import('../src/core/events');
  await R.init();const world=new R.World({x:0,y:-18,z:0});world.timestep=1/60;createWorld(new Scene(),world);
  const player=new PhysicsPlayer(world,new EventBus(),{x:-29,z:26}),forward=new Vector3(0,0,1);
- const tick=(x:number)=>{const z=Math.max(-.35,Math.min(.35,(player.current.z-26)*.2));player.step(1/60,{x,z,jump:false,dash:false,touchDrive:true},forward);world.step();player.sync();};
+ const tick=(x:number)=>{const z=Math.max(-.35,Math.min(.35,(player.current.z-26)*.2));player.step(1/60,{x,z,jump:false,dash:false,touchDrive:true},forward);applyPondWater(player.body,1/60);world.step();player.sync();};
  let crossed=false;
  for(let i=0;i<1200&&player.current.x<-8;i++){tick(-.4);if(Math.abs(player.current.x-POND.x)<.3&&player.current.z>POND.z+3)crossed=true;}
  assert.ok(crossed&&player.current.x>=-8,`water crossing: ${player.current.toArray()}`);
