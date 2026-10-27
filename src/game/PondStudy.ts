@@ -1,5 +1,6 @@
 import * as T from 'three';
 import R from '@dimforge/rapier3d-compat';
+import {addShoreArt} from './ShoreArt';
 import {POND,heightAt,pondRadius} from '../core/terrain';
 
 /** A small shallow pond; water is visual and the sloped terrain remains solid. */
@@ -21,7 +22,6 @@ export function addPondStudy(scene:T.Scene,world:R.World){
  for(let side=0;side<2;side++)for(let level=0;level<2;level++){dummy.position.set(POND.x,top+(level?1.12:-.13),POND.z+(side?1:-1)*(deckWidth/2+.12));dummy.rotation.set(0,0,0);dummy.scale.set(1,1,1);dummy.updateMatrix();rails.setMatrixAt(side*2+level,dummy.matrix);}rails.name='pond-bridge-rails-and-beams';rails.castShadow=true;scene.add(rails);
  const posts=new T.InstancedMesh(new T.BoxGeometry(.20,1.42,.20),beamMat,10);
  for(let side=0;side<2;side++)for(let i=0;i<5;i++){dummy.position.set(POND.x-6+i*3,top+.52,POND.z+(side?1:-1)*(deckWidth/2+.12));dummy.rotation.set(0,0,0);dummy.scale.set(1,1,1);dummy.updateMatrix();posts.setMatrixAt(side*5+i,dummy.matrix);}posts.name='pond-bridge-posts';posts.castShadow=true;scene.add(posts);
- const stones=new T.InstancedMesh(new T.IcosahedronGeometry(1,1),new T.MeshStandardMaterial({color:0xc1b698,roughness:1}),7);
- for(let i=0;i<7;i++){const a=.70+(i<4?i*.20:1.65+(i-4)*.22),r=6.7+(i%2)*.45,x=POND.x+Math.cos(a)*r,z=POND.z+Math.sin(a)*r,scale=.75+(i%3)*.42;dummy.position.set(x,heightAt(x,z)+scale*.35,z);dummy.rotation.set(0,a,0);dummy.scale.set(scale,scale*.75,scale*.9);dummy.updateMatrix();stones.setMatrixAt(i,dummy.matrix);}stones.name='pond-shore-stones';scene.add(stones);
+ addShoreArt(scene,world);
  return {update:(dt:number)=>{(water.material as T.ShaderMaterial).uniforms.time.value+=dt;}};
 }
