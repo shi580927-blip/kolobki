@@ -1,4 +1,5 @@
 import * as T from 'three';
+import {treeOcclusion} from './TreeOcclusion';
 import R from '@dimforge/rapier3d-compat';
 import {makeLeafGeometry} from './BerryArt';
 import {heightAt,WORLD_SIZE,POND,pondDistance} from '../core/terrain';
@@ -85,6 +86,7 @@ export function addValleyArt(scene:T.Scene,world:R.World){
  for(let i=0;i<bp.count;i++){const t=bp.getY(i)+.5;bp.setX(i,bp.getX(i)+.18*t*t);}branchGeometry.computeVertexNormals();
  const trunks=make('valley-art-trunks',layout.trees.length,trunkGeometry,material('#98704a'),true),branches=make('valley-art-branches',layout.trees.length*6,branchGeometry,material('#98704a'),true),crowns=make('valley-art-crowns',layout.trees.length*6,canopyGeometry(),material('#ffffff',true),true);
  const treeLeaves=make('valley-art-tree-leaves',layout.trees.length*12,makeLeafGeometry(),new T.MeshStandardMaterial({vertexColors:true,roughness:.8,side:T.DoubleSide}));
+ const updateOcclusion=treeOcclusion([trunks.material,branches.material,crowns.material,treeLeaves.material] as T.MeshStandardMaterial[]);
  const up=new T.Vector3(0,1,0),leafAxis=new T.Vector3(0,0,1),branchDirection=new T.Vector3();
  layout.trees.forEach((p,i)=>{
   const y=heightAt(p.x,p.z),s=p.scale,h=3.6*s,yaw=i*2.39996+p.kind*.7;
@@ -142,5 +144,5 @@ export function addValleyArt(scene:T.Scene,world:R.World){
  const blade=new T.BufferGeometry();blade.setAttribute('position',new T.Float32BufferAttribute(positions,3));blade.setAttribute('color',new T.Float32BufferAttribute(colors,3));blade.setIndex(indices);blade.computeVertexNormals();
  const grass=make('valley-art-curved-grass',layout.grass.length,blade,new T.MeshStandardMaterial({vertexColors:true,side:T.DoubleSide,roughness:.9}));
  layout.grass.forEach((p,i)=>put(grass,i,p.x,heightAt(p.x,p.z)+.015,p.z,.85,p.height,.85,undefined,p.angle));
- return {trees:layout.trees.length,flowers:flowerCount,grass:layout.grass.length,rocks:layout.rocks.length,pebbles:layout.pebbles.length};
+ return {updateOcclusion,trees:layout.trees.length,flowers:flowerCount,grass:layout.grass.length,rocks:layout.rocks.length,pebbles:layout.pebbles.length};
 }
