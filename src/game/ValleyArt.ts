@@ -1,4 +1,5 @@
 import * as T from 'three';
+import {makeBoulderGeometry} from './BoulderGeometry';
 import {treeOcclusion} from './TreeOcclusion';
 import R from '@dimforge/rapier3d-compat';
 import {makeLeafGeometry} from './BerryArt';
@@ -65,15 +66,7 @@ function canopyGeometry(){
  }
  g.setAttribute('color',new T.Float32BufferAttribute(colors,3));g.computeVertexNormals();return g;
 }
-export function valleyRockGeometry(){
- const g=new T.IcosahedronGeometry(1,1),p=g.getAttribute('position'),colors:number[]=[];
- for(let i=0;i<p.count;i++){
-  const x=p.getX(i),y=p.getY(i),z=p.getZ(i),s=1+.1*Math.sin(x*6+z*3)*Math.cos(y*7);
-  p.setXYZ(i,x*s,y*.88,z*(1+.06*Math.cos(x*7)));
-  const c=new T.Color('#7e8584').lerp(new T.Color('#d6c394'),Math.max(0,Math.min(1,(y+1)*.5))).multiplyScalar(.93+.07*Math.sin(y*21));colors.push(c.r,c.g,c.b);
- }
- g.setAttribute('color',new T.Float32BufferAttribute(colors,3));g.computeVertexNormals();return g;
-}
+export function valleyRockGeometry(){return makeBoulderGeometry();}
 export function addValleyArt(scene:T.Scene,world:R.World){
  const layout=valleyArtLayout(),random=randomFrom(31729),dummy=new T.Object3D();
  const material=(color:string,vertexColors=false)=>new T.MeshStandardMaterial({color,vertexColors,roughness:.86});

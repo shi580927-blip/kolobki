@@ -7,7 +7,18 @@ import {POND,heightAt,pondRadius} from '../core/terrain';
 export function addPondStudy(scene:T.Scene,world:R.World){
  const outline=new T.Shape();
  for(let i=0;i<=64;i++){const a=i/64*Math.PI*2,r=pondRadius(a),x=Math.cos(a)*r,y=Math.sin(a)*r;if(i===0)outline.moveTo(x,y);else outline.lineTo(x,y);}
- const water=new T.Mesh(new T.ShapeGeometry(outline),new T.ShaderMaterial({transparent:true,depthWrite:false,uniforms:{time:{value:0}},vertexShader:`varying vec2 v; void main(){v=uv/11.+.5;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,fragmentShader:`varying vec2 v; uniform float time; void main(){float drift=v.y*19.+v.x*3.+time*.28; float ripple=sin(drift+sin(v.x*7.+time*.13)*.35)*.5+.5; float soft=sin(v.y*8.-v.x*2.-time*.17)*.5+.5; vec3 color=mix(vec3(.04,.48,.59),vec3(.34,.86,.80),.30+.13*ripple+.10*soft); float streak=smoothstep(.91,.99,ripple)*smoothstep(.30,.72,soft)*.24; color+=vec3(.65,.78,.70)*streak;gl_FragColor=vec4(color,.80);}`}));
+ const water=new T.Mesh(new T.ShapeGeometry(outline),new T.ShaderMaterial({transparent:true,depthWrite:false,uniforms:{time:{value:0}},vertexShader:`varying vec3 waterWorld;void main(){vec4 w=modelMatrix*vec4(position,1.);waterWorld=w.xyz;gl_Position=projectionMatrix*viewMatrix*w;}`,fragmentShader:`varying vec3 waterWorld;uniform float time;void main(){
+ float phase=waterWorld.x*.65+waterWorld.z*.22-time*.65;
+ float slope=.055*cos(phase)+.018*cos(phase*1.7+.9);
+ vec3 n=normalize(vec3(-slope*.65,1.,-slope*.22));
+ vec3 view=normalize(cameraPosition-waterWorld),light=normalize(vec3(-.45,.85,.26));
+ vec3 halfDirection=normalize(view+light);
+ float spec=pow(max(0.,dot(n,halfDirection)),48.);
+ float fresnel=pow(1.-max(0.,dot(view,n)),3.);
+ vec3 color=mix(vec3(.08,.56,.63),vec3(.32,.77,.76),fresnel*.5);
+ color+=vec3(.83,.90,.88)*spec*.78;
+ gl_FragColor=vec4(color,.82);
+ }` }));
  water.rotation.x=-Math.PI/2;water.position.set(POND.x,POND.water,POND.z);water.name='pond-water';scene.add(water);
  // Broad walkable deck: planks, side beams, rails and posts use a few batches.
  const deckLength=13,deckWidth=4.6,top=POND.water+.23;

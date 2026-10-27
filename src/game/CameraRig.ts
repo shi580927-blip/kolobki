@@ -1,7 +1,6 @@
 import { PerspectiveCamera, Vector3 } from "three";
 import { heightAt } from "../core/terrain";
 export class CameraRig {
-  obstacleLimit?: (origin:Vector3,end:Vector3)=>number|undefined;
   mode = 0;
   shake = 0;
   freeOrbit = false;
@@ -77,11 +76,6 @@ export class CameraRig {
         ).multiplyScalar(this.shake * 0.3),
       );
     const aim=position.clone().add(new Vector3(0,.7,0));
-    const hit=this.obstacleLimit?.(aim,this.camera.position);
-    if(hit!==undefined&&Number.isFinite(hit)){
-      const ray=this.camera.position.clone().sub(aim),length=ray.length();
-      if(length>.001)this.camera.position.copy(aim).addScaledVector(ray,Math.max(.4,hit-.4)/length);
-    }
     this.camera.lookAt(aim);
   }
 }
