@@ -22,6 +22,7 @@ import {addValleyStudy} from "./game/ValleyStudy";
 import { createWorld } from "./game/World";
 import { PhysicsPlayer } from "./game/PhysicsPlayer";
 import { Effects } from "./game/Effects";
+import {RoadDust} from "./game/RoadDust";
 import { ImpactAudio } from "./game/ImpactAudio";
 import {addDeviceControls} from "./game/DeviceControls";
 import { OrbitInput } from "./game/OrbitInput";
@@ -79,6 +80,7 @@ async function start() {
   const audio = new ImpactAudio();
   addDeviceControls(audio);
   const player = new PhysicsPlayer(world, bus);
+  const dust = new RoadDust(scene);
   let storage: Storage;
   try {
     storage = localStorage;
@@ -188,6 +190,7 @@ async function start() {
   });
   const resetGame = () => {
     player.reset();
+    dust.reset();
     npcs?.reset();
     train?.reset();trainStatus();
     berries.reset();impactMeter.reset();physicsTime=0;faces.forEach(f=>f.rig.reset());
@@ -260,6 +263,7 @@ async function start() {
       match?.stepTrain(dt);
       world.step(events);
       player.sync();
+      dust.step(dt, player.current, player.body.linvel(), player.hasSurfaceSupport());
       npcs?.sync();
       berries.checkSegment(player.previous, player.current);
       events.drainContactForceEvents((e) => {
@@ -294,6 +298,7 @@ async function start() {
     const cameraVelocity = player.body.linvel();
     rig.update(visual.position, player.heading, elapsed, Math.hypot(cameraVelocity.x, cameraVelocity.z),train?.count??0);
     effects.update(elapsed);
+    dust.render();
     casting?.update(elapsed);
     npcs?.update(elapsed,alpha);
     if(train)trainStatus();
@@ -333,7 +338,7 @@ async function start() {
       faceEyes: visual.face.eyes.map(e => e.visible),
       faceArt: "animated-atlas-v03",
       faceVisibility: Object.entries(visual.face.rig.poses).filter(([,g])=>g.visible).map(([name,g])=>({name,rotation:g.rotation.toArray(),opacity:(g.children.find(o=>o.name.startsWith('study-')) as T.Mesh<T.BufferGeometry,T.ShaderMaterial>).material.uniforms.opacity.value})),
-      physicsTime,impactCharge:impactMeter.value,train:train?.snapshot(),match:match?.snapshot(),audio:audio.snapshot(),fullscreen:!!document.fullscreenElement,
+      dustCount:dust.count, physicsTime,impactCharge:impactMeter.value,train:train?.snapshot(),match:match?.snapshot(),audio:audio.snapshot(),fullscreen:!!document.fullscreenElement,
       npcs:npcs?.snapshot().map(a=>({...a,state:train?.has(a.id)?"wagon":train?.isJoining(a.id)?"joining":match?.controlled(a.id)?a.id===0?"rival":"rival-wagon":a.state}))??[],npcContacts:npcs?.collisionsWithPlayer??0,npcSeed:npcs?.seed,
       buildVersion,worldSize:WORLD_SIZE,worldArt:"sunny-valley-gardens-v2",environmentArt:groundLighting.art,skyArt:skyState,cloudCount:sky?.clouds.length??0,cameraFov:camera.fov,
       berryDetail,
