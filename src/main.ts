@@ -23,6 +23,7 @@ import { createWorld } from "./game/World";
 import { PhysicsPlayer } from "./game/PhysicsPlayer";
 import { Effects } from "./game/Effects";
 import {applyPondWater,pondSubmersion} from "./game/WaterPhysics";
+import {WaterWake} from "./game/WaterWake";
 import {RoadDust} from "./game/RoadDust";
 import { ImpactAudio } from "./game/ImpactAudio";
 import {addDeviceControls} from "./game/DeviceControls";
@@ -82,6 +83,7 @@ async function start() {
   addDeviceControls(audio);
   const player = new PhysicsPlayer(world, bus);
   const dust = new RoadDust(scene);
+  const wake = new WaterWake(scene);
   let storage: Storage;
   try {
     storage = localStorage;
@@ -191,7 +193,7 @@ async function start() {
   });
   const resetGame = () => {
     player.reset();
-    dust.reset();
+    dust.reset();wake.reset();
     npcs?.reset();
     train?.reset();trainStatus();
     berries.reset();impactMeter.reset();physicsTime=0;faces.forEach(f=>f.rig.reset());
@@ -266,6 +268,8 @@ async function start() {
       for(const actor of npcs?.actors??[])applyPondWater(actor.physics.body,dt);
       world.step(events);
       player.sync();
+      wake.emit(-1,player.current,player.body.linvel());
+      for(const actor of npcs?.actors??[])wake.emit(actor.entry.id,actor.physics.body.translation(),actor.physics.body.linvel());
       dust.step(dt, player.current, player.body.linvel(), player.hasSurfaceSupport());
       npcs?.sync();
       berries.checkSegment(player.previous, player.current);
@@ -302,7 +306,7 @@ async function start() {
     rig.update(visual.position, player.heading, elapsed, Math.hypot(cameraVelocity.x, cameraVelocity.z),train?.count??0);
     groundLighting.pond.update(elapsed);
     effects.update(elapsed);
-    dust.render();
+    dust.render();wake.update(elapsed);
     casting?.update(elapsed);
     npcs?.update(elapsed,alpha);
     if(train)trainStatus();
