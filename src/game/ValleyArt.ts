@@ -74,18 +74,28 @@ export function addValleyArt(scene:T.Scene,world:R.World){
  const material=(color:string,vertexColors=false)=>new T.MeshStandardMaterial({color,vertexColors,roughness:.86});
  const make=(name:string,count:number,geometry:T.BufferGeometry,mat:T.Material,shadow=false)=>{const mesh=new T.InstancedMesh(geometry,mat,count);mesh.name=name;mesh.castShadow=shadow;mesh.receiveShadow=true;scene.add(mesh);return mesh;};
  const put=(mesh:T.InstancedMesh,i:number,x:number,y:number,z:number,sx:number,sy:number,sz:number,color?:string,angle=random()*Math.PI*2)=>{dummy.position.set(x,y,z);dummy.rotation.set(0,angle,0);dummy.scale.set(sx,sy,sz);dummy.updateMatrix();mesh.setMatrixAt(i,dummy.matrix);if(color)mesh.setColorAt(i,new T.Color(color));};
- const trunkGeometry=new T.CylinderGeometry(.33,.54,1,7),tp=trunkGeometry.getAttribute('position');
- for(let i=0;i<tp.count;i++)tp.setX(i,tp.getX(i)+.12*(tp.getY(i)+.5)**2);trunkGeometry.computeVertexNormals();
- const trunks=make('valley-art-trunks',layout.trees.length,trunkGeometry,material('#98704a'),true),branches=make('valley-art-branches',layout.trees.length*2,new T.CylinderGeometry(.09,.18,1,5),material('#98704a'),true),crowns=make('valley-art-crowns',layout.trees.length*6,canopyGeometry(),material('#ffffff',true),true);
+ // Segmented trunks curve visibly; every tree shares the same small set of batches.
+ const trunkGeometry=new T.CylinderGeometry(.26,.55,1,8,8),tp=trunkGeometry.getAttribute('position');
+ for(let i=0;i<tp.count;i++){const t=tp.getY(i)+.5;tp.setX(i,tp.getX(i)+.42*t*t-.08*Math.sin(t*Math.PI));tp.setZ(i,tp.getZ(i)+.10*Math.sin(t*Math.PI));}trunkGeometry.computeVertexNormals();
+ const trunks=make('valley-art-trunks',layout.trees.length,trunkGeometry,material('#98704a'),true),branches=make('valley-art-branches',layout.trees.length*6,new T.CylinderGeometry(.045,.13,1,6),material('#98704a'),true),crowns=make('valley-art-crowns',layout.trees.length*6,canopyGeometry(),material('#ffffff',true),true);
+ const up=new T.Vector3(0,1,0),branchDirection=new T.Vector3();
  layout.trees.forEach((p,i)=>{
-  const y=heightAt(p.x,p.z),s=p.scale,h=3.4*s;
-  put(trunks,i,p.x,y+h/2,p.z,s,h,s);
-  world.createCollider(R.ColliderDesc.cylinder(h/2,.54*s).setTranslation(p.x,y+h/2,p.z));
-  for(let j=0;j<2;j++){dummy.position.set(p.x+(j?-.6:.6)*s,y+2.7*s,p.z);dummy.rotation.set(0,0,j?.65:-.65);dummy.scale.set(s,2*s,s);dummy.updateMatrix();branches.setMatrixAt(i*2+j,dummy.matrix);}
+  const y=heightAt(p.x,p.z),s=p.scale,h=3.6*s,yaw=i*2.39996+p.kind*.7;
+  put(trunks,i,p.x,y+h/2,p.z,s,h,s,undefined,yaw);
+  const colliderHeight=3.4*s;world.createCollider(R.ColliderDesc.cylinder(colliderHeight/2,.54*s).setTranslation(p.x,y+colliderHeight/2,p.z));
+  // Four irregular forks and two fine twigs, with varied radial direction and height.
+  for(let j=0;j<6;j++){
+   const a=yaw+j*2.39996,twig=j>=4,reach=(twig?1.35:1.2+(j%2)*.4)*s,rise=(twig?.72:1.4+(j%3)*.18)*s;
+   const baseX=p.x+Math.cos(yaw)*.30*s+(twig?Math.cos(a)*.7*s:0),baseZ=p.z-Math.sin(yaw)*.30*s+(twig?Math.sin(a)*.7*s:0);
+   const baseY=y+(twig?3.9:2.45+(j%3)*.32)*s;
+   branchDirection.set(Math.cos(a)*reach,rise,Math.sin(a)*reach);
+   dummy.position.set(baseX+branchDirection.x*.5,baseY+rise*.5,baseZ+branchDirection.z*.5);
+   dummy.quaternion.setFromUnitVectors(up,branchDirection.clone().normalize());dummy.scale.set(twig?.55*s:s,branchDirection.length(),twig?.55*s:s);dummy.updateMatrix();branches.setMatrixAt(i*6+j,dummy.matrix);
+  }
   const tint=['#f2f9b5','#d0ec9b','#c7e7a3'][p.kind];
   for(let j=0;j<6;j++){
-   const a=j*2.39996+i*.7,r=j===0?0:1.15*s,yOffset=j===0?5.6:4.3+(j%3)*.65;
-   put(crowns,i*6+j,p.x+Math.cos(a)*r,y+yOffset*s,p.z+Math.sin(a)*r,(j===0?2.2:1.85)*s,(p.kind===1?2.05:1.5)*s,(j===0?2.15:1.8)*s,tint);
+   const a=j*2.39996+yaw,r=j===0?0:(1.12+(j%2)*.2)*s,yOffset=j===0?5.6:4.35+(j%3)*.58;
+   put(crowns,i*6+j,p.x+Math.cos(a)*r+Math.cos(yaw)*.25*s,y+yOffset*s,p.z+Math.sin(a)*r-Math.sin(yaw)*.25*s,(j===0?2.0:1.65+(j%2)*.2)*s,(p.kind===1?1.9:1.4+(j%2)*.2)*s,(j===0?2.0:1.65)*s,tint);
   }
  });
  const rockGeometry=valleyRockGeometry(),stones=make('valley-art-rock-gardens',layout.rocks.length,rockGeometry,material('#ffffff',true),true);
