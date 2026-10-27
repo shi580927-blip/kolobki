@@ -11,7 +11,8 @@ export function makeGroundLighting(){
    float grain=fract(sin(dot(floor(contactWorld.xz*38.),vec2(12.9898,78.233)))*43758.5453);
    float footprint=max(length(dFdx(contactWorld.xz)),length(dFdy(contactWorld.xz)));
    float detail=1.-smoothstep(.02,.10,footprint);
-   diffuseColor.rgb*=.99+grain*.02*detail;
+   float flecks=sin(contactWorld.x*.91+sin(contactWorld.z*.63))*sin(contactWorld.z*1.13+cos(contactWorld.x*.52));
+   diffuseColor.rgb*=.95+grain*.09*detail+flecks*.035;
    float contactShade=0.;
    for(int i=0;i<11;i++){
     vec4 c=groundContacts[i];
@@ -23,6 +24,6 @@ export function makeGroundLighting(){
    diffuseColor.rgb*=1.-contactShade;
   `);
  };
- material.customProgramCacheKey=()=> 'valley-ground-contact-v1';
+ material.customProgramCacheKey=()=> 'valley-ground-contact-v2';
  return {material,setContacts(positions:readonly T.Vector3[]){contacts.forEach((c,i)=>{const p=positions[i];if(p)c.set(p.x,p.y,p.z,1);else c.w=0;});}};
 }
