@@ -1,3 +1,4 @@
+import {pondSubmersion} from './WaterPhysics';
 import R from '@dimforge/rapier3d-compat';
 import {Vector3} from 'three';
 import {EventBus} from '../core/events';
@@ -85,6 +86,7 @@ export class TrainSystem {
   p.body.setAngvel({x:desired.z,y:0,z:-desired.x},true);
  }
  step(dt:number){
+  this.releaseInWater();
   for(const [id,time] of this.cooldown){if(time<=dt)this.cooldown.delete(id);else this.cooldown.set(id,time-dt);}
   this.recordPath();
   const velocity=this.leader.body.linvel(),speed=Math.hypot(velocity.x,velocity.z);
@@ -129,7 +131,20 @@ export class TrainSystem {
    }
   }
  }
+ private releaseInWater(){
+  const headWet=pondSubmersion(this.leader.current)>.015;
+  const released=this.wagons.filter(a=>headWet||pondSubmersion(a.physics.current)>.015);
+  const joiningWet=this.joining&&(headWet||pondSubmersion(this.joining.actor.physics.current)>.015);
+  if(!released.length&&!joiningWet)return;
+  if(joiningWet&&this.joining){this.cooldown.set(this.joining.actor.id,TRAIN_RULES.recollectDelay);this.joining=undefined;}
+  this.wagons=this.wagons.filter(a=>!released.includes(a));
+  for(const a of released)this.cooldown.set(a.id,TRAIN_RULES.recollectDelay);
+  this.setGroups();
+  if(released.length){this.breakTotal++;this.bus.emit('train_water_release',{ids:released.map(a=>a.id),count:released.length,position:(headWet?this.leader:released[0].physics).current.clone()});}
+ }
  afterStep(){
+  this.releaseInWater();
+  if(pondSubmersion(this.leader.current)>.015)return;
   // Only real Rapier contacts can collect or break; proximity alone cannot.
   const members=[this.leader,...this.controlled().map(a=>a.physics)];
   const attachedAtStart=this.count;
@@ -151,7 +166,7 @@ export class TrainSystem {
     });
     return;
    }
-   if(this.has(actor.id)||this.isJoining(actor.id))return;
+   if(this.has(actor.id)||this.isJoining(actor.id)||pondSubmersion(actor.physics.current)>.015)return;
    let touching=false;
    this.world.contactPair(member.collider,other,m=>{for(let i=0;i<m.numSolverContacts();i++)if(m.solverContactDist(i)<.02)touching=true;});
    if(!touching)return;

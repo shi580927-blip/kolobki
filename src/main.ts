@@ -140,6 +140,7 @@ async function start() {
   bus.on("npc_impact",({position})=>{if(position.distanceTo(visual.position)<24){effects.burst(position);if(performance.now()>npcSoundCooldown){audio.play();npcSoundCooldown=performance.now()+250;}}});
   const trainStatus=()=>{const label=document.querySelector('#train-status');if(label){const text=`Поезд: ${train?.count??0} / 5 · ${train?.snapshot().joining!==undefined?"Новичок подкатывается к хвосту":match?.active?"Проба маршрута: сцепки удерживаются":"Сильный удар разрывает состав"}`;if(label.textContent!==text)label.textContent=text;}};
   bus.on('train_attach',e=>{trainStatus();effects.sparkle(e.position);audio.collect();react('happy');npcs?.actors.find(a=>a.entry.id===e.id)?.visual.face.play('shocked');});
+  bus.on('train_water_release',()=>{trainStatus();});
   bus.on('train_break',e=>{trainStatus();effects.burst(e.position);audio.play();rig.shake=.2;react('scared');for(const a of npcs?.actors??[])if(e.ids.includes(a.entry.id)){a.brain.hit();a.visual.face.play('dazed');}});
   const impactMeter=new ImpactMeter();let physicsTime=0;
   bus.on("combo",()=>faces.forEach(f=>f.combo()));

@@ -88,3 +88,16 @@ test('a light outsider bump does not dismantle the train',async()=>{
  const p=s.leader.current;s.place(s.actors[1].physics,p.x+1.85,p.z,-3,0);s.actors[1].physics.body.setTranslation({x:p.x+1.85,y:p.y,z:p.z},true);s.actors[1].physics.sync();
  for(let i=0;i<20;i++)s.tick();assert.ok(s.train.has(0));assert.equal(s.train.breakTotal,0);s.world.free();
 });
+
+test('water releases the wet wagon without launching it or dropping dry wagons',async()=>{
+ const {POND}=await import('../src/core/terrain');const s=await setup(3);for(let id=0;id<3;id++)s.collect(id);
+ const events:number[][]=[];s.bus.on('train_water_release',e=>events.push(e.ids));const wet=s.actors[1].physics;
+ wet.body.setTranslation({x:POND.x,y:POND.water+.7,z:POND.z},true);wet.body.setLinvel({x:1,y:-2,z:3},true);wet.sync();
+ s.train.afterStep();assert.deepEqual(s.train.snapshot().ids,[0,2]);assert.deepEqual(events,[[1]]);assert.deepEqual({...wet.body.linvel()},{x:1,y:-2,z:3});
+ s.train.afterStep();assert.equal(events.length,1);assert.ok(!s.train.isJoining(1));s.world.free();
+});
+test('wet head cannot tow or recollect, while the bridge does not release a train',async()=>{
+ const {POND}=await import('../src/core/terrain');const s=await setup(1);s.collect(0);
+ s.leader.body.setTranslation({x:POND.x,y:POND.water+1.23,z:POND.z},true);s.leader.sync();s.train.afterStep();assert.equal(s.train.count,1);
+ s.leader.body.setTranslation({x:POND.x,y:POND.water+.7,z:POND.z},true);s.leader.sync();s.train.afterStep();assert.equal(s.train.count,0);assert.equal(s.train.snapshot().joining,undefined);s.world.free();
+});
