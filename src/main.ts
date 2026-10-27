@@ -23,6 +23,7 @@ import { createWorld } from "./game/World";
 import { PhysicsPlayer } from "./game/PhysicsPlayer";
 import { Effects } from "./game/Effects";
 import {applyPondWater,pondSubmersion} from "./game/WaterPhysics";
+import {SandFall} from "./game/SandFall";
 import {WaterWake} from "./game/WaterWake";
 import {RoadDust} from "./game/RoadDust";
 import { ImpactAudio } from "./game/ImpactAudio";
@@ -89,6 +90,7 @@ async function start() {
   const player = new PhysicsPlayer(world, bus);
   const dust = new RoadDust(scene);
   const wake = new WaterWake(scene);
+  const sandFall = new SandFall(scene);
   let storage: Storage;
   try {
     storage = localStorage;
@@ -199,7 +201,7 @@ async function start() {
   });
   const resetGame = () => {
     player.reset();
-    dust.reset();wake.reset();
+    dust.reset();wake.reset();sandFall.reset();
     npcs?.reset();
     train?.reset();trainStatus();
     berries.reset();impactMeter.reset();physicsTime=0;faces.forEach(f=>f.rig.reset());
@@ -270,6 +272,8 @@ async function start() {
       npcs?.step(dt,player,id=>(train?.has(id)||train?.isJoining(id)||match?.controlled(id))??false);
       train?.step(dt);
       match?.stepTrain(dt);
+      player.applySandDrag(dt);
+      for(const actor of npcs?.actors??[])actor.physics.applySandDrag(dt);
       applyPondWater(player.body,dt);
       for(const actor of npcs?.actors??[])applyPondWater(actor.physics.body,dt);
       world.step(events);
@@ -278,6 +282,9 @@ async function start() {
       for(const actor of npcs?.actors??[])wake.emit(actor.entry.id,actor.physics.body.translation(),actor.physics.body.linvel());
       dust.step(dt, player.current, player.body.linvel(), player.hasSurfaceSupport());
       npcs?.sync();
+      player.updateCoating(dt);
+      sandFall.emit(-1,player.coating.shed,player.current);
+      for(const actor of npcs?.actors??[]){actor.physics.updateCoating(dt);sandFall.emit(actor.entry.id,actor.physics.coating.shed,actor.physics.current);}
       berries.checkSegment(player.previous, player.current);
       events.drainContactForceEvents((e) => {
         const internal=(train?.isInternalContact(e.collider1(),e.collider2())||match?.internal(e.collider1(),e.collider2()))??false;
@@ -308,14 +315,17 @@ async function start() {
     portraitVisual.face.update(elapsed, 0);
     portraitVisual.rollingBody.quaternion.copy(visual.rollingBody.quaternion);
     visual.updateDecorations();portraitVisual.updateDecorations();
+    visual.updateSand(player.coating.sand,player.coating.wetness);
+    portraitVisual.updateSand(player.coating.sand,player.coating.wetness);
     const cameraVelocity = player.body.linvel();
     rig.update(visual.position, player.heading, elapsed, Math.hypot(cameraVelocity.x, cameraVelocity.z),train?.count??0);
     groundLighting.art.updateOcclusion(visual.position,camera.position);
     groundLighting.pond.update(elapsed);
     effects.update(elapsed);
-    dust.render();wake.update(elapsed);
+    dust.render();wake.update(elapsed);sandFall.update(elapsed);
     casting?.update(elapsed);
     npcs?.update(elapsed,alpha);
+    for(const actor of npcs?.actors??[])actor.visual.updateSand(actor.physics.coating.sand,actor.physics.coating.wetness);
     if(train)trainStatus();
     match?.render();
     groundLighting.setContacts(contactPositions);
@@ -353,7 +363,7 @@ async function start() {
       faceEyes: visual.face.eyes.map(e => e.visible),
       faceArt: "animated-atlas-v03",
       faceVisibility: Object.entries(visual.face.rig.poses).filter(([,g])=>g.visible).map(([name,g])=>({name,rotation:g.rotation.toArray(),opacity:(g.children.find(o=>o.name.startsWith('study-')) as T.Mesh<T.BufferGeometry,T.ShaderMaterial>).material.uniforms.opacity.value})),
-      waterSubmersion:pondSubmersion(player.current),dustCount:dust.count, physicsTime,impactCharge:impactMeter.value,train:train?.snapshot(),match:match?.snapshot(),audio:audio.snapshot(),fullscreen:!!document.fullscreenElement,
+      wetSand:{wetness:player.coating.wetness,sand:player.coating.sand},waterSubmersion:pondSubmersion(player.current),dustCount:dust.count, physicsTime,impactCharge:impactMeter.value,train:train?.snapshot(),match:match?.snapshot(),audio:audio.snapshot(),fullscreen:!!document.fullscreenElement,
       npcs:npcs?.snapshot().map(a=>({...a,state:train?.has(a.id)?"wagon":train?.isJoining(a.id)?"joining":match?.controlled(a.id)?a.id===0?"rival":"rival-wagon":a.state}))??[],npcContacts:npcs?.collisionsWithPlayer??0,npcSeed:npcs?.seed,
       buildVersion,worldSize:WORLD_SIZE,worldArt:"sunny-valley-gardens-v2",environmentArt:groundLighting.art,skyArt:skyState,cloudCount:sky?.clouds.length??0,cameraFov:camera.fov,
       berryDetail,

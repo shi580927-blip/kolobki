@@ -28,7 +28,7 @@ test('fur shell clearance tracks actual FaceRig heading and vertical combo inste
 test('dense soft bumps and spikes follow face clearance rather than a fixed bald patch',()=>{
  for(const growthShape of ['soft','spike'] as const){
   const design={...defaultDesign,surface:'segments' as const,growthShape,growthCount:240,growthSize:.34},visual=new RuntimeVisual(design,gameplayAtlas(source),[new Texture(),new Texture(),new Texture()],'sly');
-  let growths:InstancedMesh|undefined;visual.traverse(o=>{if(o instanceof InstancedMesh)growths=o;});assert.ok(growths);assert.equal(growths.count,240);
+  let growths:InstancedMesh|undefined;visual.rollingBody.traverse(o=>{if(o instanceof InstancedMesh)growths=o;});assert.ok(growths);assert.equal(growths.count,240);
   const layout=growthLayout(visual.design),matrix=new Matrix4(),scale=new Vector3(),position=new Vector3(),rotation=new Quaternion();
   visual.rollingBody.quaternion.setFromAxisAngle(new Vector3(1,0,0),.9);
   for(const orbit of [false,true]){

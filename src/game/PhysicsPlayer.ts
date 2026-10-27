@@ -1,3 +1,4 @@
+import {WetSand} from "./WetSand";
 import R from "@dimforge/rapier3d-compat";
 import { Vector3, Quaternion } from "three";
 import { heightAt, headingFromVelocity } from "../core/terrain";
@@ -6,6 +7,7 @@ import type { Input } from "./Input";
 import type { EventBus } from "../core/events";
 export type DriveInput = Pick<Input,"x"|"z"|"jump"|"dash"> & {touchDrive?:boolean};
 export class PhysicsPlayer {
+  readonly coating=new WetSand();
   readonly body: R.RigidBody;
   readonly collider: R.Collider;
   previous = new Vector3();
@@ -72,6 +74,7 @@ export class PhysicsPlayer {
   }
   reset() {
     this.setImmobilized(false);
+    this.coating.reset();
     this.jumpCooldown=this.dashCooldown=this.impactCooldown=this.touchImpulseGrace=0;
     this.body.setTranslation({ x: this.spawn.x, y: heightAt(this.spawn.x, this.spawn.z) + 1.1, z: this.spawn.z }, true);
     this.body.setLinvel({ x: 0, y: 0, z: 0 }, true);
@@ -186,6 +189,8 @@ export class PhysicsPlayer {
     this.heading = headingFromVelocity(v.x, v.z, this.heading);
     if (this.current.y < -30) this.reset();
   }
+  updateCoating(dt:number){this.coating.update(dt,this.current,Math.hypot(this.current.x-this.previous.x,this.current.z-this.previous.z),this.hasSurfaceSupport());}
+  applySandDrag(dt:number){const s=this.coating.sand;if(s<=0||!this.hasSurfaceSupport())return;const v=this.body.linvel(),amount=1-Math.exp(-s*.9*dt),mass=this.body.mass();this.body.applyImpulse({x:-v.x*amount*mass,y:0,z:-v.z*amount*mass},true);}
   get impactVelocity(){return this.velocityBeforeStep;}
   captureVelocity(){this.velocityBeforeStep.copy(this.body.linvel());}
   contact(strength: number, other?:R.Collider, otherVelocity?:Vector3, internal=false) {
