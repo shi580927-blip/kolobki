@@ -22,5 +22,10 @@ export function addDeviceControls(audio:ImpactAudio){
   }catch{showHint();}
  };
  function showHint(){message.textContent='Браузер не разрешил полный экран. На телефоне попробуйте открыть игру из значка: меню браузера / «Поделиться» → «Добавить на главный экран». Затем запустите игру оттуда и поверните телефон горизонтально.';hint.hidden=false;}
- panel.append(sound,full);document.querySelector('#hud')!.append(panel,hint);
+ const hand=document.createElement('button');hand.id='control-hand';
+ const hud=document.querySelector<HTMLElement>('#hud')!;
+ let right=false;try{right=localStorage.getItem('sharobesy.controls.hand.v1')==='right';}catch{/* Private storage is optional. */}
+ const updateHand=()=>{hud.dataset.stickHand=right?'right':'left';hand.textContent=right?'Джойстик: справа':'Джойстик: слева';hand.setAttribute('aria-pressed',String(right));};
+ hand.onclick=()=>{dispatchEvent(new Event('sharobesy-controls-change'));right=!right;try{localStorage.setItem('sharobesy.controls.hand.v1',right?'right':'left');}catch{/* Keep the current session preference. */}updateHand();};
+ updateHand();panel.append(sound,full,hand);hud.append(panel,hint);
 }

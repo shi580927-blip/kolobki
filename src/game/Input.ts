@@ -1,8 +1,15 @@
+/** Radial dead zone preserves diagonals and a continuous low-speed range. */
+export function joystickAxes(x:number,z:number){
+  const length=Math.hypot(x,z);if(length<=.12)return {x:0,z:0};
+  const strength=Math.min(1,(length-.12)/.88);
+  return {x:x/length*strength,z:z/length*strength};
+}
 export class Input {
   x = 0;
   z = 0;
   jump = false;
   dash = false;
+  touchDrive = false;
   private keys = new Set<string>();
   private touchX = 0;
   private touchZ = 0;
@@ -18,34 +25,39 @@ export class Input {
         if (e.code === "Space") this.jump = true;
         if (e.code === "ShiftLeft" || e.code === "ShiftRight") this.dash = true;
       }
+      if(["KeyW","KeyA","KeyS","KeyD","ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].includes(e.code))this.touchDrive=false;
       this.keys.add(e.code);
     });
     addEventListener("keyup", (e) => this.keys.delete(e.code));
+    const stick = document.querySelector<HTMLElement>("#stick")!;
+    let pointer: number | null = null;
     const clear = () => {
+      const held=pointer;pointer=null;
+      if(held!==null&&stick.hasPointerCapture(held))stick.releasePointerCapture(held);
       this.keys.clear();
       this.touchX = this.touchZ = 0;
       this.jump = this.dash = false;
       this.drawKnob();
     };
     addEventListener("blur", clear);
+    addEventListener("sharobesy-controls-change",clear);
     document.addEventListener("visibilitychange", () => {
       if (document.hidden) clear();
     });
-    const stick = document.querySelector<HTMLElement>("#stick")!;
-    let pointer: number | null = null;
     const move = (e: PointerEvent) => {
       if (e.pointerId !== pointer) return;
       const r = stick.getBoundingClientRect(),
         dx = (e.clientX - r.left - r.width / 2) / (r.width / 2),
         dy = (e.clientY - r.top - r.height / 2) / (r.height / 2),
-        n = Math.max(1, Math.hypot(dx, dy));
-      this.touchX = dx / n;
-      this.touchZ = dy / n;
+        axes=joystickAxes(dx,dy);
+      this.touchX = axes.x;
+      this.touchZ = axes.z;
       this.drawKnob();
     };
     stick.addEventListener("pointerdown", (e) => {
       if (pointer !== null) return;
       pointer = e.pointerId;
+      this.touchDrive=true;
       stick.setPointerCapture(pointer);
       move(e);
     });
@@ -68,7 +80,7 @@ export class Input {
   }
   private drawKnob() {
     document.querySelector<HTMLElement>("#knob")!.style.transform =
-      `translate(${this.touchX * 37}px,${this.touchZ * 37}px)`;
+      `translate(${this.touchX * 51}px,${this.touchZ * 51}px)`;
   }
   sample() {
     this.x =

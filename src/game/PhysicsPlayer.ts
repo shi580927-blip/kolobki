@@ -4,7 +4,7 @@ import { heightAt, headingFromVelocity } from "../core/terrain";
 import {impactSeverity} from "./ImpactModel";
 import type { Input } from "./Input";
 import type { EventBus } from "../core/events";
-export type DriveInput = Pick<Input,"x"|"z"|"jump"|"dash">;
+export type DriveInput = Pick<Input,"x"|"z"|"jump"|"dash"> & {touchDrive?:boolean};
 export class PhysicsPlayer {
   readonly body: R.RigidBody;
   readonly collider: R.Collider;
@@ -19,6 +19,7 @@ export class PhysicsPlayer {
   private dashCooldown = 0;
   private impactCooldown = 0;
   private grounded = false;
+  private touchImpulseGrace=0;
   private velocityBeforeStep = new Vector3();
   private collisionSpeedChange = 0;
   constructor(
@@ -71,7 +72,7 @@ export class PhysicsPlayer {
   }
   reset() {
     this.setImmobilized(false);
-    this.jumpCooldown=this.dashCooldown=this.impactCooldown=0;
+    this.jumpCooldown=this.dashCooldown=this.impactCooldown=this.touchImpulseGrace=0;
     this.body.setTranslation({ x: this.spawn.x, y: heightAt(this.spawn.x, this.spawn.z) + 1.1, z: this.spawn.z }, true);
     this.body.setLinvel({ x: 0, y: 0, z: 0 }, true);
     this.body.setAngvel({ x: 0, y: 0, z: 0 }, true);
@@ -86,6 +87,7 @@ export class PhysicsPlayer {
     this.jumpCooldown -= dt;
     this.dashCooldown -= dt;
     this.impactCooldown -= dt;
+    this.touchImpulseGrace=Math.max(0,this.touchImpulseGrace-dt);
     if(this.immobilized){
       input.jump=false;input.dash=false;
       // In the air only input is locked; gravity and ballistic momentum continue.
@@ -115,7 +117,19 @@ export class PhysicsPlayer {
       .multiplyScalar(input.x)
       .addScaledVector(forward, -input.z);
     const mass = this.body.mass();
-    if (direction.lengthSq() > 0) {
+    if(input.touchDrive&&this.touchImpulseGrace<=0&&!input.jump&&!input.dash&&this.hasSurfaceSupport()){
+      // Ground-only arcade assistance: small deflection requests a low speed;
+      // release brakes, while airborne motion and recent combat impulses coast.
+      const amount=Math.min(1,direction.length()),target=direction.clone();
+      if(amount>0)target.normalize().multiplyScalar(14*Math.pow(amount,1.4));
+      const v=this.body.linvel(),change=new Vector3(target.x-v.x,0,target.z-v.z).multiplyScalar(5*dt).clampLength(0,(amount>0?18:24)*dt);
+      this.body.applyImpulse({x:change.x*mass,y:0,z:change.z*mass},true);
+      let next=this.body.linvel();
+      // Finish the ground stop instead of creeping forever on a gentle slope.
+      if(amount===0&&Math.hypot(next.x,next.z)<.7){next={x:0,y:next.y,z:0};this.body.setLinvel(next,true);}
+      const angular=this.body.angvel(),blend=1-Math.exp(-10*dt);
+      this.body.setAngvel({x:angular.x+(next.z-angular.x)*blend,y:angular.y,z:angular.z+(-next.x-angular.z)*blend},true);
+    } else if (direction.lengthSq() > 0) {
       this.body.applyImpulse(
         {
           x: direction.x * mass * 12 * dt,
@@ -149,6 +163,7 @@ export class PhysicsPlayer {
         true,
       );
       this.dashCooldown = 1.2;
+      this.touchImpulseGrace=.45;
       this.bus.emit("player_dash", {});
     }
     input.dash = false;
@@ -200,6 +215,7 @@ export class PhysicsPlayer {
     )
       return;
     this.impactCooldown = 0.55;
+    this.touchImpulseGrace=.35;
     this.bus.emit("impact_major", { position: this.current.clone(), strength,source,closingSpeed,severity });
     this.bus.emit("face_unhinged", { duration: 0.85 });
   }

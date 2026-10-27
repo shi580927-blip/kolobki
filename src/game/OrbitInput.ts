@@ -67,6 +67,7 @@ export class OrbitInput {
       if (event.button === 1) event.preventDefault();
     });
     addEventListener("blur", release);
+    addEventListener("sharobesy-controls-change", release);
     document.addEventListener("visibilitychange", () => {
       if (document.hidden) release();
     });

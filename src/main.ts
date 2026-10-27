@@ -353,7 +353,8 @@ async function start() {
       stun: visual.face.immobilized?1:0,
       phase: visual.face.rig.clock.phase,
       berries: {count:berries.count,total:berries.total,positions:berries.items.filter(i=>!i.collected).map(i=>i.mesh.position.toArray())},
-      input: { x: input.x, z: input.z },
+      input: { x: input.x, z: input.z, touchDrive:input.touchDrive },
+      controlHand:hud.dataset.stickHand??"left",
     }),
   });
 }
