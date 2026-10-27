@@ -1,5 +1,7 @@
 import type { Vector3 } from "three";
 export interface GameEvents {
+  match_start: {format:'route-unprepared'};
+  match_finish: {winner:'player'|'rival'|'draw';progress:number[]};
   train_attach: {id:number;count:number;position:Vector3};
   train_break: {ids:number[];count:number;reason:string;position:Vector3};
   npc_impact: {id:number;position:Vector3;strength:number};

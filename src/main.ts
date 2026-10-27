@@ -12,7 +12,8 @@ import { loadSkin, randomFrom } from "./core/skin";
 import { fit16by9, heightAt } from "./core/terrain";
 import { EventBus } from "./core/events";
 import {ImpactMeter} from "./game/ImpactModel";
-import {TrainSystem} from "./game/TrainSystem";
+import {TrainSystem,type TrainOptions} from "./game/TrainSystem";
+import {MatchSession} from "./game/MatchSession";
 import {NpcSystem} from "./game/NpcSystem";
 import { Input } from "./game/Input";
 import { CameraRig } from "./game/CameraRig";
@@ -97,7 +98,9 @@ async function start() {
   const contactPositions=[visual.position,...(casting?.actors.map(a=>a.position)??[])];
   if(casting){const label=document.createElement("div");label.textContent="ПРОБА ДОЛИНЫ · 10 образцов без поведения и столкновений";label.style.cssText="position:absolute;left:24px;bottom:76px;font-size:15px;color:#24463c;background:#fff6dfdf;padding:8px 12px;border-radius:12px;text-shadow:none";hud.appendChild(label);const detailButton=document.createElement('button');detailButton.textContent='Ягоды крупно / общий вид';detailButton.onclick=()=>{berryDetail=!berryDetail;};document.querySelector('#tools')!.appendChild(detailButton);}
   const npcs=!appearanceTest&&!valleyStudy?new NpcSystem(scene,world,bus,atlas,resources.textures,worldEnvironment,crypto.getRandomValues(new Uint32Array(1))[0]):undefined;
-  const train=npcs?new TrainSystem(world,player,npcs.actors.map(a=>({id:a.entry.id,physics:a.physics})),bus):undefined;
+  const trainOptions:TrainOptions={};
+  const train=npcs?new TrainSystem(world,player,npcs.actors.map(a=>({id:a.entry.id,physics:a.physics})),bus,trainOptions):undefined;
+  let match:MatchSession|undefined;
   if(npcs){const label=document.createElement("div");label.id="train-status";label.textContent="Поезд: 0 / 5 · Коснитесь шаробеса без сильного тарана";label.style.cssText="position:absolute;left:30px;top:123px;font-size:13px;color:#fff";hud.appendChild(label);}
   const input = new Input(),
     effects = new Effects(scene);
@@ -128,7 +131,7 @@ async function start() {
   bus.on("player_dash",()=>react("fury"));
   let npcSoundCooldown=0;
   bus.on("npc_impact",({position})=>{if(position.distanceTo(visual.position)<24){effects.burst(position);if(performance.now()>npcSoundCooldown){audio.play();npcSoundCooldown=performance.now()+250;}}});
-  const trainStatus=()=>{const label=document.querySelector('#train-status');if(label){const text=`Поезд: ${train?.count??0} / 5 · ${train?.snapshot().joining!==undefined?"Новичок подкатывается к хвосту":"Сильный удар разрывает состав"}`;if(label.textContent!==text)label.textContent=text;}};
+  const trainStatus=()=>{const label=document.querySelector('#train-status');if(label){const text=`Поезд: ${train?.count??0} / 5 · ${train?.snapshot().joining!==undefined?"Новичок подкатывается к хвосту":match?.active?"Проба маршрута: сцепки удерживаются":"Сильный удар разрывает состав"}`;if(label.textContent!==text)label.textContent=text;}};
   bus.on('train_attach',e=>{trainStatus();effects.sparkle(e.position);audio.collect();react('happy');npcs?.actors.find(a=>a.entry.id===e.id)?.visual.face.play('shocked');});
   bus.on('train_break',e=>{trainStatus();effects.burst(e.position);audio.play();rig.shake=.2;react('scared');for(const a of npcs?.actors??[])if(e.ids.includes(a.entry.id)){a.brain.hit();a.visual.face.play('dazed');}});
   const impactMeter=new ImpactMeter();let physicsTime=0;
@@ -181,13 +184,15 @@ async function start() {
       document.querySelector<HTMLElement>("#diagnostics")!.hidden =
         !document.querySelector<HTMLElement>("#diagnostics")!.hidden;
   });
-  document.querySelector<HTMLButtonElement>("#reset")!.onclick = () => {
+  const resetGame = () => {
     player.reset();
     npcs?.reset();
     train?.reset();trainStatus();
     berries.reset();impactMeter.reset();physicsTime=0;faces.forEach(f=>f.rig.reset());
     updateBerryCount();
   };
+  document.querySelector<HTMLButtonElement>("#reset")!.onclick=()=>{match?.exit();resetGame();};
+  if(npcs&&train)match=new MatchSession(world,scene,player,npcs,train,trainOptions,resetGame,bus);
   if(appearanceTest){const button=document.createElement('button');button.textContent='Проба комбо';button.onclick=()=>bus.emit('combo',{count:3});document.querySelector('#tools')!.appendChild(button);}
   if(npcs)contactPositions.push(...npcs.actors.map(a=>a.visual.position));
   const resize = () => {
@@ -243,17 +248,20 @@ async function start() {
     acc += elapsed;
     let steps = 0;
     while (acc >= dt && steps < 6) {
+      match?.preStep(dt);
+      if(match?.frozen){input.jump=input.dash=false;player.previous.copy(player.current);npcs?.actors.forEach(a=>a.physics.previous.copy(a.physics.current));acc-=dt;steps++;continue;}
       physicsTime+=dt;
       player.setImmobilized(visual.face.immobilized);
       player.step(dt, input, direction);
-      npcs?.step(dt,player,id=>(train?.has(id)||train?.isJoining(id))??false);
+      npcs?.step(dt,player,id=>(train?.has(id)||train?.isJoining(id)||match?.controlled(id))??false);
       train?.step(dt);
+      match?.stepTrain(dt);
       world.step(events);
       player.sync();
       npcs?.sync();
       berries.checkSegment(player.previous, player.current);
       events.drainContactForceEvents((e) => {
-        const internal=train?.isInternalContact(e.collider1(),e.collider2())??false;
+        const internal=(train?.isInternalContact(e.collider1(),e.collider2())||match?.internal(e.collider1(),e.collider2()))??false;
         npcs?.contact(e.collider1(),e.collider2(),e.totalForceMagnitude(),internal,player);
         if (
           e.collider1() === player.collider.handle ||
@@ -266,6 +274,7 @@ async function start() {
         }
       });
       train?.afterStep();
+      match?.afterStep();
       acc -= dt;
       steps++;
     }
@@ -286,6 +295,7 @@ async function start() {
     casting?.update(elapsed);
     npcs?.update(elapsed,alpha);
     if(train)trainStatus();
+    match?.render();
     groundLighting.setContacts(contactPositions);
     sun.position.copy(visual.position).add(new T.Vector3(-25, 45, 20));
     sun.target.position.copy(visual.position);
@@ -321,8 +331,8 @@ async function start() {
       faceEyes: visual.face.eyes.map(e => e.visible),
       faceArt: "animated-atlas-v03",
       faceVisibility: Object.entries(visual.face.rig.poses).filter(([,g])=>g.visible).map(([name,g])=>({name,rotation:g.rotation.toArray(),opacity:(g.children.find(o=>o.name.startsWith('study-')) as T.Mesh<T.BufferGeometry,T.ShaderMaterial>).material.uniforms.opacity.value})),
-      physicsTime,impactCharge:impactMeter.value,train:train?.snapshot(),
-      npcs:npcs?.snapshot().map(a=>({...a,state:train?.has(a.id)?"wagon":train?.isJoining(a.id)?"joining":a.state}))??[],npcContacts:npcs?.collisionsWithPlayer??0,npcSeed:npcs?.seed,
+      physicsTime,impactCharge:impactMeter.value,train:train?.snapshot(),match:match?.snapshot(),
+      npcs:npcs?.snapshot().map(a=>({...a,state:train?.has(a.id)?"wagon":train?.isJoining(a.id)?"joining":match?.controlled(a.id)?a.id===0?"rival":"rival-wagon":a.state}))??[],npcContacts:npcs?.collisionsWithPlayer??0,npcSeed:npcs?.seed,
       buildVersion,skyArt:skyState,cloudCount:sky?.clouds.length??0,cameraFov:camera.fov,
       berryDetail,
       shadowSettings:{mapSize:sun.shadow.mapSize.x,normalBias:sun.shadow.normalBias,contactCount:contactPositions.length},berryArt:"raspberry-plants-v1",

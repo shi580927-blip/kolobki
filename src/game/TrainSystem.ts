@@ -4,6 +4,7 @@ import {EventBus} from '../core/events';
 import {PhysicsPlayer} from './PhysicsPlayer';
 
 export interface TrainActor {id:number;physics:PhysicsPlayer}
+export interface TrainOptions {canRecruit?:(id:number)=>boolean;manageGroups?:boolean;breakOnContact?:boolean}
 // Trial balance, not approved final design. Five existing NPCs; no extra actors.
 export const TRAIN_RULES={limit:5,spacing:2.25,breakSpeed:12,recollectDelay:1.6,joinTimeout:10};
 const FREE_GROUP=0x0001ffff,TRAIN_GROUP=0x0002fffd;
@@ -19,7 +20,7 @@ export class TrainSystem {
  private velocities=new Map<number,Vector3>();
  private joining:{actor:TrainActor;time:number;side:number}|undefined;
  attachedTotal=0;breakTotal=0;
- constructor(private world:R.World,readonly leader:PhysicsPlayer,private actors:TrainActor[],private bus:EventBus){
+ constructor(private world:R.World,readonly leader:PhysicsPlayer,private actors:TrainActor[],private bus:EventBus,private options:TrainOptions={}){
   this.reset();
  }
  isInternalContact(first:number,second:number){
@@ -32,6 +33,7 @@ export class TrainSystem {
  private controlled(){return [...this.wagons,...(this.joining?[this.joining.actor]:[])];}
  snapshot(){return {joining:this.joining?.actor.id,links:0,gaps:this.wagons.map((a,i)=>{const p=i?this.wagons[i-1].physics.current:this.leader.current;return Math.hypot(a.physics.current.x-p.x,a.physics.current.z-p.z);}),ids:this.wagons.map(a=>a.id),count:this.count,limit:TRAIN_RULES.limit,attachedTotal:this.attachedTotal,breakTotal:this.breakTotal,cooldowns:Object.fromEntries(this.cooldown)};}
  private setGroups(){
+  if(this.options.manageGroups===false)return;
   const active=this.controlled().length>0;
   this.leader.collider.setCollisionGroups(active?TRAIN_GROUP:FREE_GROUP);
   this.actors.forEach(a=>a.physics.collider.setCollisionGroups(this.has(a.id)||this.isJoining(a.id)?TRAIN_GROUP:FREE_GROUP));
@@ -159,9 +161,9 @@ export class TrainSystem {
    if(closing>=TRAIN_RULES.breakSpeed){strongContact=true;this.cooldown.set(actor.id,TRAIN_RULES.recollectDelay);return;}
    if(!this.cooldown.has(actor.id)&&!candidates.includes(actor))candidates.push(actor);
   });
-  if(strongContact){if(attachedAtStart||this.joining)this.break('collision');return;}
+  if(strongContact&&this.options.breakOnContact!==false){if(attachedAtStart||this.joining)this.break('collision');return;}
   // First recruit on a real contact, then let it approach the tail naturally.
-  const actor=candidates[0];
+  const actor=candidates.find(a=>this.options.canRecruit?.(a.id)!==false);
   if(actor&&!this.joining&&this.count<TRAIN_RULES.limit){this.joining={actor,time:0,side:actor.id%2?1:-1};this.setGroups();}
   this.separate();
   if(this.joining){
