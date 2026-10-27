@@ -23,6 +23,7 @@ import { createWorld } from "./game/World";
 import { PhysicsPlayer } from "./game/PhysicsPlayer";
 import { Effects } from "./game/Effects";
 import { ImpactAudio } from "./game/ImpactAudio";
+import {addDeviceControls} from "./game/DeviceControls";
 import { OrbitInput } from "./game/OrbitInput";
 async function start() {
   document.querySelector(".brand small")!.textContent=`АЛЬФА 0.1 · ${buildVersion.replace("0.1.0-", "")} · ТЕХНИЧЕСКИЙ ТЕСТ`;
@@ -76,6 +77,7 @@ async function start() {
   const groundLighting=createWorld(scene, world);
   const bus = new EventBus();
   const audio = new ImpactAudio();
+  addDeviceControls(audio);
   const player = new PhysicsPlayer(world, bus);
   let storage: Storage;
   try {
@@ -127,8 +129,8 @@ async function start() {
   portraitCamera.lookAt(0, 0, 0);
   const faces=[visual.face,portraitVisual.face];
   const react=(name:string)=>faces.forEach(f=>f.play(name));
-  bus.on("player_jump",()=>react("happy"));
-  bus.on("player_dash",()=>react("fury"));
+  bus.on("player_jump",()=>{react("happy");audio.jump();});
+  bus.on("player_dash",()=>{react("fury");audio.dash();});
   let npcSoundCooldown=0;
   bus.on("npc_impact",({position})=>{if(position.distanceTo(visual.position)<24){effects.burst(position);if(performance.now()>npcSoundCooldown){audio.play();npcSoundCooldown=performance.now()+250;}}});
   const trainStatus=()=>{const label=document.querySelector('#train-status');if(label){const text=`Поезд: ${train?.count??0} / 5 · ${train?.snapshot().joining!==undefined?"Новичок подкатывается к хвосту":match?.active?"Проба маршрута: сцепки удерживаются":"Сильный удар разрывает состав"}`;if(label.textContent!==text)label.textContent=text;}};
@@ -331,7 +333,7 @@ async function start() {
       faceEyes: visual.face.eyes.map(e => e.visible),
       faceArt: "animated-atlas-v03",
       faceVisibility: Object.entries(visual.face.rig.poses).filter(([,g])=>g.visible).map(([name,g])=>({name,rotation:g.rotation.toArray(),opacity:(g.children.find(o=>o.name.startsWith('study-')) as T.Mesh<T.BufferGeometry,T.ShaderMaterial>).material.uniforms.opacity.value})),
-      physicsTime,impactCharge:impactMeter.value,train:train?.snapshot(),match:match?.snapshot(),
+      physicsTime,impactCharge:impactMeter.value,train:train?.snapshot(),match:match?.snapshot(),audio:audio.snapshot(),fullscreen:!!document.fullscreenElement,
       npcs:npcs?.snapshot().map(a=>({...a,state:train?.has(a.id)?"wagon":train?.isJoining(a.id)?"joining":match?.controlled(a.id)?a.id===0?"rival":"rival-wagon":a.state}))??[],npcContacts:npcs?.collisionsWithPlayer??0,npcSeed:npcs?.seed,
       buildVersion,skyArt:skyState,cloudCount:sky?.clouds.length??0,cameraFov:camera.fov,
       berryDetail,

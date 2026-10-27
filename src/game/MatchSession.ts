@@ -12,6 +12,7 @@ export class MatchSession {
  readonly rules=new RouteMatch();readonly rivalTrain:TrainSystem;
  private route:MatchRouteVisual;private label:HTMLElement;private result:HTMLElement;
  private button:HTMLButtonElement;private finishEmitted=false;
+ private entry:HTMLElement;
  private recruit:number|undefined;private recruitTime=0;
  constructor(private world:R.World,scene:T.Scene,private player:PhysicsPlayer,private npcs:NpcSystem,private train:TrainSystem,private options:TrainOptions,private resetGame:()=>void,private events:EventBus){
   const actors=npcs.actors.slice(1).map(a=>({id:a.entry.id,physics:a.physics}));
@@ -19,7 +20,12 @@ export class MatchSession {
   this.route=new MatchRouteVisual(scene);
   this.label=document.createElement('div');this.label.id='match-status';this.label.setAttribute('role','status');document.querySelector('#hud')!.appendChild(this.label);
   this.result=document.createElement('div');this.result.id='match-result';this.result.hidden=true;document.querySelector('#hud')!.appendChild(this.result);
-  this.button=document.createElement('button');this.button.id='match-start';this.button.textContent='Матч без подготовки';this.button.onclick=()=>this.start();document.querySelector('#tools')!.appendChild(this.button);
+  this.entry=document.createElement('div');this.entry.id='match-entry';
+  const heading=document.createElement('h2');heading.textContent='Матч с соперником';
+  const instructions=document.createElement('p');instructions.textContent='Два круга по жёлтым точкам. Все начинают одиночными — собирайте поезд по дороге!';
+  this.button=document.createElement('button');this.button.id='match-start';this.button.textContent='Начать матч';this.button.onclick=()=>this.start();
+  const sandbox=document.createElement('button');sandbox.id='sandbox-choice';sandbox.textContent='Пока свободное катание';sandbox.onclick=()=>{this.entry.hidden=true;document.querySelector('#tools')!.appendChild(this.button);};
+  this.entry.append(heading,instructions,this.button,sandbox);document.querySelector('#hud')!.appendChild(this.entry);
   const exit=document.createElement('button');exit.id='match-exit';exit.textContent='В песочницу';exit.onclick=()=>this.exit();this.result.appendChild(exit);
  }
  get active(){return this.rules.phase!=='sandbox';}
@@ -35,13 +41,15 @@ export class MatchSession {
   this.place(this.player,-4,0);this.place(this.npcs.actors[0].physics,4,0);
   [[-5,14],[5,14],[-6,26],[6,26]].forEach(([x,z],i)=>this.place(this.npcs.actors[i+1].physics,x,z));
   this.rules.start([this.player.current,this.npcs.actors[0].physics.current]);
+  this.entry.hidden=true;document.querySelector('#tools')!.appendChild(this.button);
   this.recruit=undefined;this.recruitTime=0;this.finishEmitted=false;this.groups();this.render();
   this.events.emit('match_start',{format:'route-unprepared'});
  }
  exit(){
   this.rivalTrain.reset();this.rules.reset();
   this.options.manageGroups=true;this.options.breakOnContact=true;this.options.canRecruit=undefined;
-  this.train.reset();this.route.update(this.rules);this.label.hidden=true;this.result.hidden=true;this.button.textContent='Матч без подготовки';
+  this.train.reset();this.route.update(this.rules);this.label.hidden=true;this.result.hidden=true;this.button.textContent='Начать матч';
+  this.entry.hidden=false;this.entry.insertBefore(this.button,this.entry.querySelector('#sandbox-choice'));
  }
  preStep(dt:number){
   if(!this.active)return;
@@ -78,8 +86,9 @@ export class MatchSession {
   if(!this.active)return;
   const s=this.rules.snapshot();this.label.hidden=false;this.route.update(this.rules);
   const lap=(index:number)=>Math.min(s.laps,Math.floor(s.progress[index]/s.checkpoints)+1);
-  const status=s.phase==='countdown'?`МАТЧ · Старт через ${Math.ceil(s.countdown)} · Все начинают одиночными`:
-   `ПРОБА МАТЧА · ${Math.floor(Math.ceil(s.remaining)/60)}:${(Math.ceil(s.remaining)%60).toString().padStart(2,'0')} · Вы: круг ${lap(0)}/${s.laps}, точка ${Math.min(s.progress[0],s.laps*s.checkpoints-1)%s.checkpoints+1}/${s.checkpoints} · Соперник: ${s.progress[1]}/${s.laps*s.checkpoints} · Его вагоны: ${this.rivalTrain.count}`;
+  const target=this.rules.target(0),distance=Math.ceil(Math.hypot(target.x-this.player.current.x,target.z-this.player.current.z));
+  const status=s.phase==='countdown'?`Старт через ${Math.ceil(s.countdown)} · Езжайте к жёлтой точке впереди · Собирайте поезд по дороге`:
+   `${Math.floor(Math.ceil(s.remaining)/60)}:${(Math.ceil(s.remaining)%60).toString().padStart(2,'0')} · Круг ${lap(0)}/${s.laps} · Жёлтая точка ${Math.min(s.progress[0],s.laps*s.checkpoints-1)%s.checkpoints+1}/${s.checkpoints}: ${distance} м · Соперник: ${s.progress[1]}/${s.laps*s.checkpoints} · Его вагоны: ${this.rivalTrain.count}`;
   if(this.label.textContent!==status)this.label.textContent=status;
   this.button.textContent='Матч заново';
   if(s.phase==='finished'){

@@ -16,6 +16,7 @@ const { chromium } = require("playwright");
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto(process.env.CAMERA_TEST_URL || "http://127.0.0.1:4173");
   await page.waitForFunction(() => window.__SHAROBESY__);
+  await page.locator("#sandbox-choice").click();
   await page.waitForTimeout(400);
   const start = await page.evaluate(() => window.__SHAROBESY__);
   await page.mouse.move(640, 300);

@@ -7,6 +7,7 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict'),fs=r
  await page.addInitScript(()=>{localStorage.setItem('sharobesy.skin.v1','4321');Object.defineProperty(crypto,'getRandomValues',{value:array=>{array.fill(4);return array;}});});
  const url=process.env.GAME_TEST_URL||'http://127.0.0.1:4241';await page.goto(url+'/');
  await page.waitForFunction(()=>window.__SHAROBESY__?.train&&document.querySelector('#boot').hidden);
+ await page.locator('#sandbox-choice').click();
  const state=()=>page.evaluate(()=>window.__SHAROBESY__),first=await state();
  let held=new Set(),captured;
  for(let attempt=0;attempt<220;attempt++){
