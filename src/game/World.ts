@@ -3,6 +3,7 @@ import RAPIER from "@dimforge/rapier3d-compat";
 import { terrainData, heightAt, WORLD_SIZE } from "../core/terrain";
 import {makeGroundLighting} from "./GroundLighting";
 import {addValleyArt,valleyGroundColor,valleyRockGeometry} from "./ValleyArt";
+import {addRockArch} from "./RockArch";
 import {addPondStudy} from "./PondStudy";
 import {clearRoutePosition} from '../core/valleyRoute';
 export function createWorld(scene: THREE.Scene, world: RAPIER.World) {
@@ -45,6 +46,7 @@ export function createWorld(scene: THREE.Scene, world: RAPIER.World) {
   }
   const art=addValleyArt(scene,world);
   const pond=addPondStudy(scene,world);
+  addRockArch(scene,world);
   // Sparse collision targets: original primitive geometry, no third-party assets.
   for (const [originalX, originalZ, r] of [
     [12, 6, 1.8],
