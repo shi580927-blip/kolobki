@@ -78,6 +78,11 @@ async function start() {
   world.timestep = 1 / 60;
   bootProgress("Создаём долину…");
   const groundLighting=createWorld(scene, world);
+  rig.obstacleLimit=(origin,end)=>{
+    const ray=end.clone().sub(origin),distance=ray.length();if(distance<.001)return undefined;
+    const hit=world.castRay(new R.Ray(origin,ray.divideScalar(distance)),distance,true,R.QueryFilterFlags.EXCLUDE_DYNAMIC|R.QueryFilterFlags.EXCLUDE_KINEMATIC);
+    return hit?.timeOfImpact;
+  };
   const bus = new EventBus();
   const audio = new ImpactAudio();
   addDeviceControls(audio);

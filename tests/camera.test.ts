@@ -58,3 +58,10 @@ test('train expands the rear view without changing FOV or manual orbit',()=>{
  for(let i=0;i<120;i++)rig.update(p,0,1/60,0,0);
  assert.ok(camera.position.distanceTo(manual)<.05);
 });
+test('camera stays in front of a solid occluder and recovers without changing FOV or orbit',()=>{
+ const camera=new PerspectiveCamera(52,16/9),rig=new CameraRig(camera),p=new Vector3(0,4,0),aim=p.clone().add(new Vector3(0,.7,0));
+ camera.position.set(0,9,-12);rig.obstacleLimit=()=>4;
+ rig.update(p,0,1/60);assert.ok(camera.position.distanceTo(aim)<=3.61);assert.equal(camera.fov,52);
+ rig.beginOrbit(p);const yaw=rig.orbitYaw;rig.update(p,0,1/60);assert.equal(rig.orbitYaw,yaw);
+ rig.obstacleLimit=undefined;rig.setMode(0);for(let i=0;i<120;i++)rig.update(p,0,1/60);assert.ok(camera.position.distanceTo(aim)>9);
+});
