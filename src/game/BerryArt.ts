@@ -4,9 +4,8 @@ import {heightAt} from '../core/terrain';
 import {randomFrom} from '../core/skin';
 
 /** Curved pointed leaf, ridged at the midrib, with gently irregular edges. */
-export function makeLeafGeometry(){
+export function makeLeafGeometry(n=14,m=6){
  const positions:number[]=[],colors:number[]=[],uvs:number[]=[],indices:number[]=[];
- const n=14,m=6;
  for(let j=0;j<=n;j++)for(let i=0;i<=m;i++){
   const t=j/n,u=i/m*2-1,width=Math.pow(Math.sin(Math.PI*t),.8)*(.29+.025*Math.sin(t*23));
   positions.push(u*width,.12*Math.sin(Math.PI*t)*(1-u*u)+.07*t*t+.025*Math.abs(u)*Math.sin(t*19),t);

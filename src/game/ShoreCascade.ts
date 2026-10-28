@@ -1,49 +1,79 @@
 import * as T from 'three';
 import R from '@dimforge/rapier3d-compat';
-import {ConvexGeometry} from 'three/addons/geometries/ConvexGeometry.js';
+import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
 import {POND,heightAt} from '../core/terrain';
-
-/** A single solid bank outcrop, with a decorative spring returning to the existing pond. */
-export const SHORE_CASCADE={x:POND.x,z:POND.z-7.8,width:5.6,depth:4.2,crest:5.8};
+import {roundedStone,stoneColors,stoneMaterial} from './StoneArt';
+import {makeBoulderGeometry} from './BoulderGeometry';
+import {makeLeafGeometry} from './BerryArt';
+export const SHORE_CASCADE={x:POND.x,z:POND.z-7.8,width:7.9,depth:5.8,crest:5.8};
+/** Authored bank composition: separate weathered masses frame a shallow spring channel. */
 export function addShoreCascade(scene:T.Scene,world:R.World){
- const {x,z,crest}=SHORE_CASCADE,ground=heightAt(x,z)-.35;
- const points:T.Vector3[]=[];
- // The uneven rim is shared by rock and turf: no separate green lid hovering above it.
- const rim:T.Vector3[]=[];
- for(let i=0;i<12;i++){
-  const a=i/12*Math.PI*2,r=1+.09*Math.sin(i*2.7);
-  points.push(new T.Vector3(x+Math.cos(a)*3.15*r,ground,z+Math.sin(a)*2.5*r));
-  rim.push(new T.Vector3(x+Math.cos(a)*2.65*r,crest-.10*Math.abs(Math.sin(i*1.7)),z+Math.sin(a)*2.0*r));
+ const {x,z,crest}=SHORE_CASCADE;
+ // dx,dz,width,depth,top,lean: an irregular outcrop, never a repeated block wall.
+ const masses=[[-2.55,.5,3.3,3.6,4.65,-.25],[-2.25,.2,2.8,3.0,6.3,.26,4.20],[2.4,.65,3.3,3.5,4.25,.24],[2.10,.15,2.7,2.9,5.85,-.18,3.95],[-2.0,-1.8,2.9,2.9,6.6,-.36],[2.0,-1.6,2.65,3.0,6.05,.26],[0,-.15,2.5,4.1,5.66,-.06]];
+ const pieces:T.BufferGeometry[]=[],dummy=new T.Object3D();
+ for(let k=0;k<masses.length;k++){
+  const [dx,dz,width,depth,top,lean]=masses[k],px=x+dx,pz=z+dz,base=masses[k][6]??(heightAt(px,pz)-.38);
+  const points:T.Vector3[]=[];
+  for(let j=0;j<3;j++)for(let i=0;i<7;i++){
+   const a=i/7*Math.PI*2+.16+k*.09,t=j/2,r=(j===1?1:j===0?.84:.76)+.09*Math.sin(i*2.6+k);
+   points.push(new T.Vector3(Math.cos(a)*(width/2-.13)*r*(1-.03*t)+lean*t,base+(top-base-.13)*t+(j===2?.045*Math.sin(i*2+k):0),Math.sin(a)*(depth/2-.13)*r*(1-.02*t)));
+  }
+  const g=stoneColors(roundedStone(points,.13),top-.04);g.translate(px,0,pz);pieces.push(g);
+  // Each rounded mass gets its own fitted hull. Open water and entrances stay free.
+  const gp=g.getAttribute('position'),local:number[]=[];
+  for(let i=0;i<gp.count;i++)local.push(gp.getX(i)-px,gp.getY(i)-base,gp.getZ(i)-pz);
+  const desc=R.ColliderDesc.convexHull(new Float32Array(local));if(desc)world.createCollider(desc.setTranslation(px,base,pz).setFriction(.85));
  }
- points.push(...rim);
- const hull=new ConvexGeometry(points),p=hull.getAttribute('position'),colors:number[]=[];
- for(let i=0;i<p.count;i++){
-  const face=Math.floor(i/3)*3,isTop=hull.getAttribute('normal').getY(face)>.75;
-  const h=p.getY(i),v=T.MathUtils.clamp((h-ground)/(crest-ground),0,1);
-  const c=new T.Color('#958775').lerp(new T.Color('#e2d2b2'),v*.85);
-  if(isTop)c.copy(new T.Color('#91c64c').lerp(new T.Color('#b0d85b'),.5+.5*Math.sin(p.getX(i)+p.getZ(i))));
-  const tint=.97+.035*Math.sin(p.getX(i)*2.1+p.getZ(i)*1.8);c.multiplyScalar(tint);colors.push(c.r,c.g,c.b);
- }
- hull.setAttribute('color',new T.Float32BufferAttribute(colors,3));
- const rock=new T.Mesh(hull,new T.MeshStandardMaterial({vertexColors:true,roughness:1}));rock.name='shore-cascade-outcrop';rock.castShadow=rock.receiveShadow=true;scene.add(rock);
- const collider=R.ColliderDesc.convexHull(new Float32Array(points.flatMap(v=>[v.x-x,v.y-ground,v.z-z])));
- if(collider)world.createCollider(collider.setTranslation(x,ground,z).setFriction(.85));
- // One curved ribbon follows the lip, falls, and meets the pond. No moving rectangle sprites.
- const curtain=new T.BufferGeometry(),pos:number[]=[],uv:number[]=[],indices:number[]=[];
- const front=z+2.03,bottom=POND.water+.025;
- const rows=24;
- for(let j=0;j<=rows;j++){
-  const t=j/rows,y=crest+.045-(crest-bottom)*t,zz=front+1.35*t*t,w=.70+.32*t+.045*Math.sin(t*11);
-  for(const side of [-1,1]){pos.push(x+side*w,y,zz);uv.push((side+1)/2,t);}
-  if(j<rows){const a=j*2;indices.push(a,a+2,a+1,a+1,a+2,a+3);}
- }
- curtain.setAttribute('position',new T.Float32BufferAttribute(pos,3));curtain.setAttribute('uv',new T.Float32BufferAttribute(uv,2));curtain.setIndex(indices);curtain.computeVertexNormals();
+ const joined=mergeGeometries(pieces);pieces.forEach(g=>g.dispose());
+ const cliff=new T.Mesh(joined,stoneMaterial());cliff.name='shore-cascade-outcrop';cliff.castShadow=cliff.receiveShadow=true;scene.add(cliff);
+ // Boulders nest against the foot, instead of exposing a clean plinth seam.
+ const foot=new T.InstancedMesh(makeBoulderGeometry(2),stoneMaterial(),6);foot.name='shore-cascade-foot-stones';foot.castShadow=foot.receiveShadow=true;
+ for(let i=0;i<6;i++){const px=x+(i<3?-1:1)*(2.8+(i%3)*.42),pz=z+1.4-(i%3)*.65,s=.38+(i%3)*.14;dummy.position.set(px,heightAt(px,pz)+s*.35,pz);dummy.rotation.set(0,i*1.7,.1*Math.sin(i));dummy.scale.set(s*1.7,s*1.15,s*1.5);dummy.updateMatrix();foot.setMatrixAt(i,dummy.matrix);}scene.add(foot);
  const uniforms={time:{value:0}};
- const mat=new T.ShaderMaterial({uniforms,transparent:true,depthWrite:false,side:T.DoubleSide,vertexShader:`varying vec2 v;void main(){v=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,fragmentShader:`uniform float time;varying vec2 v;void main(){float edge=smoothstep(0.,.12,v.x)*smoothstep(0.,.12,1.-v.x);float lanes=.5+.5*sin(v.x*37.+sin(v.y*5.-time*3.)*.5);float flow=.5+.5*sin(v.y*31.-time*5.+v.x*9.);float light=.25+lanes*.28+flow*.10;vec3 c=mix(vec3(.19,.68,.76),vec3(.89,.98,1.),light);float foam=smoothstep(.84,1.,v.y);gl_FragColor=vec4(mix(c,vec3(.87,.97,.96),foam*.8),edge*(.76+lanes*.17));}`});
- const fall=new T.Mesh(curtain,mat);fall.name='shore-cascade-water';scene.add(fall);
- // Static upper spring, hidden behind the lip rather than a new swimmable lake.
- const source=new T.Mesh(new T.CircleGeometry(.85,24),new T.MeshStandardMaterial({color:'#73d2ce',roughness:.28,transparent:true,opacity:.9}));source.rotation.x=-Math.PI/2;source.scale.set(1,1.45,1);source.position.set(x,crest+.04,z+1.1);source.name='shore-cascade-spring';scene.add(source);
- const foam=new T.InstancedMesh(new T.SphereGeometry(1,8,5),new T.MeshStandardMaterial({color:'#d7f6ef',roughness:.9,transparent:true,opacity:.72,depthWrite:false}),10),d=new T.Object3D();foam.name='shore-cascade-foam';scene.add(foam);
+ const fallMaterial=new T.ShaderMaterial({uniforms,transparent:true,depthWrite:false,side:T.DoubleSide,vertexShader:`varying vec2 v;void main(){v=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,fragmentShader:`
+ uniform float time;varying vec2 v;
+ float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+ float noise(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(hash(i),hash(i+vec2(1,0)),f.x),mix(hash(i+vec2(0,1)),hash(i+1.),f.x),f.y);}
+ void main(){
+ float t=time*.8;
+ float stream=noise(vec2(v.x*9.+sin(v.y*3.)*.45,v.y*4.-t));
+ float strands=noise(vec2(v.x*27.,v.y*2.-t*1.4));
+ float border=.045+noise(vec2(v.y*9.-t,v.x*2.))*.06;
+ float edge=smoothstep(0.,border,v.x)*smoothstep(0.,border,1.-v.x);
+ float brightness=smoothstep(.3,.84,stream)*.5+smoothstep(.52,.9,strands)*.20;
+ vec3 color=mix(vec3(.16,.57,.65),vec3(.83,.94,.91),brightness);
+ color=mix(color,vec3(.83,.96,.93),smoothstep(.82,1.,v.y)*.8);
+ gl_FragColor=vec4(color,edge*(.73+brightness*.24));
+ #include <tonemapping_fragment>
+ #include <colorspace_fragment>
+ }`});
+ const front=z+2.04,bottom=POND.water+.03;
+ const flowGeometry=new T.BufferGeometry(),positions:number[]=[],uv:number[]=[],indices:number[]=[],rows=40,cols=10;
+ for(let j=0;j<=rows;j++){
+  const t=j/rows,fall=Math.max(0,(t-.25)/.75),y=t<.25?crest-.06+(.25-t)*.10:crest-.06-(crest-.06-bottom)*fall;
+  const zz=t<.25?z-1.8+t/.25*3.84:front+1.40*fall*fall;
+  const width=.59+.16*fall+.045*Math.sin(t*9);
+  for(let i=0;i<=cols;i++){const u=i/cols,bow=Math.sin(u*Math.PI);positions.push(x+(u-.5)*width*2+.035*Math.sin(t*7),y+.018*bow,zz+.055*bow*fall);uv.push(u,t);if(j<rows&&i<cols){const a=j*(cols+1)+i;indices.push(a,a+cols+1,a+1,a+1,a+cols+1,a+cols+2);}}
+ }
+ flowGeometry.setAttribute('position',new T.Float32BufferAttribute(positions,3));flowGeometry.setAttribute('uv',new T.Float32BufferAttribute(uv,2));flowGeometry.setIndex(indices);flowGeometry.computeVertexNormals();
+ const fall=new T.Mesh(flowGeometry,fallMaterial);fall.name='shore-cascade-water';scene.add(fall);
+ // A low, irregular foam patch: dissipating cells rather than beads or a circular hoop.
+ const impact=new T.Mesh(new T.PlaneGeometry(2.9,2.1,1,1),new T.ShaderMaterial({uniforms,transparent:true,depthWrite:false,side:T.DoubleSide,vertexShader:`varying vec2 v;void main(){v=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,fragmentShader:`
+ uniform float time;varying vec2 v;
+ float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+ float noise(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(hash(i),hash(i+vec2(1,0)),f.x),mix(hash(i+vec2(0,1)),hash(i+1.),f.x),f.y);}
+ void main(){vec2 p=v-.5;float n=noise(v*7.+vec2(0,time*.22));float area=1.-smoothstep(.16,.50,length(p*vec2(1.,1.18))+(n-.5)*.17);float cells=smoothstep(.32,.67,n);gl_FragColor=vec4(vec3(.78,.95,.90),area*(.15+cells*.48));
+ #include <tonemapping_fragment>
+ #include <colorspace_fragment>
+ }`}));impact.rotation.x=-Math.PI/2;impact.position.set(x,bottom+.01,front+1.6);impact.name='shore-cascade-foam';scene.add(impact);
+ const drops=new T.InstancedMesh(new T.SphereGeometry(1,6,4),new T.MeshStandardMaterial({color:'#c7efea',roughness:.25,transparent:true,opacity:.65,depthWrite:false}),18);drops.name='shore-cascade-spray';scene.add(drops);
+ // Small trailing plants grow from the actual top rim, with the spring channel clear.
+ const plants=new T.InstancedMesh(makeLeafGeometry(7,4),new T.MeshStandardMaterial({vertexColors:true,roughness:1,side:T.DoubleSide}),72),axis=new T.Vector3(0,0,1);
+ for(let i=0;i<12;i++){
+  const side=i<6?-1:1,k=i%6,px=x+side*(2.15+.38*Math.sin(k*2.1)),pz=z+.7+Math.cos(k*2.4)*.58,py=side<0?6.25:5.78;
+  for(let j=0;j<6;j++){const a=j*2.399+i;dummy.position.set(px,py,pz);dummy.quaternion.setFromUnitVectors(axis,new T.Vector3(Math.cos(a),.35+(j%3)*.4,Math.sin(a)).normalize());dummy.scale.setScalar(.28+(j%3)*.045);dummy.updateMatrix();plants.setMatrixAt(i*6+j,dummy.matrix);}
+ }plants.name='shore-cascade-rim-plants';scene.add(plants);
  let elapsed=0;
- return {update(dt:number){elapsed+=dt;uniforms.time.value=elapsed;for(let i=0;i<10;i++){const a=i*2.39996,r=.25+(i%3)*.19;d.position.set(x+Math.cos(a)*r,bottom+.015,front+1.42+Math.sin(a)*r*.6);d.scale.set(.24+.035*Math.sin(elapsed*2+i),.035,.16);d.updateMatrix();foam.setMatrixAt(i,d.matrix);}foam.instanceMatrix.needsUpdate=true;}};
+ return {update(dt:number){elapsed+=dt;uniforms.time.value=elapsed;for(let i=0;i<18;i++){const t=(elapsed*.8+i*.618)%1,a=i*2.39996,r=.15+t*.65;dummy.position.set(x+Math.cos(a)*r,bottom+Math.sin(t*Math.PI)*(.25+(i%3)*.14),front+1.51+Math.sin(a)*r*.5);dummy.rotation.set(0,0,i);const s=.025*(1-t);dummy.scale.set(s,s*1.5,s);dummy.updateMatrix();drops.setMatrixAt(i,dummy.matrix);}drops.instanceMatrix.needsUpdate=true;}};
 }
