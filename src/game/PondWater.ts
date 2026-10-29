@@ -33,7 +33,7 @@ export function addPondWater(scene:T.Scene){
  float glints=pow(noise(p*2.1+vec2(time*.12,-time*.08)),16.);
  color+=vec3(.55,.85,.79)*glints*.7;
  // Broad underwater light variations stay soft rather than forming a visible grid.
- color+=vec3(.04,.12,.10)*(noise(p*.72+vec2(time*.035,0.))-.5);
+ color+=vec3(.035,.10,.09)*(noise(p*.72+vec2(time*.035,0.))-.5);
  // A thin irregular shore wash, not a repeated grid or travelling circular pattern.
  float wash=.032+.016*sin(time*.85+noise(p*.7)*6.);
  float edge=(1.-smoothstep(.008,wash+noise(p*2.)*.018,depth))*.68;

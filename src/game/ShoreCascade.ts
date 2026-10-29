@@ -36,15 +36,18 @@ export function addShoreCascade(scene:T.Scene,world:R.World){
  float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
  float noise(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(hash(i),hash(i+vec2(1,0)),f.x),mix(hash(i+vec2(0,1)),hash(i+1.),f.x),f.y);}
  void main(){
- float t=time*.8;
- float stream=noise(vec2(v.x*9.+sin(v.y*3.)*.45,v.y*4.-t));
- float strands=noise(vec2(v.x*27.,v.y*2.-t*1.4));
- float border=.045+noise(vec2(v.y*9.-t,v.x*2.))*.06;
- float edge=smoothstep(0.,border,v.x)*smoothstep(0.,border,1.-v.x);
- float brightness=smoothstep(.3,.84,stream)*.5+smoothstep(.52,.9,strands)*.20;
- vec3 color=mix(vec3(.16,.57,.65),vec3(.83,.94,.91),brightness);
- color=mix(color,vec3(.83,.96,.93),smoothstep(.82,1.,v.y)*.8);
- gl_FragColor=vec4(color,edge*(.73+brightness*.24));
+ // Interlaced streaks travel downward at different rates, within a sculpted sheet.
+ float t=time;
+ float bend=.035*sin(v.y*7.-t*.8)+.025*sin(v.y*14.-t*1.2);
+ float n=noise(vec2(v.x*7.+bend*8.,v.y*3.5-t*1.05));
+ float fine=noise(vec2(v.x*20.+bend*12.,v.y*5.-t*1.8));
+ float ribbons=pow(.5+.5*sin((v.x+bend)*24.+n*3.),5.);
+ float broken=smoothstep(.28,.8,fine)*ribbons;
+ float edgeWidth=.025+.045*noise(vec2(v.y*8.-t*.55,0.4));
+ float edge=smoothstep(0.,edgeWidth,v.x)*smoothstep(0.,edgeWidth,1.-v.x);
+ float foam=smoothstep(.76,1.,v.y)*(.40+.35*fine);
+ vec3 color=mix(vec3(.08,.52,.64),vec3(.75,.94,.95),clamp(.22+n*.35+broken*.65+foam,0.,1.));
+ gl_FragColor=vec4(color,edge*mix(.88,.98,n));
  #include <tonemapping_fragment>
  #include <colorspace_fragment>
  }`});
@@ -53,21 +56,40 @@ export function addShoreCascade(scene:T.Scene,world:R.World){
  for(let j=0;j<=rows;j++){
   const t=j/rows,fall=Math.max(0,(t-.25)/.75),y=t<.25?crest-.06+(.25-t)*.10:crest-.06-(crest-.06-bottom)*fall;
   const zz=t<.25?z-1.8+t/.25*3.84:front+1.40*fall*fall;
-  const width=.59+.16*fall+.045*Math.sin(t*9);
-  for(let i=0;i<=cols;i++){const u=i/cols,bow=Math.sin(u*Math.PI);positions.push(x+(u-.5)*width*2+.035*Math.sin(t*7),y+.018*bow,zz+.055*bow*fall);uv.push(u,t);if(j<rows&&i<cols){const a=j*(cols+1)+i;indices.push(a,a+cols+1,a+1,a+1,a+cols+1,a+cols+2);}}
+  const width=1.12+.36*fall+.08*Math.sin(t*9);
+  for(let i=0;i<=cols;i++){const u=i/cols,bow=Math.sin(u*Math.PI);positions.push(x+(u-.5)*width*2+.07*Math.sin(t*7),y+.018*bow,zz+(.16*bow+.10*Math.sin(u*12+t*4))*fall);uv.push(u,t);if(j<rows&&i<cols){const a=j*(cols+1)+i;indices.push(a,a+cols+1,a+1,a+1,a+cols+1,a+cols+2);}}
  }
  flowGeometry.setAttribute('position',new T.Float32BufferAttribute(positions,3));flowGeometry.setAttribute('uv',new T.Float32BufferAttribute(uv,2));flowGeometry.setIndex(indices);flowGeometry.computeVertexNormals();
  const fall=new T.Mesh(flowGeometry,fallMaterial);fall.name='shore-cascade-water';scene.add(fall);
+ // Raised curved ribbons break up the flat sheet, batched in one mesh.
+ const rp:number[]=[],ru:number[]=[],ri:number[]=[],ribbonCount=7,ribbonRows=32,ribbonCols=6;
+ for(let k=0;k<ribbonCount;k++)for(let j=0;j<=ribbonRows;j++){
+  const t=j/ribbonRows,u=(k+.5)/ribbonCount,spread=1.08+.35*t;
+  const cx=x+(u-.5)*2*spread+.07*Math.sin(t*6+k*1.4);
+  const y=crest-.08-(crest-.08-bottom)*t,cz=front+1.40*t*t+.14+.13*Math.sin(k*1.7);
+  const width=(.13+.045*(k%3))*(.8+.3*t);
+  for(let i=0;i<=ribbonCols;i++){
+   const v=i/ribbonCols,bulge=Math.sin(v*Math.PI);
+   rp.push(cx+(v-.5)*width*2,y,cz+bulge*(.12+.10*t));ru.push(v,t+k*.13);
+   if(j<ribbonRows&&i<ribbonCols){const q=k*(ribbonRows+1)*(ribbonCols+1)+j*(ribbonCols+1)+i;ri.push(q,q+ribbonCols+1,q+1,q+1,q+ribbonCols+1,q+ribbonCols+2);}
+  }
+ }
+ const ribbons=new T.BufferGeometry();ribbons.setAttribute('position',new T.Float32BufferAttribute(rp,3));ribbons.setAttribute('uv',new T.Float32BufferAttribute(ru,2));ribbons.setIndex(ri);ribbons.computeVertexNormals();
+ const ribbonMat=new T.ShaderMaterial({uniforms,transparent:true,depthWrite:false,side:T.DoubleSide,vertexShader:`varying vec2 v;void main(){v=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,fragmentShader:`uniform float time;varying vec2 v;void main(){float edge=pow(max(0.,sin(v.x*3.14159)),.55);float streak=.5+.5*sin(v.y*18.-time*4.+sin(v.y*7.)*.8);float shine=smoothstep(.35,.95,streak);vec3 c=mix(vec3(.23,.68,.76),vec3(.95,1.,1.),.65+shine*.3);gl_FragColor=vec4(c,edge*(.62+shine*.35));
+ #include <tonemapping_fragment>
+ #include <colorspace_fragment>
+ }`});
+ const ribbonMesh=new T.Mesh(ribbons,ribbonMat);ribbonMesh.name='shore-cascade-raised-streams';scene.add(ribbonMesh);
  // A low, irregular foam patch: dissipating cells rather than beads or a circular hoop.
- const impact=new T.Mesh(new T.PlaneGeometry(2.9,2.1,1,1),new T.ShaderMaterial({uniforms,transparent:true,depthWrite:false,side:T.DoubleSide,vertexShader:`varying vec2 v;void main(){v=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,fragmentShader:`
+ const impact=new T.Mesh(new T.PlaneGeometry(4.7,3.4,1,1),new T.ShaderMaterial({uniforms,transparent:true,depthWrite:false,side:T.DoubleSide,vertexShader:`varying vec2 v;void main(){v=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,fragmentShader:`
  uniform float time;varying vec2 v;
  float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
  float noise(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(hash(i),hash(i+vec2(1,0)),f.x),mix(hash(i+vec2(0,1)),hash(i+1.),f.x),f.y);}
- void main(){vec2 p=v-.5;float n=noise(v*7.+vec2(0,time*.22));float area=1.-smoothstep(.16,.50,length(p*vec2(1.,1.18))+(n-.5)*.17);float cells=smoothstep(.32,.67,n);gl_FragColor=vec4(vec3(.78,.95,.90),area*(.15+cells*.48));
+ void main(){vec2 p=v-.5;float n=noise(v*7.+vec2(0,time*.22));float area=1.-smoothstep(.16,.50,length(p*vec2(1.,1.18))+(n-.5)*.17);float cells=smoothstep(.32,.67,n);gl_FragColor=vec4(vec3(.78,.95,.90),area*(.35+cells*.55));
  #include <tonemapping_fragment>
  #include <colorspace_fragment>
  }`}));impact.rotation.x=-Math.PI/2;impact.position.set(x,bottom+.01,front+1.6);impact.name='shore-cascade-foam';scene.add(impact);
- const drops=new T.InstancedMesh(new T.SphereGeometry(1,6,4),new T.MeshStandardMaterial({color:'#c7efea',roughness:.25,transparent:true,opacity:.65,depthWrite:false}),18);drops.name='shore-cascade-spray';scene.add(drops);
+ const drops=new T.InstancedMesh(new T.SphereGeometry(1,6,4),new T.MeshStandardMaterial({color:'#c7efea',roughness:.25,transparent:true,opacity:.72,depthWrite:false}),28);drops.name='shore-cascade-spray';scene.add(drops);
  // Small trailing plants grow from the actual top rim, with the spring channel clear.
  const plants=new T.InstancedMesh(makeLeafGeometry(7,4),new T.MeshStandardMaterial({vertexColors:true,roughness:1,side:T.DoubleSide}),72),axis=new T.Vector3(0,0,1);
  for(let i=0;i<12;i++){
@@ -75,5 +97,5 @@ export function addShoreCascade(scene:T.Scene,world:R.World){
   for(let j=0;j<6;j++){const a=j*2.399+i;dummy.position.set(px,py,pz);dummy.quaternion.setFromUnitVectors(axis,new T.Vector3(Math.cos(a),.35+(j%3)*.4,Math.sin(a)).normalize());dummy.scale.setScalar(.28+(j%3)*.045);dummy.updateMatrix();plants.setMatrixAt(i*6+j,dummy.matrix);}
  }plants.name='shore-cascade-rim-plants';scene.add(plants);
  let elapsed=0;
- return {update(dt:number){elapsed+=dt;uniforms.time.value=elapsed;for(let i=0;i<18;i++){const t=(elapsed*.8+i*.618)%1,a=i*2.39996,r=.15+t*.65;dummy.position.set(x+Math.cos(a)*r,bottom+Math.sin(t*Math.PI)*(.25+(i%3)*.14),front+1.51+Math.sin(a)*r*.5);dummy.rotation.set(0,0,i);const s=.025*(1-t);dummy.scale.set(s,s*1.5,s);dummy.updateMatrix();drops.setMatrixAt(i,dummy.matrix);}drops.instanceMatrix.needsUpdate=true;}};
+ return {update(dt:number){elapsed+=dt;uniforms.time.value=elapsed;for(let i=0;i<28;i++){const t=(elapsed*.8+i*.618)%1,a=i*2.39996,r=.15+t*1.1;dummy.position.set(x+Math.cos(a)*r,bottom+Math.sin(t*Math.PI)*(.25+(i%3)*.14),front+1.51+Math.sin(a)*r*.5);dummy.rotation.set(0,0,i);const s=(.035+(i%3)*.012)*(1-t);dummy.scale.set(s,s*1.5,s);dummy.updateMatrix();drops.setMatrixAt(i,dummy.matrix);}drops.instanceMatrix.needsUpdate=true;}};
 }
