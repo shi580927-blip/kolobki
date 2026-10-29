@@ -3,7 +3,7 @@ import {makeBoulderGeometry} from './BoulderGeometry';
 import {treeOcclusion} from './TreeOcclusion';
 import R from '@dimforge/rapier3d-compat';
 import {makeLeafGeometry} from './BerryArt';
-import {heightAt,WORLD_SIZE,POND,pondDistance} from '../core/terrain';
+import {heightAt,WORLD_SIZE,POND,pondDistance,pondRadius} from '../core/terrain';
 import {clearRoutePosition,nearestRoutePoint,VALLEY_ROUTE} from '../core/valleyRoute';
 import {randomFrom} from '../core/skin';
 
@@ -15,7 +15,8 @@ export function valleyGroundColor(x:number,y:number,z:number){
  const distance=nearestRoutePoint(x,z).distance,edge=4.5+.35*Math.sin(x*.9+z*.5)+.2*Math.sin(z*1.3);
  const path=1-T.MathUtils.smoothstep(distance,edge-.6,edge+1);
  const ground=grass.lerp(soil,path*.96),shore=pondDistance(x,z);
- const sand=1-T.MathUtils.smoothstep(shore,1.05,1.55);
+ const shoreAngle=Math.atan2(z-POND.z,x-POND.x),beachEdge=1.27+.065*Math.sin(shoreAngle*3+.4);
+ const sand=1-T.MathUtils.smoothstep(shore,.97,beachEdge);
  return ground.lerp(new T.Color("#dec58b"),sand*.85);
 }
 
@@ -35,20 +36,20 @@ export function valleyArtLayout(){
   if(!trees.some(p=>Math.hypot(p.x-point.x,p.z-point.z)<5))trees.push({...point,scale:1+random()*.5,kind:i%3});
  }
  // Keep trees away from the water and its gentle shoreline.
- for(const tree of trees){const dx=tree.x-POND.x,dz=tree.z-POND.z,d=Math.hypot(dx,dz);if(d<11.5){const k=11.5/(d||1);tree.x=POND.x+dx*k;tree.z=POND.z+dz*k;}}
+ for(const tree of trees){const dx=tree.x-POND.x,dz=tree.z-POND.z,d=Math.hypot(dx,dz);const clearance=pondRadius(Math.atan2(dz,dx))*1.65+2;if(d<clearance){const k=clearance/(d||1);tree.x=POND.x+dx*k;tree.z=POND.z+dz*k;}}
  const flowers:{x:number;z:number;height:number;size:number;kind:number}[]=[],grass:{x:number;z:number;height:number;angle:number}[]=[],rocks:{x:number;z:number;radius:number}[]=[],pebbles:{x:number;z:number;size:number}[]=[];
  for(let i=0;i<480;i++){
   const p=patches[i%patches.length],a=random()*Math.PI*2,r=Math.sqrt(random())*2.7,x=p.x+Math.cos(a)*r,z=p.z+Math.sin(a)*r;
-  if(nearestRoutePoint(x,z).distance<6.5||Math.hypot(x-POND.x,z-POND.z)<8)continue;
+  if(nearestRoutePoint(x,z).distance<6.5||pondDistance(x,z)<1.6)continue;
   flowers.push({x,z,height:.26+random()*.42,size:.7+random()*.7,kind:Math.floor(random()*10)});
  }
  for(let i=0;i<2800;i++){
-  const p=patches[i%patches.length],x=p.x+(random()-.5)*8,z=p.z+(random()-.5)*8;if(nearestRoutePoint(x,z).distance<6.2||Math.hypot(x-POND.x,z-POND.z)<8)continue;
+  const p=patches[i%patches.length],x=p.x+(random()-.5)*8,z=p.z+(random()-.5)*8;if(nearestRoutePoint(x,z).distance<6.2||pondDistance(x,z)<1.6)continue;
   grass.push({x,z,height:.16+random()*.35,angle:random()*Math.PI*2});
  }
  for(let i=0;i<16;i++){
   const p=patches[(i*7+3)%patches.length],radius=1+random()*1.5,point=clearRoutePosition(p.x+(random()-.5)*8,p.z+(random()-.5)*8,radius+4);
-  if(Math.hypot(point.x,point.z)>24)rocks.push({...point,radius});
+  if(Math.hypot(point.x,point.z)>24&&pondDistance(point.x,point.z)>1.65)rocks.push({...point,radius});
  }
  for(let i=0;i<480;i++){
   const p=patches[i%patches.length],q=nearestRoutePoint(p.x,p.z),d=q.distance||1,r=3.5+random()*1.7,x=q.x+(p.x-q.x)/d*r+(random()-.5)*1.4,z=q.z+(p.z-q.z)/d*r+(random()-.5)*1.4;
@@ -127,9 +128,10 @@ export function addValleyArt(scene:T.Scene,world:R.World){
  });
  const pebbles=make('valley-art-path-pebbles',layout.pebbles.length,new T.IcosahedronGeometry(1,0),material('#ffffff'));
  layout.pebbles.forEach((p,i)=>put(pebbles,i,p.x,heightAt(p.x,p.z)+p.size*.22,p.z,p.size,p.size*.42,p.size*.8,['#ddc797','#b5ad87','#e9d4a7'][i%3]));
- const bushLeaves=make('valley-art-leaf-shrubs',layout.patches.length*9,makeLeafGeometry(),new T.MeshStandardMaterial({vertexColors:true,roughness:.72,side:T.DoubleSide}));
+ const dryPatches=layout.patches.filter(p=>pondDistance(p.x,p.z)>1.6);
+ const bushLeaves=make('valley-art-leaf-shrubs',dryPatches.length*9,makeLeafGeometry(),new T.MeshStandardMaterial({vertexColors:true,roughness:.72,side:T.DoubleSide}));
  const axis=new T.Vector3(0,0,1);
- layout.patches.forEach((p,i)=>{for(let j=0;j<9;j++){
+ dryPatches.forEach((p,i)=>{for(let j=0;j<9;j++){
   const a=j*2.39996,s=.55+random()*.45;dummy.position.set(p.x,heightAt(p.x,p.z)+.02,p.z);dummy.quaternion.setFromUnitVectors(axis,new T.Vector3(Math.cos(a),.22+random()*.45,Math.sin(a)).normalize());dummy.scale.set(s,s,s);dummy.updateMatrix();bushLeaves.setMatrixAt(i*9+j,dummy.matrix);
  }});
  const positions:number[]=[],colors:number[]=[],indices:number[]=[];

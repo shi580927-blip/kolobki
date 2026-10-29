@@ -4,7 +4,7 @@ import {toCreasedNormals} from 'three/addons/utils/BufferGeometryUtils.js';
 import {stoneColors,stoneMaterial} from './StoneArt';
 import {makeLeafGeometry} from './BerryArt';
 import {heightAt} from '../core/terrain';
-export const ROCK_ARCH={x:-32,z:35,inner:3.8,outer:5.5,depth:2.6};
+export const ROCK_ARCH={x:-43,z:35,inner:3.8,outer:5.5,depth:2.6};
 /** A physical, open landmark off the route, with irregular stone wedges. */
 export function addRockArch(scene:T.Scene,world:R.World){
  const {x,z,inner,outer,depth}=ROCK_ARCH;

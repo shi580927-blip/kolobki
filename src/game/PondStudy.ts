@@ -6,7 +6,7 @@ import {addShoreArt} from './ShoreArt';
 import {addShoreCascade} from './ShoreCascade';
 import {POND,heightAt,pondRadius} from '../core/terrain';
 
-/** A small shallow pond; water is visual and the sloped terrain remains solid. */
+/** Shallow lake with a bridge at its narrow spring inlet; the basin remains solid. */
 export function addPondStudy(scene:T.Scene,world:R.World){
  const water=addPondWater(scene);
  // Broad walkable deck: planks, side beams, rails and posts use a few batches.

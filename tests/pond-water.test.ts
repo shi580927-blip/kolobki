@@ -9,3 +9,27 @@ test('rendered pond uses physical world contour and actual ground depth, facing 
  }
  assert.ok(maxDepth>.35&&maxDepth<.5);g.dispose();
 });
+
+test('lake opens beyond the bridge without covering the match route or placing plants underwater',async()=>{
+ const {pondRadius}=await import('../src/core/terrain');
+ const {nearestRoutePoint}=await import('../src/core/valleyRoute');
+ const {valleyArtLayout}=await import('../src/game/ValleyArt');
+ let area=0,minX=Infinity,maxX=-Infinity,minZ=Infinity,maxZ=-Infinity;
+ for(let i=0;i<720;i++){
+  const a=i/720*Math.PI*2,r=pondRadius(a),x=POND.x+Math.cos(a)*r,z=POND.z+Math.sin(a)*r;
+  assert.ok(nearestRoutePoint(x,z).distance>10,'water stays away from the driving corridor');
+  minX=Math.min(minX,x);maxX=Math.max(maxX,x);minZ=Math.min(minZ,z);maxZ=Math.max(maxZ,z);area+=r*r*Math.PI/720;
+ }
+ assert.ok(area>300&&area<400);assert.ok(maxX-minX>18&&maxZ-minZ>24);
+ assert.ok(pondRadius(0)<6&&pondRadius(Math.PI)<6,'existing bridge spans the narrow inlet');
+ const layout=valleyArtLayout();
+ for(const p of [...layout.trees,...layout.grass,...layout.flowers,...layout.rocks])assert.ok(pondDistance(p.x,p.z)>1.55,'dry vegetation and major rocks stay off the water');
+});
+
+
+test('enlarged lake keeps all twelve berries and both arch feet on dry ground',async()=>{
+ const {berryPlacement}=await import('../src/game/BerryArt');
+ const {ROCK_ARCH}=await import('../src/game/RockArch');
+ for(let i=0;i<12;i++){const p=berryPlacement(i);assert.ok(pondDistance(p.x,p.z)>1.4);if(pondDistance(p.x,p.z)<2)assert.ok(heightAt(p.x,p.z)>POND.water);}
+ for(const dx of [-6,-4,4,6])assert.ok(pondDistance(ROCK_ARCH.x+dx,ROCK_ARCH.z)>1.4);
+});

@@ -65,3 +65,15 @@ test('cascade is solid at the bank and leaves the pond ford and bridge entrances
  for(const px of [-29,-18,-8])assert.equal(w.castRay(new R.Ray({x:px,y:10,z:26},{x:0,y:-1,z:0}),12,true),null);
  cascade.update(1/60);assert.ok(scene.getObjectByName('shore-cascade-water'));w.free();
 });
+
+test('enlarged southern lake has a physical walkable exit and dry sand beyond the water',async()=>{
+ const {Vector3}=await import('three'),{createWorld}=await import('../src/game/World'),{PhysicsPlayer}=await import('../src/game/PhysicsPlayer'),{EventBus}=await import('../src/core/events');
+ await R.init();const world=new R.World({x:0,y:-18,z:0});world.timestep=1/60;createWorld(new Scene(),world);
+ const p=new PhysicsPlayer(world,new EventBus(),{x:POND.x,z:POND.z+11});
+ let wet=0,sand=0;
+ for(let i=0;i<1800&&p.current.z<POND.z+29;i++){
+  p.step(1/60,{x:0,z:-.45,jump:false,dash:false,touchDrive:true},new Vector3(0,0,1));p.applySandDrag(1/60);applyPondWater(p.body,1/60);world.step();p.sync();p.updateCoating(1/60);
+  wet=Math.max(wet,p.coating.wetness);sand=Math.max(sand,p.coating.sand);assert.ok(p.current.y>heightAt(p.current.x,p.current.z)+.6,'body stays on the solid basin');
+ }
+ assert.ok(p.current.z>=POND.z+29,`southern shore exit ${p.current.toArray()}`);assert.ok(wet>.8);assert.ok(sand>.05);world.free();
+});

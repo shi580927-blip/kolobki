@@ -3,8 +3,9 @@ import assert from 'node:assert/strict';
 import {Quaternion} from 'three';
 import {WetSand} from '../src/game/WetSand';
 import {SandCoat} from '../src/game/SandCoat';
-import {POND,heightAt} from '../src/core/terrain';
-const sand={x:POND.x,y:heightAt(POND.x,28.2)+1.01,z:28.2};
+import {POND,heightAt,pondRadius} from '../src/core/terrain';
+const shoreZ=POND.z+pondRadius(Math.PI/2)*1.25;
+const sand={x:POND.x,y:heightAt(POND.x,shoreZ)+1.01,z:shoreZ};
 const water={x:POND.x,y:POND.water+.7,z:POND.z};
 test('only a wet rolling body collects dry shore sand, with bounded load',()=>{
  const s=new WetSand();for(let i=0;i<60;i++)s.update(1/60,sand,.1,true);assert.equal(s.sand,0);

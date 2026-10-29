@@ -1,6 +1,11 @@
 export const WORLD_SIZE = 220;
 export const POND = {x:-18,z:22,water:2.15,radius:5.6};
-export function pondRadius(angle:number){return POND.radius*(.91+.07*Math.sin(angle*3+.4)+.035*Math.sin(angle*5-1));}
+/** Narrow spring inlet under the bridge opens into a broad southern lake.
+ * One continuous contour drives water, terrain, coating and prop clearance. */
+export function pondRadius(angle:number){
+  const south=Math.max(0,Math.sin(angle));
+  return POND.radius*(.96+.045*Math.sin(angle*3+.4)+.025*Math.sin(angle*5-1))*(1+2.7*south*south);
+}
 export function pondDistance(x:number,z:number){const dx=x-POND.x,dz=z-POND.z;return Math.hypot(dx,dz)/pondRadius(Math.atan2(dz,dx));}
 export function heightAt(x: number, z: number) {
   const natural = (
