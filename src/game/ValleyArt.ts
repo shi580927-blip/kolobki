@@ -17,7 +17,10 @@ export function valleyGroundColor(x:number,y:number,z:number){
  const ground=grass.lerp(soil,path*.96),shore=pondDistance(x,z);
  const shoreAngle=Math.atan2(z-POND.z,x-POND.x),beachEdge=1.27+.065*Math.sin(shoreAngle*3+.4);
  const sand=1-T.MathUtils.smoothstep(shore,.97,beachEdge);
- return ground.lerp(new T.Color("#dec58b"),sand*.85);
+ ground.lerp(new T.Color("#dec58b"),sand*.85);
+ const gx=(heightAt(x+.35,z)-heightAt(x-.35,z))/.7,gz=(heightAt(x,z+.35)-heightAt(x,z-.35))/.7;
+ const slope=Math.hypot(gx,gz),rock=T.MathUtils.smoothstep(slope,.48,.98)*(1-path)*(1-sand);
+ return ground.lerp(new T.Color('#b9aa8f'),rock*.9);
 }
 
 /** Seeded composition follows the whole playable loop, with space around every solid prop. */

@@ -12,7 +12,8 @@ export function makeGroundLighting(){
    float footprint=max(length(dFdx(contactWorld.xz)),length(dFdy(contactWorld.xz)));
    float detail=1.-smoothstep(.02,.10,footprint);
    float flecks=sin(contactWorld.x*.91+sin(contactWorld.z*.63))*sin(contactWorld.z*1.13+cos(contactWorld.x*.52));
-   diffuseColor.rgb*=.95+grain*.09*detail+flecks*.035;
+   float broad=sin(contactWorld.x*1.7+sin(contactWorld.z*.8))*sin(contactWorld.z*2.1+sin(contactWorld.x*.6));
+   diffuseColor.rgb*=.94+grain*.10*detail+flecks*.045+broad*.035;
    float contactShade=0.;
    for(int i=0;i<11;i++){
     vec4 c=groundContacts[i];

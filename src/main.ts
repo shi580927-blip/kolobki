@@ -54,11 +54,11 @@ async function start() {
   stage.appendChild(renderer.domElement);
   const scene = new T.Scene();
   scene.background = new T.Color(0x91cbed);
-  scene.fog = new T.Fog(0xb7dbea, 60, 150);
+  scene.fog = new T.Fog(0xb7dbea, 75, 205);
   let sky:ReturnType<typeof import("./game/CloudSky").addCloudSky>|undefined;
   let skyState="pending";
-  scene.add(new T.HemisphereLight(0xfff5df, 0x738b83, 1.8));
-  const sun = new T.DirectionalLight(0xfff1de, 2);
+  scene.add(new T.HemisphereLight(0xfff2dc, 0x586e76, 1.05));
+  const sun = new T.DirectionalLight(0xfff1de, 2.65);
   sun.position.set(-25, 45, 20);
   sun.castShadow = true;
   sun.shadow.mapSize.set(2048, 2048);
