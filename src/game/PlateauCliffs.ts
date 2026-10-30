@@ -10,7 +10,7 @@ import {stoneColors,stoneMaterial} from './StoneArt';
 /** Broad interlocking upper masses and lower shelves, rather than a ring of pillars.
  * Their merged visible triangles are also the physical surface. */
 export function plateauCliffParts(){
- const p=RELIEF_MODULES[0],parts:T.BufferGeometry[]=[],feet:T.Vector3[]=[];
+ const p=RELIEF_MODULES[0],parts:T.BufferGeometry[]=[];
  const outline=[[-1,-.60],[-.45,-1],[.65,-.88],[1,-.30],[.72,.72],[-.55,1],[-1,.35]];
  function mass(x:number,z:number,a:number,width:number,depth:number,top:number,seed:number){
   const rotation=Math.PI/2-a,cos=Math.cos(rotation),sin=Math.sin(rotation);
@@ -50,13 +50,11 @@ export function plateauCliffParts(){
   const q=a+(i%2?.10:-.07),outer=r+3.1,ox=p.x+Math.cos(q)*outer,oz=p.z+Math.sin(q)*outer;
   const lowTop=Math.min(top-2.0,heightAt(ox,oz)+2.1+(i%3)*.45);
   mass(ox,oz,q,width*(.72+(i%2)*.12),depth*.72,lowTop,i+13);
-  feet.push(new T.Vector3(ox,lowTop,oz));
-  feet.push(new T.Vector3(p.x+Math.cos(q)*(outer+2.0),0,p.z+Math.sin(q)*(outer+2.0)));
  });
- return {parts,feet};
+ return {parts};
 }
 export function addPlateauCliffs(scene:T.Scene,world:R.World){
- const {parts,feet}=plateauCliffParts();
+ const {parts}=plateauCliffParts();
  if(!parts.length)return;
  const geometry=mergeGeometries(parts);parts.forEach(p=>p.dispose());
  const material=stoneMaterial();
@@ -67,15 +65,4 @@ export function addPlateauCliffs(scene:T.Scene,world:R.World){
  const vertices=new Float32Array(geometry.getAttribute('position').array);
  const indices=Uint32Array.from({length:vertices.length/3},(_,i)=>i);
  world.createCollider(R.ColliderDesc.trimesh(vertices,indices).setFriction(.9));
- // Opaque three-dimensional tufts at the feet, batched separately from the rock.
- const blades=new T.ConeGeometry(.065,.65,4),grass=new T.InstancedMesh(blades,new T.MeshStandardMaterial({color:'#7eac3c',roughness:1}),feet.length*7);
- grass.name='western-plateau-foot-grass';grass.receiveShadow=true;
- const dummy=new T.Object3D(),ray=new T.Raycaster(),down=new T.Vector3(0,-1,0);
- mesh.updateMatrixWorld();
- feet.forEach((p,i)=>{for(let j=0;j<7;j++){
-  const a=j*2.39996+i,x=p.x+Math.cos(a)*(.25+j*.13),z=p.z+Math.sin(a)*(.25+j*.13),s=.65+.45*(.5+.5*Math.sin(i*3+j));
-  ray.set(new T.Vector3(x,80,z),down);
-  const hit=ray.intersectObject(mesh)[0],surface=Math.max(heightAt(x,z),hit?.point.y??-Infinity);
-  dummy.position.set(x,surface+.29*s,z);dummy.rotation.set(.24*Math.sin(a),a,.24*Math.cos(a));dummy.scale.set(s,s,s);dummy.updateMatrix();grass.setMatrixAt(i*7+j,dummy.matrix);
- }});scene.add(grass);
 }
