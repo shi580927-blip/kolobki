@@ -1,0 +1,25 @@
+const {chromium}=require('playwright');
+const fs=require('node:fs');
+(async()=>{
+ const browser=await chromium.launch({headless:true,executablePath:process.env.CHROMIUM_EXECUTABLE,args:['--no-sandbox','--enable-unsafe-swiftshader','--use-angle=swiftshader']});
+ const page=await browser.newPage({viewport:{width:1280,height:720},acceptDownloads:true}),errors=[];
+ page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
+ await page.goto((process.env.EDITOR_TEST_URL||'http://127.0.0.1:4205')+'/?face-editor');await page.waitForFunction(()=>window.__FACE_EDITOR__);
+ const before=await page.evaluate(()=>window.__FACE_EDITOR__);
+ await page.getByLabel('Высота',{exact:true}).fill('0.56');
+ const scaled=await page.evaluate(()=>window.__FACE_EDITOR__);
+ if(scaled.file.faces.happy['study-brow-0'].height===before.file.faces.happy['study-brow-0'].height)throw Error('resize failed');
+ await page.mouse.move(470,300);await page.mouse.down();await page.mouse.move(485,275,{steps:5});await page.mouse.up();
+ const dragged=await page.evaluate(()=>window.__FACE_EDITOR__);
+ if(dragged.file.faces.happy['study-brow-0'].y===scaled.file.faces.happy['study-brow-0'].y)throw Error('drag failed');
+ await page.getByRole('button',{name:'Зафиксировать',exact:true}).click();
+ await page.reload();await page.waitForFunction(()=>window.__FACE_EDITOR__);
+ if(JSON.stringify((await page.evaluate(()=>window.__FACE_EDITOR__)).file)!==JSON.stringify(dragged.file))throw Error('save/reload mismatch');
+ let downloadPromise=page.waitForEvent('download');await page.getByRole('button',{name:'Скачать JSON',exact:true}).click();let download=await downloadPromise;const path=await download.path(),json=JSON.parse(fs.readFileSync(path,'utf8'));if(JSON.stringify(json)!==JSON.stringify(dragged.file))throw Error('export mismatch');
+ await page.getByRole('button',{name:'Сброс выражения',exact:true}).click();await page.locator('input[type=file]').setInputFiles({name:'layout.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(json))});await page.waitForTimeout(200);
+ if(JSON.stringify((await page.evaluate(()=>window.__FACE_EDITOR__)).file)!==JSON.stringify(json))throw Error('import mismatch');
+ downloadPromise=page.waitForEvent('download');await page.getByRole('button',{name:'Скачать PNG',exact:true}).click();download=await downloadPromise;const png=fs.readFileSync(await download.path());if(png[0]!==137||png.length<10000)throw Error('PNG invalid');
+ await page.getByRole('button',{name:'Спереди / ¾',exact:true}).click();await page.getByRole('button',{name:'Свет / тень',exact:true}).click();await page.waitForTimeout(200);await page.screenshot({path:'test-results/editor-shadow.png'});
+ await page.getByRole('button',{name:'Спереди / ¾',exact:true}).click();await page.getByRole('button',{name:'Свет / тень',exact:true}).click();await page.waitForTimeout(200);await page.screenshot({path:'test-results/editor-front.png'});
+ if(errors.length)throw Error(errors.join('\n'));console.log(JSON.stringify({drag:true,resize:true,saveReload:true,jsonRoundTrip:true,png:true,errors}));await browser.close();
+})().catch(e=>{console.error(e);process.exit(1)});

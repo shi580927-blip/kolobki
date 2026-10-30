@@ -1,0 +1,25 @@
+{
+  "name": "sharobesy",
+  "private": true,
+  "version": "0.1.0-dev.58",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "tsc --noEmit && vite build",
+    "test": "node --import tsx --test tests/*.test.ts",
+    "preview": "vite preview --host 0.0.0.0",
+    "test:browser": "node scripts/browser-smoke.cjs"
+  },
+  "dependencies": {
+    "@dimforge/rapier3d-compat": "0.19.3",
+    "three": "0.180.0"
+  },
+  "devDependencies": {
+    "@types/node": "22.18.12",
+    "@types/three": "0.180.0",
+    "playwright": "^1.62.1",
+    "tsx": "4.20.6",
+    "typescript": "5.9.3",
+    "vite": "7.1.12"
+  }
+}
