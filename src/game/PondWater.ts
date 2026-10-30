@@ -26,26 +26,37 @@ export function addPondWater(scene:T.Scene){
  const uniforms={time:{value:0},normalField:{value:waterNormalTexture()}};
  const mat=new T.ShaderMaterial({uniforms,transparent:true,depthWrite:false,vertexShader:`attribute float waterDepth;varying float depth;varying vec3 w;void main(){w=position;depth=waterDepth;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,fragmentShader:`
  uniform float time;uniform sampler2D normalField;varying float depth;varying vec3 w;
+ float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+ // Isolated soft glints with independent positions/lifetimes, never a wave lattice.
+ float softGlint(vec2 p){
+  vec2 cell=floor(p/2.8),local=p/2.8-cell;
+  float seed=hash(cell),phase=fract(time/(4.5+seed*3.)+hash(cell+7.3));
+  vec2 center=vec2(.22)+.56*vec2(hash(cell+13.1),hash(cell+29.7));
+  float angle=hash(cell+41.4)*6.28318;vec2 q=(local-center)*2.8;
+  q=mat2(cos(angle),-sin(angle),sin(angle),cos(angle))*q;
+  q/=vec2(.12+seed*.06,.065+seed*.025);
+  return exp(-dot(q,q)*1.5)*pow(sin(phase*3.14159),4.)*step(.69,seed);
+ }
  void main(){
  if(depth<.002)discard;
  vec2 p=w.xz;
  vec3 a=texture2D(normalField,p*.085+vec2(time*.013,-time*.009)).xyz*2.-1.;
  vec3 b=texture2D(normalField,vec2(p.y,-p.x)*.127+vec2(-time*.008,time*.016)).xyz*2.-1.;
  float shallow=smoothstep(.015,.20,depth);
- vec3 n=normalize(vec3((a.x+b.x)*shallow*.35,1.,(a.y+b.y)*shallow*.35));
- vec3 view=normalize(cameraPosition-w),light=normalize(vec3(-25.,45.,20.));
+ vec3 n=normalize(vec3((a.x+b.x)*shallow*.055,1.,(a.y+b.y)*shallow*.055));
+ vec3 view=normalize(cameraPosition-w);
  float facing=clamp(dot(view,n),0.,1.);
  float fresnel=.025+.975*pow(1.-facing,5.);
  vec3 reflected=reflect(-view,n);
  // Lightweight sky reflection, no additional rendering of the whole scene.
  vec3 sky=mix(vec3(.43,.69,.76),vec3(.16,.43,.68),smoothstep(0.,.85,reflected.y));
- float sun=pow(max(0.,dot(reflected,light)),250.);
+
  float d=smoothstep(.035,.34,depth);
- vec3 water=mix(vec3(.055,.57,.42),vec3(.006,.18,.31),d);
- vec3 color=mix(water,sky,fresnel*.72);
- color+=vec3(.92,.98,.91)*sun*.28;
- float wash=.024+.012*sin(time*.85+a.x*8.);
- float edge=(1.-smoothstep(.006,wash,depth))*(.45+.25*b.y);
+ vec3 water=mix(vec3(.065,.50,.40),vec3(.008,.24,.29),d);
+ vec3 color=mix(water,sky,fresnel*.32);
+ color+=vec3(.48,.60,.56)*softGlint(p)*.16*shallow;
+ float wash=.018+.003*sin(time*.45);
+ float edge=(1.-smoothstep(.006,wash,depth))*.26;
  color=mix(color,vec3(.78,.94,.88),edge);
  float absorption=1.-exp(-depth*5.0);
  float alpha=clamp(.10+absorption*.86+fresnel*.35,0.,.98);

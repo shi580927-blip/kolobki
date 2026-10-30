@@ -7,6 +7,14 @@ import {makeBoulderGeometry} from './BoulderGeometry';
 import {waterfallFlowGeometry,waterfallFlowMaterial} from './WaterfallFlow';
 import {makeLeafGeometry} from './BerryArt';
 export const SHORE_CASCADE={x:POND.x-10,z:POND.z+10,width:7.9,depth:5.8,crest:5.8};
+/** Low sideward droplets, spread along the full contact instead of a central jet. */
+export function cascadeSpraySample(i:number,time:number){
+ const random=(salt:number)=>{const n=Math.sin(i*127.1+salt*311.7)*43758.5453;return n-Math.floor(n);};
+ const t=(time*(.65+random(1)*.25)+random(2))%1,a=random(3)*Math.PI*2;
+ return {x:(random(4)*2-1)*1.1+Math.cos(a)*t*(.4+random(5)*.6),
+  y:.02+Math.sin(t*Math.PI)*(.09+random(6)*.09),z:Math.sin(a)*t*.6,
+  size:(.025+random(7)*.018)*(1-t)};
+}
 /** Authored bank composition: separate weathered masses frame a shallow spring channel. */
 export function addShoreCascade(scene:T.Scene,world:R.World){
  const {x,z,crest}=SHORE_CASCADE;
@@ -79,7 +87,7 @@ export function addShoreCascade(scene:T.Scene,world:R.World){
  #include <tonemapping_fragment>
  #include <colorspace_fragment>
  }`}));impact.rotation.x=-Math.PI/2;impact.position.set(x,bottom+.01,front+1.6);impact.name='shore-cascade-foam';group.add(impact);
- const drops=new T.InstancedMesh(new T.SphereGeometry(1,6,4),new T.MeshBasicMaterial({color:'#e9ffff',transparent:true,opacity:.66,depthWrite:false}),36);drops.name='shore-cascade-spray';group.add(drops);
+ const drops=new T.InstancedMesh(new T.SphereGeometry(1,6,4),new T.MeshBasicMaterial({color:'#e9ffff',transparent:true,opacity:.66,depthWrite:false}),24);drops.name='shore-cascade-spray';group.add(drops);
  // Shallow, irregular foam mounds mask the cut at the base of the fall.
  // They share one material and geometry and have no colliders.
  const foam=new T.InstancedMesh(new T.SphereGeometry(1,10,6),new T.MeshBasicMaterial({color:'#e3fffa',transparent:true,opacity:.86,depthWrite:false}),19);
@@ -97,8 +105,8 @@ export function addShoreCascade(scene:T.Scene,world:R.World){
   for(let j=0;j<6;j++){const a=j*2.399+i;dummy.position.set(px,py,pz);dummy.quaternion.setFromUnitVectors(axis,new T.Vector3(Math.cos(a),.35+(j%3)*.4,Math.sin(a)).normalize());dummy.scale.setScalar(.28+(j%3)*.045);dummy.updateMatrix();plants.setMatrixAt(i*6+j,dummy.matrix);}
  }plants.name='shore-cascade-rim-plants';group.add(plants);
  let elapsed=0;
- return {update(dt:number){elapsed+=dt;uniforms.time.value=elapsed;for(let i=0;i<36;i++){const t=(elapsed*.75+i*.618)%1,a=i*2.39996,r=.15+t*1.35;dummy.position.set(x+Math.cos(a)*r,bottom+Math.sin(t*Math.PI)*(.40+(i%4)*.21),front+1.51+Math.sin(a)*r*.5);dummy.rotation.set(0,0,i);const s=(.045+(i%4)*.015)*(1-t);dummy.scale.set(s,s*1.5,s);dummy.updateMatrix();drops.setMatrixAt(i,dummy.matrix);}drops.instanceMatrix.needsUpdate=true;
-  for(let i=0;i<14;i++){const t=(elapsed*.27+i*.618)%1,a=i*2.39996,r=.3+t*1.05;dummy.position.set(x+Math.cos(a)*r,bottom+.16+t*.85,front+1.55+Math.sin(a)*r*.48);dummy.rotation.set(0,0,0);const size=.45+t*.65;dummy.scale.set(size*1.3,size,Math.sin(t*Math.PI)*.8);dummy.updateMatrix();mist.setMatrixAt(i,dummy.matrix);}mist.instanceMatrix.needsUpdate=true;
+ return {update(dt:number){elapsed+=dt;uniforms.time.value=elapsed;for(let i=0;i<24;i++){const p=cascadeSpraySample(i,elapsed);dummy.position.set(x+p.x,bottom+p.y,front+1.51+p.z);dummy.rotation.set(0,0,i);dummy.scale.set(p.size,p.size*.8,p.size);dummy.updateMatrix();drops.setMatrixAt(i,dummy.matrix);}drops.instanceMatrix.needsUpdate=true;
+  for(let i=0;i<14;i++){const t=(elapsed*.27+i*.618)%1,a=i*2.39996,r=.3+t*1.05;dummy.position.set(x+Math.cos(a)*r,bottom+.12+t*.45,front+1.55+Math.sin(a)*r*.48);dummy.rotation.set(0,0,0);const size=.45+t*.65;dummy.scale.set(size*1.3,size,Math.sin(t*Math.PI)*.8);dummy.updateMatrix();mist.setMatrixAt(i,dummy.matrix);}mist.instanceMatrix.needsUpdate=true;
   for(let i=0;i<19;i++){const a=i*2.39996,r=Math.sqrt(i/19)*1.55,phase=elapsed*.9+i*1.7,s=.24+(i%4)*.035;dummy.position.set(x+Math.cos(a)*r,bottom+.04+Math.sin(phase)*.012,front+1.45+Math.sin(a)*r*.52);dummy.rotation.set(0,a,0);dummy.scale.set(s*1.4,.06+.02*(i%3),s*.72);dummy.updateMatrix();foam.setMatrixAt(i,dummy.matrix);}foam.instanceMatrix.needsUpdate=true;
  }};
 }
