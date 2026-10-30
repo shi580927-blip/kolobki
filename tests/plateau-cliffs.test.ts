@@ -7,11 +7,13 @@ import {RELIEF_MODULES} from '../src/core/landscapeRelief';
 
 test('physical plateau cliffs leave the race corridor and southern access open within a small mesh budget',()=>{
  const {parts}=plateauCliffParts(),plateau=RELIEF_MODULES[0];
- assert.ok(parts.length>=8&&parts.length<=16);
- let triangles=0,green=0;
+ assert.ok(parts.length>=12&&parts.length<=20);
+ let triangles=0,green=0,lowShelves=0;const widths:number[]=[];
  for(const g of parts){
   const p=g.getAttribute('position'),c=g.getAttribute('color');triangles+=p.count/3;
-  g.computeBoundingBox();assert.ok(g.boundingBox!.max.y-g.boundingBox!.min.y>2);
+  g.computeBoundingBox();const box=g.boundingBox!,height=box.max.y-box.min.y;
+  assert.ok(height>1.5);if(height<5)lowShelves++;
+  widths.push(Math.max(box.max.x-box.min.x,box.max.z-box.min.z));
   for(let i=0;i<p.count;i++){
    const x=p.getX(i),y=p.getY(i),z=p.getZ(i);
    assert.ok(Number.isFinite(x+y+z));
@@ -22,5 +24,7 @@ test('physical plateau cliffs leave the race corridor and southern access open w
   }
   g.dispose();
  }
- assert.ok(green>0,'cliff crests retain a grassy cap');assert.ok(triangles<1000);
+ assert.ok(green>0,'cliff crests retain a grassy cap');assert.ok(triangles<1500);
+ assert.ok(lowShelves>=2,'lower rock shelves must break up the high wall');
+ assert.ok(Math.max(...widths)-Math.min(...widths)>2,'masses need distinct widths');
 });

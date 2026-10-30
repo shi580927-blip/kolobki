@@ -7,45 +7,62 @@ import {heightAt} from '../core/terrain';
 import {nearestRoutePoint} from '../core/valleyRoute';
 import {stoneColors,stoneMaterial} from './StoneArt';
 
-/** Irregular buttresses give the western plateau a broken rock silhouette.
- * The southern approach stays open; each visible triangle is also physical. */
+/** Broad interlocking upper masses and lower shelves, rather than a ring of pillars.
+ * Their merged visible triangles are also the physical surface. */
 export function plateauCliffParts(){
  const p=RELIEF_MODULES[0],parts:T.BufferGeometry[]=[],feet:T.Vector3[]=[];
- for(let i=0;i<24;i++){
-  const a=i*Math.PI*2/24;
-  if(Math.sin(a)>.24)continue;
-  const r=p.radius*(.92+.045*Math.sin(a*3+.6)),x=p.x+Math.cos(a)*r,z=p.z+Math.sin(a)*r;
-  if(nearestRoutePoint(x,z).distance<20)continue;
-  const outerX=p.x+Math.cos(a)*(r+2.4),outerZ=p.z+Math.sin(a)*(r+2.4);
-  const innerX=p.x+Math.cos(a)*(r-3.8),innerZ=p.z+Math.sin(a)*(r-3.8);
-  // Sink every foot below the lowest terrain under its full footprint,
-  // not just one point on the uneven outer slope.
+ const outline=[[-1,-.60],[-.45,-1],[.65,-.88],[1,-.30],[.72,.72],[-.55,1],[-1,.35]];
+ function mass(x:number,z:number,a:number,width:number,depth:number,top:number,seed:number){
+  const rotation=Math.PI/2-a,cos=Math.cos(rotation),sin=Math.sin(rotation);
+  const world=(u:number,v:number)=>({x:x+u*cos+v*sin,z:z-u*sin+v*cos});
   let base=heightAt(x,z);
-  for(let j=0;j<16;j++){
-   const q=j*Math.PI/8;
-   base=Math.min(base,heightAt(x+Math.cos(q)*3.6,z+Math.sin(q)*3.6));
+  for(const [u,v] of outline){const q=world(u*width*1.08,v*depth*1.08);base=Math.min(base,heightAt(q.x,q.z));}
+  base-=1.0;
+  const h=top-base,points:T.Vector3[]=[];
+  for(let ring=0;ring<3;ring++)for(let j=0;j<outline.length;j++){
+   const [u,v]=outline[j],t=ring/2;
+   const broad=ring===0?1.08:ring===1?1.02+.10*Math.sin(seed):.78+.09*Math.cos(seed*2);
+   const leanX=t*(.65*Math.sin(seed*1.7)),leanZ=t*(.55*Math.cos(seed*2.3));
+   points.push(new T.Vector3(u*width*broad+leanX,ring===0?0:ring===1?h*.48:h+.18*Math.sin(j*1.9+seed),v*depth*broad+leanZ));
   }
-  base-=1.25;
-  const top=heightAt(innerX,innerZ)+.12;
-  const h=top-base;if(h<2)continue;
-  const width=2.05+.30*Math.sin(i*2.1),depth=2.9,points:T.Vector3[]=[];
-  for(let ring=0;ring<3;ring++)for(let j=0;j<5;j++){
-   const q=j*Math.PI*2/5,scale=ring===0?1.1:ring===1?1:.84;
-   const y=ring===0?0:ring===1?h*.56:h+Math.sin(i*2+j)*.22;
-   points.push(new T.Vector3(Math.cos(q)*width*scale+(ring===2?-.25:0),y,Math.sin(q)*depth*scale));
+  const raw=new ConvexGeometry(points),g=toCreasedNormals(raw,.50);raw.dispose();stoneColors(g,h-.26);
+  const color=g.getAttribute('color'),normal=g.getAttribute('normal'),pos=g.getAttribute('position');
+  const tint=.94+.10*(.5+.5*Math.sin(seed*2.4));
+  for(let j=0;j<color.count;j++)if(normal.getY(j)<.65&&pos.getY(j)<h-.3){
+   const shade=tint*(.88+.12*Math.min(1,pos.getY(j)/h));
+   color.setXYZ(j,color.getX(j)*shade,color.getY(j)*shade,color.getZ(j)*shade);
   }
-  const raw=new ConvexGeometry(points),g=toCreasedNormals(raw,.55);raw.dispose();
-  stoneColors(g,h-.24);
-  g.rotateY(Math.PI/2-a);g.translate(x,base,z);parts.push(g);
-  feet.push(new T.Vector3(outerX,heightAt(outerX,outerZ),outerZ));
+  g.rotateY(rotation);g.translate(x,base,z);parts.push(g);
  }
+ // Uneven angular spacing, depth and heights break both skyline and wall rhythm.
+ const bays=[
+  [0,15.8,3.5,2.7,.45],[-.37,16.0,3.0,2.4,-1.0],[-.75,14.3,4.0,3.1,.8],
+  [-1.20,16.0,3.7,2.7,-.7],[-1.67,14.8,4.1,3.0,.55],
+  [-2.16,15.5,3.2,2.6,-1.15],[-2.60,14.8,4.0,2.9,.3],[-3.12,16.0,3.5,2.7,-.7],
+ ];
+ bays.forEach(([a,r,width,depth,offset],i)=>{
+  const x=p.x+Math.cos(a)*r,z=p.z+Math.sin(a)*r;
+  if(nearestRoutePoint(x,z).distance<22)return;
+  const innerX=p.x+Math.cos(a)*(r-3.8),innerZ=p.z+Math.sin(a)*(r-3.8);
+  const top=heightAt(innerX,innerZ)+offset;
+  mass(x,z,a,width,depth,top,i+1);
+  // Lower, offset shelf supports the upper rock and creates a real grass ledge.
+  const q=a+(i%2?.10:-.07),outer=r+3.1,ox=p.x+Math.cos(q)*outer,oz=p.z+Math.sin(q)*outer;
+  const lowTop=Math.min(top-2.0,heightAt(ox,oz)+2.1+(i%3)*.45);
+  mass(ox,oz,q,width*(.72+(i%2)*.12),depth*.72,lowTop,i+13);
+  feet.push(new T.Vector3(ox,lowTop,oz));
+  feet.push(new T.Vector3(p.x+Math.cos(q)*(outer+2.0),0,p.z+Math.sin(q)*(outer+2.0)));
+ });
  return {parts,feet};
 }
 export function addPlateauCliffs(scene:T.Scene,world:R.World){
  const {parts,feet}=plateauCliffParts();
  if(!parts.length)return;
  const geometry=mergeGeometries(parts);parts.forEach(p=>p.dispose());
- const mesh=new T.Mesh(geometry,stoneMaterial());mesh.name='western-plateau-rock-buttresses';
+ const material=stoneMaterial();
+ // A restrained ambient fill keeps the shaded side readable without extra lights/passes.
+ material.emissive.set('#a99c87');material.emissiveIntensity=.16;
+ const mesh=new T.Mesh(geometry,material);mesh.name='western-plateau-rock-buttresses';
  mesh.castShadow=true;mesh.receiveShadow=true;scene.add(mesh);
  const vertices=new Float32Array(geometry.getAttribute('position').array);
  const indices=Uint32Array.from({length:vertices.length/3},(_,i)=>i);
@@ -53,9 +70,12 @@ export function addPlateauCliffs(scene:T.Scene,world:R.World){
  // Opaque three-dimensional tufts at the feet, batched separately from the rock.
  const blades=new T.ConeGeometry(.065,.65,4),grass=new T.InstancedMesh(blades,new T.MeshStandardMaterial({color:'#7eac3c',roughness:1}),feet.length*7);
  grass.name='western-plateau-foot-grass';grass.receiveShadow=true;
- const dummy=new T.Object3D();
+ const dummy=new T.Object3D(),ray=new T.Raycaster(),down=new T.Vector3(0,-1,0);
+ mesh.updateMatrixWorld();
  feet.forEach((p,i)=>{for(let j=0;j<7;j++){
   const a=j*2.39996+i,x=p.x+Math.cos(a)*(.25+j*.13),z=p.z+Math.sin(a)*(.25+j*.13),s=.65+.45*(.5+.5*Math.sin(i*3+j));
-  dummy.position.set(x,heightAt(x,z)+.29*s,z);dummy.rotation.set(.24*Math.sin(a),a,.24*Math.cos(a));dummy.scale.set(s,s,s);dummy.updateMatrix();grass.setMatrixAt(i*7+j,dummy.matrix);
+  ray.set(new T.Vector3(x,80,z),down);
+  const hit=ray.intersectObject(mesh)[0],surface=Math.max(heightAt(x,z),hit?.point.y??-Infinity);
+  dummy.position.set(x,surface+.29*s,z);dummy.rotation.set(.24*Math.sin(a),a,.24*Math.cos(a));dummy.scale.set(s,s,s);dummy.updateMatrix();grass.setMatrixAt(i*7+j,dummy.matrix);
  }});scene.add(grass);
 }
