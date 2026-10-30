@@ -4,6 +4,9 @@ export const RELIEF_MODULES=[
  {kind:'plateau',x:-69,z:34,radius:18,height:8},
  {kind:'hill',x:-53,z:1,radius:17,height:6},
  {kind:'hill',x:-8,z:66,radius:18,height:6},
+ {kind:'hill',x:72,z:59,radius:20,height:7},
+ {kind:'hill',x:25,z:-78,radius:21,height:7},
+ {kind:'hill',x:-74,z:-50,radius:21,height:6},
 ] as const;
 const smooth=(a:number,b:number,v:number)=>{const t=Math.max(0,Math.min(1,(v-a)/(b-a)));return t*t*(3-2*t);};
 export function landscapeRelief(x:number,z:number){

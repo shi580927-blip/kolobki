@@ -8,7 +8,7 @@ import {nearestRoutePoint} from '../src/core/valleyRoute';
 import {heightAt} from '../src/core/terrain';
 test('meadow composition is seeded, covers outer hills and keeps a bounded instance budget',()=>{
  const layout=valleyArtLayout();assert.deepEqual(layout,valleyArtLayout());
- assert.ok(layout.trees.length>=45&&layout.trees.length<=64);assert.ok(layout.flowers.length>=350&&layout.flowers.length<=480);assert.ok(layout.grass.length<=2800);assert.ok(layout.rocks.length<=16);assert.ok(layout.pebbles.length<=480);
+ assert.ok(layout.trees.length>=60&&layout.trees.length<=105);assert.ok(layout.flowers.length>=350&&layout.flowers.length<=840);assert.ok(layout.grass.length<=3400);assert.ok(layout.rocks.length<=16);assert.ok(layout.pebbles.length<=480);
  assert.ok(layout.flowers.some(p=>p.x>40));assert.ok(layout.flowers.some(p=>p.x< -30));assert.ok(layout.flowers.some(p=>p.z< -35));
  for(const p of layout.trees)assert.ok(nearestRoutePoint(p.x,p.z).distance>11);
  for(const p of layout.rocks){assert.ok(Math.hypot(p.x,p.z)>24,'recruitment area stays free');assert.ok(nearestRoutePoint(p.x,p.z).distance-p.radius>10,'recovery space beside the road');}

@@ -5,6 +5,8 @@ import R from '@dimforge/rapier3d-compat';
 import {makeLeafGeometry} from './BerryArt';
 import {heightAt,WORLD_SIZE,POND,pondDistance,pondRadius} from '../core/terrain';
 import {clearRoutePosition,nearestRoutePoint,VALLEY_ROUTE} from '../core/valleyRoute';
+import {nearestExplorationPath,VALLEY_CLEARINGS} from '../core/valleyExploration';
+import {shoreSandCoverage} from '../core/shore';
 import {randomFrom} from '../core/skin';
 
 const meadowDark=new T.Color('#489c36'),meadowLight=new T.Color('#8ac84d'),sunGrass=new T.Color('#b3d36a'),soil=new T.Color('#d6a96a');
@@ -12,12 +14,14 @@ const meadowDark=new T.Color('#489c36'),meadowLight=new T.Color('#8ac84d'),sunGr
 export function valleyGroundColor(x:number,y:number,z:number){
  const patch=.5+.25*Math.sin(x*.075+Math.sin(z*.09)*1.3)+.25*Math.sin(z*.13-x*.035);
  const grass=meadowDark.clone().lerp(meadowLight,Math.max(0,Math.min(1,patch))).lerp(sunGrass,Math.max(0,Math.min(.23,(y+2)*.016)));
+ for(const c of VALLEY_CLEARINGS){
+  const blend=Math.max(0,1-Math.hypot(x-c.x,z-c.z)/(c.radius*1.4))*.30;
+  grass.lerp(new T.Color(['#6eae47','#b0c953','#55a652'][c.kind]),blend);
+ }
  const distance=nearestRoutePoint(x,z).distance,edge=4.5+.35*Math.sin(x*.9+z*.5)+.2*Math.sin(z*1.3);
- const path=1-T.MathUtils.smoothstep(distance,edge-.6,edge+1);
- const ground=grass.lerp(soil,path*.96),shore=pondDistance(x,z);
- const shoreAngle=Math.atan2(z-POND.z,x-POND.x),beachEdge=1.27+.065*Math.sin(shoreAngle*3+.4);
- const sand=1-T.MathUtils.smoothstep(shore,.97,beachEdge);
- ground.lerp(new T.Color("#dec58b"),sand*.85);
+ const walking=nearestExplorationPath(x,z).distance;
+ const path=Math.max(1-T.MathUtils.smoothstep(distance,edge-.6,edge+1),1-T.MathUtils.smoothstep(walking,2.5+.18*Math.sin(z),4.1));
+ const ground=grass.lerp(soil,path*.96),sand=shoreSandCoverage(x,z);
  const gx=(heightAt(x+.35,z)-heightAt(x-.35,z))/.7,gz=(heightAt(x,z+.35)-heightAt(x,z-.35))/.7;
  const slope=Math.hypot(gx,gz),rock=T.MathUtils.smoothstep(slope,.48,.98)*(1-path)*(1-sand);
  return ground.lerp(new T.Color('#b9aa8f'),rock*.9);
@@ -38,21 +42,36 @@ export function valleyArtLayout(){
   const a=i/24*Math.PI*2+(random()-.5)*.2,r=76+random()*24,point=clearRoutePosition(Math.cos(a)*r,Math.sin(a)*r,4.2);
   if(!trees.some(p=>Math.hypot(p.x-point.x,p.z-point.z)<5))trees.push({...point,scale:1+random()*.5,kind:i%3});
  }
+ // Compose outer groves around six open clearings, connected by broad optional paths.
+ for(const [zone,c] of VALLEY_CLEARINGS.entries()){
+  for(let i=0;i<9;i++){
+   const a=i/9*Math.PI*2+zone*.53,r=c.radius*(.72+random()*.35);
+   const x=c.x+Math.cos(a)*r,z=c.z+Math.sin(a)*r;
+   if(nearestRoutePoint(x,z).distance<12||nearestExplorationPath(x,z).distance<6||pondDistance(x,z)<1.7||trees.some(p=>Math.hypot(p.x-x,p.z-z)<5))continue;
+   trees.push({x,z,scale:.78+random()*.45,kind:c.kind});
+  }
+  for(let i=0;i<8;i++){
+   const a=i/8*Math.PI*2+.3,r=c.radius*(.4+random()*.5),x=c.x+Math.cos(a)*r,z=c.z+Math.sin(a)*r;
+   if(nearestRoutePoint(x,z).distance>7&&nearestExplorationPath(x,z).distance>4.7&&pondDistance(x,z)>1.6)patches.push({x,z});
+  }
+ }
+ // Move existing trees off the new walks, preserving the open racing corridor.
+ for(let i=trees.length-1;i>=0;i--)if(nearestExplorationPath(trees[i].x,trees[i].z).distance<5.5)trees.splice(i,1);
  // Keep trees away from the water and its gentle shoreline.
  for(const tree of trees){const dx=tree.x-POND.x,dz=tree.z-POND.z,d=Math.hypot(dx,dz);const clearance=pondRadius(Math.atan2(dz,dx))*1.65+2;if(d<clearance){const k=clearance/(d||1);tree.x=POND.x+dx*k;tree.z=POND.z+dz*k;}}
  const flowers:{x:number;z:number;height:number;size:number;kind:number}[]=[],grass:{x:number;z:number;height:number;angle:number}[]=[],rocks:{x:number;z:number;radius:number}[]=[],pebbles:{x:number;z:number;size:number}[]=[];
- for(let i=0;i<480;i++){
+ for(let i=0;i<840;i++){
   const p=patches[i%patches.length],a=random()*Math.PI*2,r=Math.sqrt(random())*2.7,x=p.x+Math.cos(a)*r,z=p.z+Math.sin(a)*r;
-  if(nearestRoutePoint(x,z).distance<6.5||pondDistance(x,z)<1.6)continue;
+  if(nearestRoutePoint(x,z).distance<6.5||nearestExplorationPath(x,z).distance<4.3||pondDistance(x,z)<1.6)continue;
   flowers.push({x,z,height:.26+random()*.42,size:.7+random()*.7,kind:Math.floor(random()*10)});
  }
- for(let i=0;i<2800;i++){
-  const p=patches[i%patches.length],x=p.x+(random()-.5)*8,z=p.z+(random()-.5)*8;if(nearestRoutePoint(x,z).distance<6.2||pondDistance(x,z)<1.6)continue;
+ for(let i=0;i<3400;i++){
+  const p=patches[i%patches.length],x=p.x+(random()-.5)*8,z=p.z+(random()-.5)*8;if(nearestRoutePoint(x,z).distance<6.2||nearestExplorationPath(x,z).distance<4.0||pondDistance(x,z)<1.6)continue;
   grass.push({x,z,height:.16+random()*.35,angle:random()*Math.PI*2});
  }
  for(let i=0;i<16;i++){
   const p=patches[(i*7+3)%patches.length],radius=1+random()*1.5,point=clearRoutePosition(p.x+(random()-.5)*8,p.z+(random()-.5)*8,radius+4);
-  if(Math.hypot(point.x,point.z)>24&&pondDistance(point.x,point.z)>1.65)rocks.push({...point,radius});
+  if(Math.hypot(point.x,point.z)>24&&pondDistance(point.x,point.z)>1.65&&nearestExplorationPath(point.x,point.z).distance>radius+4)rocks.push({...point,radius});
  }
  for(let i=0;i<480;i++){
   const p=patches[i%patches.length],q=nearestRoutePoint(p.x,p.z),d=q.distance||1,r=3.5+random()*1.7,x=q.x+(p.x-q.x)/d*r+(random()-.5)*1.4,z=q.z+(p.z-q.z)/d*r+(random()-.5)*1.4;
@@ -131,7 +150,7 @@ export function addValleyArt(scene:T.Scene,world:R.World){
  });
  const pebbles=make('valley-art-path-pebbles',layout.pebbles.length,new T.IcosahedronGeometry(1,0),material('#ffffff'));
  layout.pebbles.forEach((p,i)=>put(pebbles,i,p.x,heightAt(p.x,p.z)+p.size*.22,p.z,p.size,p.size*.42,p.size*.8,['#ddc797','#b5ad87','#e9d4a7'][i%3]));
- const dryPatches=layout.patches.filter(p=>pondDistance(p.x,p.z)>1.6);
+ const dryPatches=layout.patches.filter(p=>pondDistance(p.x,p.z)>1.6&&nearestExplorationPath(p.x,p.z).distance>4.7);
  const bushLeaves=make('valley-art-leaf-shrubs',dryPatches.length*9,makeLeafGeometry(),new T.MeshStandardMaterial({vertexColors:true,roughness:.72,side:T.DoubleSide}));
  const axis=new T.Vector3(0,0,1);
  dryPatches.forEach((p,i)=>{for(let j=0;j<9;j++){

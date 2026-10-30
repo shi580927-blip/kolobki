@@ -4,7 +4,7 @@ import {Quaternion} from 'three';
 import {WetSand} from '../src/game/WetSand';
 import {SandCoat} from '../src/game/SandCoat';
 import {POND,heightAt,pondRadius} from '../src/core/terrain';
-const shoreZ=POND.z+pondRadius(Math.PI/2)*1.25;
+const shoreZ=POND.z+pondRadius(Math.PI/2)*1.01;
 const sand={x:POND.x,y:heightAt(POND.x,shoreZ)+1.01,z:shoreZ};
 const water={x:POND.x,y:POND.water+.7,z:POND.z};
 test('only a wet rolling body collects dry shore sand, with bounded load',()=>{

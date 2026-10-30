@@ -11,9 +11,9 @@ export function addShoreArt(scene:T.Scene,world:R.World){
  const batch=(name:string,g:T.BufferGeometry,m:T.Material,n:number,shadow=false)=>{const mesh=new T.InstancedMesh(g,m,n);mesh.name=name;mesh.castShadow=shadow;mesh.receiveShadow=true;scene.add(mesh);return mesh;};
  const rockMaterial=stoneMaterial();
  const variants=Array.from({length:5},(_,i)=>batch('shore-rock-clusters-'+i,makeBoulderGeometry(i),rockMaterial,i<3?2:1,true));
- const groups=[[-5,9.5,1.35],[-3.3,9.8,1.7],[-4,11.3,1.2],[.8,10.2,1.1],[2.2,10.8,1.65],[3.1,11.5,1.25],[5.4,9.2,.8],[5.9,10.4,1.0]];
+ const groups=[[.48,1.18,1.35],[.59,1.27,1.7],[.72,1.18,1.2],[2.40,1.16,1.1],[2.54,1.26,1.65],[2.68,1.18,1.25],[3.85,1.48,.8],[5.58,1.42,1.0]];
  for(let i=0;i<8;i++){
-  const [dx,dz,s]=groups[i],a=Math.atan2(dz,dx),r=pondRadius(a)*1.24,
+  const [a,offset,s]=groups[i],r=pondRadius(a)*offset,
    x=POND.x+Math.cos(a)*r,z=POND.z+Math.sin(a)*r,y=heightAt(x,z);
   dummy.position.set(x,y+s*.5,z);dummy.rotation.set(0,a*.7,0);dummy.scale.set(s*1.25,s*(i%2?.95:1.1),s*.9);dummy.updateMatrix();variants[i%5].setMatrixAt(Math.floor(i/5),dummy.matrix);
   // Conservative rounded support matches the visible mass without enclosing the bank.
@@ -28,7 +28,7 @@ export function addShoreArt(scene:T.Scene,world:R.World){
  const stems=batch('shore-flower-stems',new T.CylinderGeometry(.008,.012,1,5),new T.MeshStandardMaterial({color:'#5e8736',roughness:1}),36);
  const axis=new T.Vector3(0,0,1);let fi=0,li=0;
  // Unequal patches, with open sand between them; no evenly spaced ring of weeds.
- const patches=[[-5.7,7.5],[-3.6,8.9],[1.8,8.5],[4.9,7.0],[-7.0,-.3],[7.8,-1.0],[-5.6,-4.5],[5.9,-5.6]];
+ const patches=[[-6,5.4],[-4.8,5.5],[4.9,5.5],[6.3,5.2],[-7.0,-.3],[7.8,-1.0],[-5.6,-4.5],[5.9,-5.6]];
  for(let i=0;i<30;i++){
   const [dx,dz]=patches[i%patches.length],a=Math.atan2(dz,dx),r=pondRadius(a)*1.30,x=POND.x+Math.cos(a)*r+(random()-.5)*1.2,z=POND.z+Math.sin(a)*r+(random()-.5)*1.2,y=heightAt(x,z),s=.10+random()*.18;
   dummy.position.set(x,y+s*.12,z);dummy.rotation.set(0,random()*6.28,random()*.15);dummy.scale.set(s*1.3,s*.65,s);dummy.updateMatrix();rubble.setMatrixAt(i,dummy.matrix);
