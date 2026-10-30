@@ -34,14 +34,14 @@ test('enlarged lake keeps all twelve berries and both arch feet on dry ground',a
  for(const dx of [-6,-4,4,6])assert.ok(pondDistance(ROCK_ARCH.x+dx,ROCK_ARCH.z)>1.4);
 });
 
-test('water normal map stays within a small repeatable texture budget with valid normals',async()=>{
+test('packed water normal/noise map stays within a small repeatable texture budget with valid normals',async()=>{
  const {waterNormalTexture}=await import('../src/game/PondWater');
  const {RepeatWrapping,LinearMipmapLinearFilter}=await import('three');
  const a=waterNormalTexture(),b=waterNormalTexture();
  assert.equal(a.image.width,128);assert.equal(a.image.height,128);assert.equal(a.image.data.length,65536);
  assert.equal(a.wrapS,RepeatWrapping);assert.equal(a.wrapT,RepeatWrapping);assert.equal(a.minFilter,LinearMipmapLinearFilter);
  assert.deepEqual(a.image.data,b.image.data);
- const data=a.image.data;let varied=false;
- for(let i=0;i<data.length;i+=4){const x=data[i]/255*2-1,y=data[i+1]/255*2-1,z=data[i+2]/255*2-1;assert.ok(Math.abs(Math.hypot(x,y,z)-1)<.015);assert.ok(z>0);if(Math.abs(x)>.1)varied=true;}
- assert.ok(varied);a.dispose();b.dispose();
+ const data=a.image.data;let varied=false,minNoise=255,maxNoise=0;
+ for(let i=0;i<data.length;i+=4){const x=data[i]/255*2-1,y=data[i+1]/255*2-1,z=data[i+2]/255*2-1;assert.ok(Math.abs(Math.hypot(x,y,z)-1)<.015);assert.ok(z>0);if(Math.abs(x)>.1)varied=true;minNoise=Math.min(minNoise,data[i+3]);maxNoise=Math.max(maxNoise,data[i+3]);}
+ assert.ok(varied);assert.ok(minNoise<80&&maxNoise>170);a.dispose();b.dispose();
 });

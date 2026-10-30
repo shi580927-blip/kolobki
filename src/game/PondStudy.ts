@@ -1,5 +1,6 @@
 import * as T from 'three';
 import {RoundedBoxGeometry} from 'three/addons/geometries/RoundedBoxGeometry.js';
+import {addPondBed} from './PondBed';
 import {addPondWater} from './PondWater';
 import R from '@dimforge/rapier3d-compat';
 import {addShoreArt} from './ShoreArt';
@@ -9,6 +10,7 @@ import {POND,heightAt,pondRadius} from '../core/terrain';
 /** Shallow lake with a bridge at its narrow spring inlet; the basin remains solid. */
 export function addPondStudy(scene:T.Scene,world:R.World){
  const water=addPondWater(scene);
+ addPondBed(scene);
  // Broad walkable deck: planks, side beams, rails and posts use a few batches.
  const deckLength=13,deckWidth=4.6,top=POND.water+.23;
  const wood=new T.MeshStandardMaterial({color:0xffffff,roughness:.94});
