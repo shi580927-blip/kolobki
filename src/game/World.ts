@@ -43,7 +43,7 @@ export function createWorld(scene: THREE.Scene, world: RAPIER.World) {
   ]) {
     const d = RAPIER.ColliderDesc.cuboid(
       x ? 1 : WORLD_SIZE / 2,
-      30,
+      80,
       z ? 1 : WORLD_SIZE / 2,
     ).setTranslation((x * WORLD_SIZE) / 2, 0, (z * WORLD_SIZE) / 2);
     world.createCollider(d);

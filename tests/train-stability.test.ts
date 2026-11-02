@@ -30,7 +30,9 @@ test('a newcomer touching the head of a long train cannot instantly tether to a 
 });
 
 test('compressed full train cannot rest in a tower after turns and jumps',async()=>{
- const s=await fixture(55);for(let id=0;id<5;id++){s.atHead(id);for(let i=0;i<900&&!s.train.has(id);i++)s.tick();assert.ok(s.train.has(id));}
+ // Keep recruitment on the adjacent dry patch: at x=55 a free waiting NPC
+ // can collide strongly during setup. Outsider breakup is tested in train.test.ts.
+ const s=await fixture(65);for(let id=0;id<5;id++){s.atHead(id);for(let i=0;i<900&&!s.train.has(id);i++)s.tick();assert.ok(s.train.has(id));assert.equal(s.train.count,id+1,'setup keeps earlier wagons');}
  let maximumGap=0;
  for(let i=0;i<600;i++){
   const reverse=Math.floor(i/120)%2===1;

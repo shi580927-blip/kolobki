@@ -56,6 +56,18 @@ export function valleyArtLayout(){
    if(nearestRoutePoint(x,z).distance>7&&nearestExplorationPath(x,z).distance>4.7&&pondClearance(x,z)>4)patches.push({x,z});
   }
  }
+ // Sparse peripheral groves compose the entire 400 m field. Large gaps keep
+ // slopes readable and leave room for future event tracks without tree fences.
+ const peripheralRandom=randomFrom(211026);let peripheralTrees=0;
+ for(let z=-174;z<=174;z+=29)for(let x=-174;x<=174;x+=29){
+  if(peripheralTrees>=2||Math.hypot(x,z)<125||peripheralRandom()>.42)continue;
+  const px=x+(peripheralRandom()-.5)*13,pz=z+(peripheralRandom()-.5)*13;
+  const slope=Math.hypot(heightAt(px+1,pz)-heightAt(px-1,pz),heightAt(px,pz+1)-heightAt(px,pz-1))/2;
+  if(slope>.5||nearestExplorationPath(px,pz).distance<9||trees.some(p=>Math.hypot(p.x-px,p.z-pz)<12))continue;
+  trees.push({x:px,z:pz,scale:.85+peripheralRandom()*.45,kind:pz<0?0:px<0?2:1});
+  peripheralTrees++;
+  patches.push({x:px+4,z:pz+3});
+ }
  // Move existing trees off the new walks, preserving the open racing corridor.
  for(let i=trees.length-1;i>=0;i--)if(nearestExplorationPath(trees[i].x,trees[i].z).distance<5.5)trees.splice(i,1);
  // Keep trees away from the water and its gentle shoreline.
@@ -139,9 +151,6 @@ export function addValleyArt(scene:T.Scene,world:R.World){
  });
  const rockGeometry=valleyRockGeometry(),stones=make('valley-art-rock-gardens',layout.rocks.length,rockGeometry,material('#ffffff',true),true);
  layout.rocks.forEach((p,i)=>{const y=heightAt(p.x,p.z)+p.radius*.56;put(stones,i,p.x,y,p.z,p.radius,p.radius,p.radius);world.createCollider(R.ColliderDesc.ball(p.radius).setTranslation(p.x,y,p.z));});
- // Distant silhouettes sit entirely outside the physical field, never in the driving area.
- const far=make('valley-art-distant-outcrops',9,rockGeometry,material('#c7c6af',true));far.castShadow=far.receiveShadow=false;
- for(let i=0;i<9;i++){const a=i/9*Math.PI*2+.15,r=WORLD_SIZE/2+36;put(far,i,Math.cos(a)*r,-9,Math.sin(a)*r,15+random()*6,19+random()*14,15+random()*6);}
  const petalGeo=new T.SphereGeometry(1,7,5),budGeo=new T.SphereGeometry(1,7,4),leafGeo=new T.SphereGeometry(1,6,4),flowerCount=layout.flowers.length;
  const petals=make('valley-art-petals',flowerCount*5,petalGeo,material('#ffffff')),centers=make('valley-art-flower-centers',flowerCount,budGeo,material('#f2b62f')),stems=make('valley-art-flower-stems',flowerCount,new T.CylinderGeometry(1,1,1,5),material('#578c33')),leaves=make('valley-art-flower-leaves',flowerCount*2,leafGeo,material('#75a53d'));
  layout.flowers.forEach((p,i)=>{
