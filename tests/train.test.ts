@@ -7,10 +7,10 @@ import {PhysicsPlayer} from '../src/game/PhysicsPlayer';
 import {TrainSystem,TRAIN_RULES} from '../src/game/TrainSystem';
 import {terrainData,heightAt} from '../src/core/terrain';
 const dt=1/60,forward=new Vector3(0,0,1),idle=()=>({x:0,z:0,jump:false,dash:false});
-async function setup(count=5){
+async function setup(count=5,dryX=0){
  await R.init();const world=new R.World({x:0,y:-18,z:0});world.timestep=dt;
  const terrain=terrainData();world.createCollider(R.ColliderDesc.trimesh(terrain.vertices,terrain.indices));
- const bus=new EventBus(),leader=new PhysicsPlayer(world,bus),actors=Array.from({length:count},(_,id)=>({id,physics:new PhysicsPlayer(world,new EventBus(),{x:20+id*3,z:0})}));
+ const bus=new EventBus(),leader=new PhysicsPlayer(world,bus,{x:dryX,z:0}),actors=Array.from({length:count},(_,id)=>({id,physics:new PhysicsPlayer(world,new EventBus(),{x:dryX+20+id*3,z:0})}));
  const train=new TrainSystem(world,leader,actors,bus);
  function tick(input=idle()){
   leader.step(dt,input,forward);for(const a of actors)if(!train.has(a.id)&&!train.isJoining(a.id))a.physics.step(dt,idle(),forward);
@@ -28,7 +28,7 @@ test('Rapier contact collects one wagon once; proximity and hard contact cannot 
  s.world.free();
 });
 test('five wagons follow turns and hills, stay finite, roll and do not disable gravity',async()=>{
- const s=await setup();for(let id=0;id<5;id++)s.collect(id);
+ const s=await setup(5,55);for(let id=0;id<5;id++)s.collect(id);
  assert.equal(s.train.count,5);let rolled=false,minHeight=100;
  for(let i=0;i<300;i++){
   s.tick({x:i<180?0:-.5,z:-.65,jump:i===100,dash:false});
@@ -68,7 +68,7 @@ test('a strong side impact against scenery breaks wagons while a sixth wagon is 
 });
 
 test('five colliding wagons survive repeated reversals, acceleration and normal jumps without a two-body gap',async()=>{
- const s=await setup();for(let id=0;id<5;id++)s.collect(id);
+ const s=await setup(5,55);for(let id=0;id<5;id++)s.collect(id);
  let largestGap=0,closest=10;
  for(let i=0;i<780;i++){
   const reverse=i>=240&&i<480;

@@ -3,7 +3,7 @@ import {makeBoulderGeometry} from './BoulderGeometry';
 import {treeOcclusion} from './TreeOcclusion';
 import R from '@dimforge/rapier3d-compat';
 import {makeLeafGeometry} from './BerryArt';
-import {heightAt,WORLD_SIZE,POND,pondDistance,pondRadius} from '../core/terrain';
+import {heightAt,WORLD_SIZE,POND,pondDistance,pondRadius,pondClearance} from '../core/terrain';
 import {clearRoutePosition,nearestRoutePoint,VALLEY_ROUTE} from '../core/valleyRoute';
 import {nearestExplorationPath,VALLEY_CLEARINGS} from '../core/valleyExploration';
 import {shoreSandCoverage} from '../core/shore';
@@ -47,31 +47,32 @@ export function valleyArtLayout(){
   for(let i=0;i<9;i++){
    const a=i/9*Math.PI*2+zone*.53,r=c.radius*(.72+random()*.35);
    const x=c.x+Math.cos(a)*r,z=c.z+Math.sin(a)*r;
-   if(nearestRoutePoint(x,z).distance<12||nearestExplorationPath(x,z).distance<6||pondDistance(x,z)<1.7||trees.some(p=>Math.hypot(p.x-x,p.z-z)<5))continue;
+   if(nearestRoutePoint(x,z).distance<12||nearestExplorationPath(x,z).distance<6||pondClearance(x,z)<6||trees.some(p=>Math.hypot(p.x-x,p.z-z)<5))continue;
    trees.push({x,z,scale:.78+random()*.45,kind:c.kind});
   }
   for(let i=0;i<8;i++){
    const a=i/8*Math.PI*2+.3,r=c.radius*(.4+random()*.5),x=c.x+Math.cos(a)*r,z=c.z+Math.sin(a)*r;
-   if(nearestRoutePoint(x,z).distance>7&&nearestExplorationPath(x,z).distance>4.7&&pondDistance(x,z)>1.6)patches.push({x,z});
+   if(nearestRoutePoint(x,z).distance>7&&nearestExplorationPath(x,z).distance>4.7&&pondClearance(x,z)>4)patches.push({x,z});
   }
  }
  // Move existing trees off the new walks, preserving the open racing corridor.
  for(let i=trees.length-1;i>=0;i--)if(nearestExplorationPath(trees[i].x,trees[i].z).distance<5.5)trees.splice(i,1);
  // Keep trees away from the water and its gentle shoreline.
- for(const tree of trees){const dx=tree.x-POND.x,dz=tree.z-POND.z,d=Math.hypot(dx,dz);const clearance=pondRadius(Math.atan2(dz,dx))*1.65+2;if(d<clearance){const k=clearance/(d||1);tree.x=POND.x+dx*k;tree.z=POND.z+dz*k;}}
+ for(const tree of trees){const dx=tree.x-POND.x,dz=tree.z-POND.z,d=Math.hypot(dx,dz);const clearance=pondRadius(Math.atan2(dz,dx))+7;if(d<clearance){const k=clearance/(d||1);tree.x=POND.x+dx*k;tree.z=POND.z+dz*k;}}
+ for(let i=trees.length-1;i>=0;i--)if(nearestExplorationPath(trees[i].x,trees[i].z).distance<5.5||Math.abs(trees[i].x)>103||Math.abs(trees[i].z)>103)trees.splice(i,1);
  const flowers:{x:number;z:number;height:number;size:number;kind:number}[]=[],grass:{x:number;z:number;height:number;angle:number}[]=[],rocks:{x:number;z:number;radius:number}[]=[],pebbles:{x:number;z:number;size:number}[]=[];
  for(let i=0;i<840;i++){
   const p=patches[i%patches.length],a=random()*Math.PI*2,r=Math.sqrt(random())*2.7,x=p.x+Math.cos(a)*r,z=p.z+Math.sin(a)*r;
-  if(nearestRoutePoint(x,z).distance<6.5||nearestExplorationPath(x,z).distance<4.3||pondDistance(x,z)<1.6)continue;
+  if(nearestRoutePoint(x,z).distance<6.5||nearestExplorationPath(x,z).distance<4.3||pondClearance(x,z)<4)continue;
   flowers.push({x,z,height:.26+random()*.42,size:.7+random()*.7,kind:Math.floor(random()*10)});
  }
  for(let i=0;i<3400;i++){
-  const p=patches[i%patches.length],x=p.x+(random()-.5)*8,z=p.z+(random()-.5)*8;if(nearestRoutePoint(x,z).distance<6.2||nearestExplorationPath(x,z).distance<4.0||pondDistance(x,z)<1.6)continue;
+  const p=patches[i%patches.length],x=p.x+(random()-.5)*8,z=p.z+(random()-.5)*8;if(nearestRoutePoint(x,z).distance<6.2||nearestExplorationPath(x,z).distance<4.0||pondClearance(x,z)<4)continue;
   grass.push({x,z,height:.16+random()*.35,angle:random()*Math.PI*2});
  }
  for(let i=0;i<16;i++){
   const p=patches[(i*7+3)%patches.length],radius=1+random()*1.5,point=clearRoutePosition(p.x+(random()-.5)*8,p.z+(random()-.5)*8,radius+4);
-  if(Math.hypot(point.x,point.z)>24&&pondDistance(point.x,point.z)>1.65&&nearestExplorationPath(point.x,point.z).distance>radius+4)rocks.push({...point,radius});
+  if(Math.hypot(point.x,point.z)>24&&pondClearance(point.x,point.z)>5&&nearestExplorationPath(point.x,point.z).distance>radius+4)rocks.push({...point,radius});
  }
  for(let i=0;i<480;i++){
   const p=patches[i%patches.length],q=nearestRoutePoint(p.x,p.z),d=q.distance||1,r=3.5+random()*1.7,x=q.x+(p.x-q.x)/d*r+(random()-.5)*1.4,z=q.z+(p.z-q.z)/d*r+(random()-.5)*1.4;
@@ -150,7 +151,7 @@ export function addValleyArt(scene:T.Scene,world:R.World){
  });
  const pebbles=make('valley-art-path-pebbles',layout.pebbles.length,new T.IcosahedronGeometry(1,0),material('#ffffff'));
  layout.pebbles.forEach((p,i)=>put(pebbles,i,p.x,heightAt(p.x,p.z)+p.size*.22,p.z,p.size,p.size*.42,p.size*.8,['#ddc797','#b5ad87','#e9d4a7'][i%3]));
- const dryPatches=layout.patches.filter(p=>pondDistance(p.x,p.z)>1.6&&nearestExplorationPath(p.x,p.z).distance>4.7);
+ const dryPatches=layout.patches.filter(p=>pondClearance(p.x,p.z)>4&&nearestExplorationPath(p.x,p.z).distance>4.7);
  const bushLeaves=make('valley-art-leaf-shrubs',dryPatches.length*9,makeLeafGeometry(),new T.MeshStandardMaterial({vertexColors:true,roughness:.72,side:T.DoubleSide}));
  const axis=new T.Vector3(0,0,1);
  dryPatches.forEach((p,i)=>{for(let j=0;j<9;j++){

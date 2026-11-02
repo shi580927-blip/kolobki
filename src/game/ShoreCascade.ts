@@ -6,7 +6,7 @@ import {roundedStone,stoneColors,stoneMaterial} from './StoneArt';
 import {makeBoulderGeometry} from './BoulderGeometry';
 import {waterfallFlowGeometry,waterfallFlowMaterial} from './WaterfallFlow';
 import {makeLeafGeometry} from './BerryArt';
-export const SHORE_CASCADE={x:POND.x-10,z:POND.z+10,width:7.9,depth:5.8,crest:5.8};
+export const SHORE_CASCADE={x:POND.x-26.1,z:POND.z+24,width:7.9,depth:5.8,crest:5.8};
 /** Low sideward droplets, spread along the full contact instead of a central jet. */
 export function cascadeSpraySample(i:number,time:number){
  const random=(salt:number)=>{const n=Math.sin(i*127.1+salt*311.7)*43758.5453;return n-Math.floor(n);};

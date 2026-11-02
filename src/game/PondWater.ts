@@ -48,7 +48,7 @@ export function addPondWater(scene:T.Scene){
  // Lightweight sky reflection, no additional rendering of the whole scene.
  vec3 sky=mix(vec3(.43,.69,.76),vec3(.16,.43,.68),smoothstep(0.,.85,reflected.y));
 
- float d=smoothstep(.035,.34,depth);
+ float d=smoothstep(.025,.21,depth);
  vec3 water=mix(vec3(.045,.56,.46),vec3(.002,.28,.56),d);
  vec3 color=mix(water,sky,fresnel*.32);
  // Thin, irregular isocontours, broken by a separately moving field.
@@ -59,7 +59,7 @@ export function addPondWater(scene:T.Scene){
  float shoreBreak=fieldB.a;
  float edge=(1.-smoothstep(.004,.055,depth))*smoothstep(.38,.75,shoreBreak)*.60;
  color=mix(color,vec3(.78,.94,.88),edge);
- float absorption=smoothstep(.06,.32,depth);
+ float absorption=smoothstep(.025,.18,depth);
  float alpha=clamp(max(.08+absorption*.88+fresnel*.10,edge*.85),0.,.98);
  gl_FragColor=vec4(color,alpha);
  #include <tonemapping_fragment>

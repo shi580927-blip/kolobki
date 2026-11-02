@@ -7,10 +7,10 @@ import {TrainSystem} from '../src/game/TrainSystem';
 import {EventBus} from '../src/core/events';
 import {terrainData,heightAt,WORLD_SIZE} from '../src/core/terrain';
 const dt=1/60,forward=new Vector3(0,0,1),idle=()=>({x:0,z:0,jump:false,dash:false});
-async function fixture(){
+async function fixture(dryX=0){
  await R.init();const world=new R.World({x:0,y:-18,z:0});world.timestep=dt;const terrain=terrainData();world.createCollider(R.ColliderDesc.trimesh(terrain.vertices,terrain.indices));
  for(const [x,z] of [[-1,0],[1,0],[0,-1],[0,1]])world.createCollider(R.ColliderDesc.cuboid(x?1:WORLD_SIZE/2,30,z?1:WORLD_SIZE/2).setTranslation(x*WORLD_SIZE/2,0,z*WORLD_SIZE/2));
- const leader=new PhysicsPlayer(world,new EventBus()),actors=Array.from({length:5},(_,id)=>({id,physics:new PhysicsPlayer(world,new EventBus(),{x:35+id*3,z:0})})),train=new TrainSystem(world,leader,actors,new EventBus());
+ const leader=new PhysicsPlayer(world,new EventBus(),{x:dryX,z:0}),actors=Array.from({length:5},(_,id)=>({id,physics:new PhysicsPlayer(world,new EventBus(),{x:dryX+35+id*3,z:0})})),train=new TrainSystem(world,leader,actors,new EventBus());
  function tick(input=idle()){
   leader.step(dt,input,forward);for(const a of actors)if(!train.has(a.id)&&!train.isJoining(a.id))a.physics.step(dt,idle(),forward);
   train.step(dt);world.step();leader.sync();actors.forEach(a=>a.physics.sync());train.afterStep();
@@ -30,7 +30,7 @@ test('a newcomer touching the head of a long train cannot instantly tether to a 
 });
 
 test('compressed full train cannot rest in a tower after turns and jumps',async()=>{
- const s=await fixture();for(let id=0;id<5;id++){s.atHead(id);for(let i=0;i<900&&!s.train.has(id);i++)s.tick();assert.ok(s.train.has(id));}
+ const s=await fixture(55);for(let id=0;id<5;id++){s.atHead(id);for(let i=0;i<900&&!s.train.has(id);i++)s.tick();assert.ok(s.train.has(id));}
  let maximumGap=0;
  for(let i=0;i<600;i++){
   const reverse=Math.floor(i/120)%2===1;

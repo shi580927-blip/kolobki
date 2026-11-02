@@ -1,13 +1,15 @@
 import {landscapeRelief} from './landscapeRelief';
 export const WORLD_SIZE = 220;
-export const POND = {x:-18,z:22,water:2.15,radius:5.6};
+export const POND = {x:-35,z:18,water:2.15,radius:5.6,flare:12.0};
 /** Narrow spring inlet under the bridge opens into a broad southern lake.
  * One continuous contour drives water, terrain, coating and prop clearance. */
 export function pondRadius(angle:number){
   const south=Math.max(0,Math.sin(angle));
-  return POND.radius*(.96+.045*Math.sin(angle*3+.4)+.025*Math.sin(angle*5-1))*(1+2.7*south*south);
+  return POND.radius*(.96+.045*Math.sin(angle*3+.4)+.025*Math.sin(angle*5-1))*(1+POND.flare*south*south);
 }
 export function pondDistance(x:number,z:number){const dx=x-POND.x,dz=z-POND.z;return Math.hypot(dx,dz)/pondRadius(Math.atan2(dz,dx));}
+/** Conservative nominal water edge, in metres, for dry prop placement. */
+export function pondClearance(x:number,z:number){const a=Math.atan2(z-POND.z,x-POND.x);return Math.hypot(x-POND.x,z-POND.z)-pondRadius(a);}
 export function heightAt(x: number, z: number) {
   const natural = (
     3.8 * Math.sin(x / 19) * Math.cos(z / 23) +
@@ -24,9 +26,14 @@ export function heightAt(x: number, z: number) {
     +5*Math.exp(-((x+18)**2+(z-44)**2)/850);
   const original=spawn*(1-blend)+natural*blend+hills*rise+landscapeRelief(x,z);
   // A shallow, gently blended basin off the route. Its bottom remains solid terrain.
-  const d=pondDistance(x,z),tpond=Math.max(0,Math.min(1,(d-1.2)/.85)),shore=tpond*tpond*(3-2*tpond);
+  const d=pondDistance(x,z),tpond=Math.max(0,Math.min(1,(pondClearance(x,z)-2)/12)),shore=tpond*tpond*(3-2*tpond);
   const bank=POND.water-.38+.48*Math.min(1.2,d)**2;
-  return bank*(1-shore)+original*shore;
+  const basin=bank*(1-shore)+original*shore;
+  // Dry approaches meet the 13 m bridge without an abrupt bank at its ends.
+  const smooth=(a:number,b:number,v:number)=>{const t=Math.max(0,Math.min(1,(v-a)/(b-a)));return t*t*(3-2*t);};
+  const dx=Math.abs(x-POND.x),dz=Math.abs(z-POND.z);
+  const approach=smooth(5.8,6.4,dx)*(1-smooth(8,20,dx))*(1-smooth(2.6,5,dz));
+  return basin*(1-approach)+(POND.water+.12)*approach;
 }
 /** Shared vertices and indices: rendering and collision use identical triangles. */
 export function terrainData(segments = 110) {

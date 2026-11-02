@@ -1,7 +1,7 @@
 import {nearestRoutePoint} from './valleyRoute';
 /** Authored relief modules blend into the shared terrain mesh and collider. */
 export const RELIEF_MODULES=[
- {kind:'plateau',x:-69,z:34,radius:18,height:8},
+ {kind:'plateau',x:-77,z:34,radius:18,height:8},
  {kind:'hill',x:-53,z:1,radius:17,height:6},
  {kind:'hill',x:-8,z:66,radius:18,height:6},
  {kind:'hill',x:72,z:59,radius:20,height:7},

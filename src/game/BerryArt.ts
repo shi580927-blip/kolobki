@@ -1,6 +1,6 @@
 import * as T from 'three';
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
-import {heightAt,POND,pondDistance,pondRadius} from '../core/terrain';
+import {heightAt,POND,pondDistance,pondRadius,pondClearance} from '../core/terrain';
 import {randomFrom} from '../core/skin';
 
 /** Curved pointed leaf, ridged at the midrib, with gently irregular edges. */
@@ -18,7 +18,7 @@ export interface BerryPlacement {x:number;z:number;centerY:number;onPlant:boolea
 export function berryPlacement(i:number):BerryPlacement {
  let x=i===0?0:i===1?-4:i===2?4:Math.sin(i*.9)*28,z=i===0?5:i===1?9:i===2?10:5+i*4;
  // Keep the accepted fruit and its plant rooted on dry land as the lake grows.
- if(pondDistance(x,z)<1.42){const a=Math.atan2(z-POND.z,x-POND.x),r=pondRadius(a)*1.42;x=POND.x+Math.cos(a)*r;z=POND.z+Math.sin(a)*r;}
+ if(pondClearance(x,z)<4.5){const a=Math.atan2(z-POND.z,x-POND.x),r=pondRadius(a)+4.5;x=POND.x+Math.cos(a)*r;z=POND.z+Math.sin(a)*r;}
  const onPlant=i%3===1;
  return {x,z,centerY:heightAt(x,z)+(onPlant?.92:.45),onPlant};
 }

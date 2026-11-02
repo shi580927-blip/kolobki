@@ -1,7 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {pondWaterGeometry} from '../src/game/PondWater';
-import {POND,heightAt,pondDistance} from '../src/core/terrain';
+import {POND,heightAt,pondDistance,pondClearance} from '../src/core/terrain';
 test('rendered pond uses physical world contour and actual ground depth, facing up',()=>{
  const g=pondWaterGeometry(),p=g.getAttribute('position'),d=g.getAttribute('waterDepth'),n=g.getAttribute('normal');let maxDepth=0;
  for(let i=0;i<p.count;i++){
@@ -20,18 +20,18 @@ test('lake opens beyond the bridge without covering the match route or placing p
   assert.ok(nearestRoutePoint(x,z).distance>10,'water stays away from the driving corridor');
   minX=Math.min(minX,x);maxX=Math.max(maxX,x);minZ=Math.min(minZ,z);maxZ=Math.max(maxZ,z);area+=r*r*Math.PI/720;
  }
- assert.ok(area>300&&area<400);assert.ok(maxX-minX>18&&maxZ-minZ>24);
+ assert.ok(area>2800&&area<3200);assert.ok(maxX-minX>50&&maxZ-minZ>65);
  assert.ok(pondRadius(0)<6&&pondRadius(Math.PI)<6,'existing bridge spans the narrow inlet');
  const layout=valleyArtLayout();
- for(const p of [...layout.trees,...layout.grass,...layout.flowers,...layout.rocks])assert.ok(pondDistance(p.x,p.z)>1.55,'dry vegetation and major rocks stay off the water');
+ for(const p of [...layout.trees,...layout.grass,...layout.flowers,...layout.rocks])assert.ok(pondClearance(p.x,p.z)>3,'dry vegetation and major rocks stay off the water');
 });
 
 
 test('enlarged lake keeps all twelve berries and both arch feet on dry ground',async()=>{
  const {berryPlacement}=await import('../src/game/BerryArt');
  const {ROCK_ARCH}=await import('../src/game/RockArch');
- for(let i=0;i<12;i++){const p=berryPlacement(i);assert.ok(pondDistance(p.x,p.z)>1.4);if(pondDistance(p.x,p.z)<2)assert.ok(heightAt(p.x,p.z)>POND.water);}
- for(const dx of [-6,-4,4,6])assert.ok(pondDistance(ROCK_ARCH.x+dx,ROCK_ARCH.z)>1.4);
+ for(let i=0;i<12;i++){const p=berryPlacement(i);assert.ok(pondClearance(p.x,p.z)>4);if(pondDistance(p.x,p.z)<2)assert.ok(heightAt(p.x,p.z)>POND.water);}
+ for(const dx of [-6,-4,4,6])assert.ok(pondClearance(ROCK_ARCH.x+dx,ROCK_ARCH.z)>4);
 });
 
 test('packed water normal/noise map stays within a small repeatable texture budget with valid normals',async()=>{
