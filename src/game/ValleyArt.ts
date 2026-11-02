@@ -9,8 +9,10 @@ import {COAST_TERRACES} from '../core/coast';
 import {nearestExplorationPath,VALLEY_CLEARINGS} from '../core/valleyExploration';
 import {shoreSandCoverage} from '../core/shore';
 import {randomFrom} from '../core/skin';
+import {landmarkClearance} from '../core/scenicLayout';
+import {EXTREME_ARCHES} from './ExtremeArches';
 
-const meadowDark=new T.Color('#489c36'),meadowLight=new T.Color('#8ac84d'),sunGrass=new T.Color('#b3d36a'),soil=new T.Color('#d6a96a');
+const meadowDark=new T.Color('#348d31'),meadowLight=new T.Color('#7fbb35'),sunGrass=new T.Color('#b8d254'),soil=new T.Color('#dcac63');
 /** Continuous world-space colour fields keep the broad slopes from reading as a flat sheet. */
 export function valleyGroundColor(x:number,y:number,z:number){
  const patch=.5+.25*Math.sin(x*.075+Math.sin(z*.09)*1.3)+.25*Math.sin(z*.13-x*.035);
@@ -25,7 +27,7 @@ export function valleyGroundColor(x:number,y:number,z:number){
  const ground=grass.lerp(soil,path*.96),sand=shoreSandCoverage(x,z);
  const gx=(heightAt(x+.35,z)-heightAt(x-.35,z))/.7,gz=(heightAt(x,z+.35)-heightAt(x,z-.35))/.7;
  const slope=Math.hypot(gx,gz),rock=T.MathUtils.smoothstep(slope,.48,.98)*(1-path)*(1-sand);
- return ground.lerp(new T.Color('#b9aa8f'),rock*.9);
+ return ground.lerp(new T.Color('#d8c4a4'),rock*.9);
 }
 
 /** Seeded composition follows the whole playable loop, with space around every solid prop. */
@@ -59,8 +61,8 @@ export function valleyArtLayout(){
  // Sparse peripheral groves compose the entire 400 m field. Large gaps keep
  // slopes readable and leave room for future event tracks without tree fences.
  const peripheralRandom=randomFrom(211026);let peripheralTrees=0;
- for(let z=-174;z<=174;z+=29)for(let x=-174;x<=174;x+=29){
-  if(peripheralTrees>=2||Math.hypot(x,z)<125||peripheralRandom()>.42)continue;
+ for(let z=-174;z<=174;z+=22)for(let x=-174;x<=174;x+=22){
+  if(peripheralTrees>=55||Math.hypot(x,z)<125||peripheralRandom()>.72)continue;
   const px=x+(peripheralRandom()-.5)*13,pz=z+(peripheralRandom()-.5)*13;
   const slope=Math.hypot(heightAt(px+1,pz)-heightAt(px-1,pz),heightAt(px,pz+1)-heightAt(px,pz-1))/2;
   if(slope>.5||nearestExplorationPath(px,pz).distance<9||trees.some(p=>Math.hypot(p.x-px,p.z-pz)<12))continue;
@@ -72,14 +74,14 @@ export function valleyArtLayout(){
  for(let i=trees.length-1;i>=0;i--)if(nearestExplorationPath(trees[i].x,trees[i].z).distance<5.5)trees.splice(i,1);
  // Keep trees away from the water and its gentle shoreline.
  for(const tree of trees){const dx=tree.x-POND.x,dz=tree.z-POND.z,d=Math.hypot(dx,dz);const clearance=pondRadius(Math.atan2(dz,dx))+7;if(d<clearance){const k=clearance/(d||1);tree.x=POND.x+dx*k;tree.z=POND.z+dz*k;}}
- for(let i=trees.length-1;i>=0;i--)if(nearestExplorationPath(trees[i].x,trees[i].z).distance<5.5||COAST_TERRACES.some(c=>Math.hypot((trees[i].x-c.x)/(c.rx*1.6+3),(trees[i].z-c.z)/(c.rz+5))<1)||Math.abs(trees[i].x)>WORLD_SIZE/2-7||Math.abs(trees[i].z)>WORLD_SIZE/2-7)trees.splice(i,1);
+ for(let i=trees.length-1;i>=0;i--)if(nearestExplorationPath(trees[i].x,trees[i].z).distance<5.5||COAST_TERRACES.some(c=>Math.hypot((trees[i].x-c.x)/(c.rx*1.6+3),(trees[i].z-c.z)/(c.rz+5))<1)||Math.abs(trees[i].x)>WORLD_SIZE/2-7||Math.abs(trees[i].z)>WORLD_SIZE/2-10||landmarkClearance(trees[i].x,trees[i].z)<8||EXTREME_ARCHES.some(a=>Math.abs(trees[i].x-a.x)<a.halfLength+3&&Math.abs(trees[i].z-a.z)<a.depth/2+4))trees.splice(i,1);
  const flowers:{x:number;z:number;height:number;size:number;kind:number}[]=[],grass:{x:number;z:number;height:number;angle:number}[]=[],rocks:{x:number;z:number;radius:number}[]=[],pebbles:{x:number;z:number;size:number}[]=[];
- for(let i=0;i<840;i++){
+ for(let i=0;i<1500;i++){
   const p=patches[i%patches.length],a=random()*Math.PI*2,r=Math.sqrt(random())*2.7,x=p.x+Math.cos(a)*r,z=p.z+Math.sin(a)*r;
   if(nearestRoutePoint(x,z).distance<6.5||nearestExplorationPath(x,z).distance<4.3||pondClearance(x,z)<4)continue;
   flowers.push({x,z,height:.26+random()*.42,size:.7+random()*.7,kind:Math.floor(random()*10)});
  }
- for(let i=0;i<3400;i++){
+ for(let i=0;i<5000;i++){
   const p=patches[i%patches.length],x=p.x+(random()-.5)*8,z=p.z+(random()-.5)*8;if(nearestRoutePoint(x,z).distance<6.2||nearestExplorationPath(x,z).distance<4.0||pondClearance(x,z)<4)continue;
   grass.push({x,z,height:.16+random()*.35,angle:random()*Math.PI*2});
  }
@@ -93,12 +95,17 @@ export function valleyArtLayout(){
  }
  return {trees,patches,flowers,grass,rocks,pebbles};
 }
+function flowerPetalGeometry(){
+ const p:number[]=[],n=8;
+ for(let i=0;i<n;i++){const a=i/n*Math.PI*2,b=(i+1)/n*Math.PI*2;p.push(0,.38,0,Math.cos(b),0,Math.sin(b),Math.cos(a),0,Math.sin(a));}
+ const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(p,3));g.computeVertexNormals();return g;
+}
 function canopyGeometry(){
  const g=new T.SphereGeometry(1,11,8),p=g.getAttribute('position'),colors:number[]=[];
  for(let i=0;i<p.count;i++){
-  const x=p.getX(i),y=p.getY(i),z=p.getZ(i),s=1+.045*Math.sin(x*7+z*4)*Math.sin(y*5);
+  const x=p.getX(i),y=p.getY(i),z=p.getZ(i),s=1+.10*Math.sin(x*7+z*4)*Math.sin(y*5)+.035*Math.cos(z*12+x*6);
   p.setXYZ(i,x*s,y*(1+.025*Math.cos(z*8)),z*s);
-  const c=new T.Color('#4e8f2e').lerp(new T.Color('#c4dc64'),Math.max(0,Math.min(1,(y+1)*.5)));
+  const c=new T.Color('#347a2c').lerp(new T.Color('#bfd44b'),Math.max(0,Math.min(1,(y+1)*.5)));
   colors.push(c.r,c.g,c.b);
  }
  g.setAttribute('color',new T.Float32BufferAttribute(colors,3));g.computeVertexNormals();return g;
@@ -115,7 +122,7 @@ export function addValleyArt(scene:T.Scene,world:R.World){
  const branchGeometry=new T.CylinderGeometry(.055,.20,1,6,6),bp=branchGeometry.getAttribute('position');
  for(let i=0;i<bp.count;i++){const t=bp.getY(i)+.5;bp.setX(i,bp.getX(i)+.18*t*t);}branchGeometry.computeVertexNormals();
  const trunks=make('valley-art-trunks',layout.trees.length,trunkGeometry,material('#98704a'),true),branches=make('valley-art-branches',layout.trees.length*6,branchGeometry,material('#98704a'),true),crowns=make('valley-art-crowns',layout.trees.length*6,canopyGeometry(),material('#ffffff',true),true);
- const treeLeaves=make('valley-art-tree-leaves',layout.trees.length*12,makeLeafGeometry(),new T.MeshStandardMaterial({vertexColors:true,roughness:.8,side:T.DoubleSide}));
+ const treeLeaves=make('valley-art-tree-leaves',layout.trees.length*12,makeLeafGeometry(7,4),new T.MeshStandardMaterial({vertexColors:true,roughness:.8,side:T.DoubleSide}));
  const updateOcclusion=treeOcclusion([trunks.material,branches.material,crowns.material,treeLeaves.material] as T.MeshStandardMaterial[]);
  const up=new T.Vector3(0,1,0),leafAxis=new T.Vector3(0,0,1),branchDirection=new T.Vector3();
  layout.trees.forEach((p,i)=>{
@@ -143,7 +150,7 @@ export function addValleyArt(scene:T.Scene,world:R.World){
    branchDirection.set(Math.cos(a),.35,Math.sin(a)).normalize();
    dummy.quaternion.setFromUnitVectors(leafAxis,branchDirection);dummy.scale.setScalar((.42+(j%3)*.05)*s);dummy.updateMatrix();treeLeaves.setMatrixAt(i*12+j,dummy.matrix);
   }
-  const tint=['#f2f9b5','#d0ec9b','#c7e7a3'][p.kind];
+  const tint=['#e5efad','#e5e991','#bed49a'][p.kind];
   for(let j=0;j<6;j++){
    const a=j*2.39996+yaw,r=j===0?0:(1.12+(j%2)*.2)*s,yOffset=j===0?5.6:4.35+(j%3)*.58;
    put(crowns,i*6+j,p.x+Math.cos(a)*r+Math.cos(yaw)*.25*s,y+yOffset*s,p.z+Math.sin(a)*r-Math.sin(yaw)*.25*s,(j===0?2.0:1.65+(j%2)*.2)*s,(p.kind===1?1.9:1.4+(j%2)*.2)*s,(j===0?2.0:1.65)*s,tint);
@@ -151,7 +158,7 @@ export function addValleyArt(scene:T.Scene,world:R.World){
  });
  const rockGeometry=valleyRockGeometry(),stones=make('valley-art-rock-gardens',layout.rocks.length,rockGeometry,material('#ffffff',true),true);
  layout.rocks.forEach((p,i)=>{const y=heightAt(p.x,p.z)+p.radius*.56;put(stones,i,p.x,y,p.z,p.radius,p.radius,p.radius);world.createCollider(R.ColliderDesc.ball(p.radius).setTranslation(p.x,y,p.z));});
- const petalGeo=new T.SphereGeometry(1,7,5),budGeo=new T.SphereGeometry(1,7,4),leafGeo=new T.SphereGeometry(1,6,4),flowerCount=layout.flowers.length;
+ const petalGeo=flowerPetalGeometry(),budGeo=new T.SphereGeometry(1,6,4),leafGeo=new T.SphereGeometry(1,6,4),flowerCount=layout.flowers.length;
  const petals=make('valley-art-petals',flowerCount*5,petalGeo,material('#ffffff')),centers=make('valley-art-flower-centers',flowerCount,budGeo,material('#f2b62f')),stems=make('valley-art-flower-stems',flowerCount,new T.CylinderGeometry(1,1,1,5),material('#578c33')),leaves=make('valley-art-flower-leaves',flowerCount*2,leafGeo,material('#75a53d'));
  layout.flowers.forEach((p,i)=>{
   const soil=heightAt(p.x,p.z),y=soil+p.height,s=p.size,color=p.kind<5?'#fff6d5':p.kind<7?'#ed83ba':p.kind<9?'#a59be8':'#f6da4e';
@@ -162,7 +169,7 @@ export function addValleyArt(scene:T.Scene,world:R.World){
  const pebbles=make('valley-art-path-pebbles',layout.pebbles.length,new T.IcosahedronGeometry(1,0),material('#ffffff'));
  layout.pebbles.forEach((p,i)=>put(pebbles,i,p.x,heightAt(p.x,p.z)+p.size*.22,p.z,p.size,p.size*.42,p.size*.8,['#ddc797','#b5ad87','#e9d4a7'][i%3]));
  const dryPatches=layout.patches.filter(p=>pondClearance(p.x,p.z)>4&&nearestExplorationPath(p.x,p.z).distance>4.7);
- const bushLeaves=make('valley-art-leaf-shrubs',dryPatches.length*9,makeLeafGeometry(),new T.MeshStandardMaterial({vertexColors:true,roughness:.72,side:T.DoubleSide}));
+ const bushLeaves=make('valley-art-leaf-shrubs',dryPatches.length*9,makeLeafGeometry(7,4),new T.MeshStandardMaterial({vertexColors:true,roughness:.72,side:T.DoubleSide}));
  const axis=new T.Vector3(0,0,1);
  dryPatches.forEach((p,i)=>{for(let j=0;j<9;j++){
   const a=j*2.39996,s=.55+random()*.45;dummy.position.set(p.x,heightAt(p.x,p.z)+.02,p.z);dummy.quaternion.setFromUnitVectors(axis,new T.Vector3(Math.cos(a),.22+random()*.45,Math.sin(a)).normalize());dummy.scale.set(s,s,s);dummy.updateMatrix();bushLeaves.setMatrixAt(i*9+j,dummy.matrix);

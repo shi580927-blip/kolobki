@@ -21,8 +21,8 @@ export function makeCloudGeometry(seed:number){
  return geometry;
 }
 export function addCloudSky(scene:T.Scene){
- const skyGeometry=new T.SphereGeometry(195,32,16),skyColours=new Float32Array(skyGeometry.attributes.position.count*3),horizon=new T.Color('#b5d8ef'),zenith=new T.Color('#6face2');
- for(let i=0;i<skyGeometry.attributes.position.count;i++){const h=Math.max(0,skyGeometry.attributes.normal.getY(i)),colour=horizon.clone().lerp(zenith,Math.pow(h,.60));skyColours.set([colour.r,colour.g,colour.b],i*3);}
+ const skyGeometry=new T.SphereGeometry(850,32,16),skyColours=new Float32Array(skyGeometry.attributes.position.count*3),horizon=new T.Color('#8bc7ec'),zenith=new T.Color('#1e84df');
+ for(let i=0;i<skyGeometry.attributes.position.count;i++){const h=Math.max(0,skyGeometry.attributes.normal.getY(i)),colour=horizon.clone().lerp(zenith,Math.pow(h,.38));skyColours.set([colour.r,colour.g,colour.b],i*3);}
  skyGeometry.setAttribute('color',new T.BufferAttribute(skyColours,3));
  const skyMaterial=new T.MeshBasicMaterial({vertexColors:true,side:T.BackSide,depthWrite:false,fog:false,toneMapped:false});
  const sky=new T.Mesh(skyGeometry,skyMaterial);sky.name='valley-sky-gradient';sky.renderOrder=-100;sky.frustumCulled=false;scene.add(sky);
@@ -44,9 +44,9 @@ export function addCloudSky(scene:T.Scene){
  }`});
  const geometries=[makeCloudGeometry(201),makeCloudGeometry(802),makeCloudGeometry(1307)],random=randomFrom(261019),clouds:T.Mesh[]=[];
  for(let i=0;i<10;i++){
-  const a=i===9?Math.PI/2+.08:i/9*Math.PI*2+.18,r=123+random()*20,cloud=new T.Mesh(geometries[i%3],cloudMaterial);
-  cloud.position.set(Math.cos(a)*r,[18,17,28,18,22,18,19,21,18,4.5][i],Math.sin(a)*r);
-  cloud.scale.set(12+random()*7,i===9?7:12+random()*5,9+random()*4);cloud.rotation.y=Math.PI/2-a+(random()-.5)*.16;cloud.name='valley-cloud-'+i;cloud.userData.anchor=cloud.position.clone();cloud.userData.phase=random()*Math.PI*2;scene.add(cloud);clouds.push(cloud);
+  const a=i===9?Math.PI/2+.08:i/9*Math.PI*2+.18,r=280+random()*100,cloud=new T.Mesh(geometries[i%3],cloudMaterial);
+  cloud.position.set(Math.cos(a)*r,[82,105,120,90,110,98,125,92,115,75][i],Math.sin(a)*r);
+  cloud.scale.set(32+random()*20,25+random()*15,24+random()*12);cloud.rotation.y=Math.PI/2-a+(random()-.5)*.16;cloud.name='valley-cloud-'+i;cloud.userData.anchor=cloud.position.clone();cloud.userData.phase=random()*Math.PI*2;scene.add(cloud);clouds.push(cloud);
  }
  let time=0;
  return {clouds,update(dt:number,camera:T.Camera){time+=dt;sky.position.copy(camera.position);clouds.forEach(cloud=>{const anchor=cloud.userData.anchor as T.Vector3;cloud.position.x=anchor.x+Math.sin(time*.012+cloud.userData.phase)*1.4;});}};

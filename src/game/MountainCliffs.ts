@@ -1,10 +1,10 @@
 import * as T from 'three';
 import R from '@dimforge/rapier3d-compat';
-import {ConvexGeometry} from 'three/addons/geometries/ConvexGeometry.js';
-import {mergeGeometries,toCreasedNormals} from 'three/addons/utils/BufferGeometryUtils.js';
+import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
 import {heightAt} from '../core/terrain';
 import {nearestExplorationPath} from '../core/valleyExploration';
-import {stoneColors,stoneMaterial} from './StoneArt';
+import {stoneMaterial} from './StoneArt';
+import {scenicStone} from './ScenicStone';
 
 /** Irregular broad shoulders follow the three major massifs, leaving their
  * grassy approaches and the southern beginner meadow open. */
@@ -23,17 +23,20 @@ export function mountainCliffGeometry(){
   const gx=heightAt(p.x+1,p.z)-heightAt(p.x-1,p.z),gz=heightAt(p.x,p.z+1)-heightAt(p.x,p.z-1);
   const angle=Math.atan2(gx,gz),c=Math.cos(angle),s=Math.sin(angle);
   const at=(u:number,v:number)=>({x:p.x+u*c+v*s,z:p.z-u*s+v*c});
-  const outline=[[-1,-.55],[-.62,-1],[.4,-.92],[1,-.28],[.86,.67],[.14,1],[-.84,.72]];
-  let base=heightAt(p.x,p.z);
-  for(const [u,v] of outline){const q=at(u*p.width,v*p.depth);base=Math.min(base,heightAt(q.x,q.z)-1.2);}
-  const top=heightAt(p.x,p.z)+p.rise,points:T.Vector3[]=[];
-  for(let ring=0;ring<3;ring++)for(let j=0;j<outline.length;j++){
-   const [u,v]=outline[j],scale=ring===0?1.08:ring===1?1:.8;
-   const q=at(u*p.width*scale+ring*.24*Math.sin(p.seed),v*p.depth*scale);
-   const surface=heightAt(q.x,q.z)+.55+.35*Math.sin(j*1.7+p.seed);
-   points.push(new T.Vector3(q.x,ring===0?base:ring===1?base+(surface-base)*.48:surface,q.z));
+  // Two offset courses create a weathered rock face, not a single flat shield.
+  for(let j=-3;j<=3;j++)for(let shelf=0;shelf<2;shelf++){
+   const u=j*p.width/3.7+(shelf?1.5:0),v=(shelf?-3.4:1.8)+1.25*Math.sin(j*1.9+p.seed);
+   const q=at(u,v),rx=3.3+.6*Math.sin(j*2.7+p.seed),rz=shelf?2.8:3.5;
+   if(Math.abs(q.x)>187||Math.abs(q.z)>187||nearestExplorationPath(q.x,q.z).distance<rx+11)continue;
+   let low=heightAt(q.x,q.z),high=low;
+   for(const du of [-rx,0,rx])for(const dv of [-rz,rz]){const b=at(u+du,v+dv);low=Math.min(low,heightAt(b.x,b.z));high=Math.max(high,heightAt(b.x,b.z));}
+   const base=low-.8,top=Math.max(low+1.6,high+.35)-(shelf?1.1:0);
+   const height=Math.max(1.4,top-base),layers=Math.ceil(height/6.5);
+   for(let layer=0;layer<layers;layer++){
+    const phase=p.seed*13+j*2+shelf+layer*1.9,offset=at(u+.65*Math.sin(phase),v+.55*Math.cos(phase*1.7));
+    parts.push(scenicStone(offset.x,offset.z,rx*(.94+.14*Math.sin(phase)),rz,base+height*layer/layers-.18,base+height*(layer+1)/layers+.08,angle+.04*Math.sin(phase),phase,shelf===0&&layer===layers-1));
+   }
   }
-  const raw=new ConvexGeometry(points),g=toCreasedNormals(raw,.58);raw.dispose();stoneColors(g,top-.42);parts.push(g);
  }
  const geometry=mergeGeometries(parts);parts.forEach(p=>p.dispose());return geometry;
 }

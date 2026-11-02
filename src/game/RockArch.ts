@@ -1,9 +1,10 @@
 import * as T from 'three';
 import R from '@dimforge/rapier3d-compat';
-import {toCreasedNormals} from 'three/addons/utils/BufferGeometryUtils.js';
+import {toCreasedNormals,mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
 import {stoneColors,stoneMaterial} from './StoneArt';
 import {makeLeafGeometry} from './BerryArt';
 import {heightAt} from '../core/terrain';
+import {scenicStone} from './ScenicStone';
 export const ROCK_ARCH={x:-49,z:0,inner:3.8,outer:5.5,depth:2.6};
 /** A physical, open landmark off the route, with irregular stone wedges. */
 export function addRockArch(scene:T.Scene,world:R.World){
@@ -29,7 +30,14 @@ export function addRockArch(scene:T.Scene,world:R.World){
  shape.closePath();
  const raw=new T.ExtrudeGeometry(shape,{depth:depth-.32,bevelEnabled:true,bevelThickness:.16,bevelSize:.16,bevelSegments:2,curveSegments:6,steps:1});
  const rp=raw.getAttribute('position');for(let i=0;i<rp.count;i++)rp.setZ(i,rp.getZ(i)+.16*Math.sin(rp.getX(i)*.8+rp.getY(i)*.65));
- raw.computeVertexNormals();const g=stoneColors(toCreasedNormals(raw,1.1),spring+outer-.55);raw.dispose();
+ raw.computeVertexNormals();const core=stoneColors(toCreasedNormals(raw,1.1),spring+outer-.55);raw.dispose();core.deleteAttribute('uv');
+ const parts:T.BufferGeometry[]=[core];
+ for(const side of [-1,1])for(let i=0;i<3;i++){
+  const px=side*(5.9+.5*Math.sin(i*2)),pz=depth/2+(i-1)*1.35,base=heightAt(x+px,z+pz-depth/2)-.4,top=spring+1.0+(i%2)*1.8;
+  parts.push(scenicStone(px,pz,1.65,1.25,base,top,side*.2,i+side*3));
+ }
+ for(const [px,seed] of [[-1.7,5],[1.6,9]])parts.push(scenicStone(px,depth/2,2.3,1.5,spring+4.0,spring+5.65,.1,seed));
+ const g=mergeGeometries(parts);parts.forEach(p=>p.dispose());
  const arch=new T.Mesh(g,stoneMaterial());arch.name='valley-rock-arch';arch.position.set(x,0,z-depth/2+.16);arch.castShadow=arch.receiveShadow=true;scene.add(arch);
  const p=g.getAttribute('position'),vertices=new Float32Array(p.count*3),indices=new Uint32Array(p.count);
  for(let i=0;i<p.count;i++){vertices.set([p.getX(i),p.getY(i),p.getZ(i)],i*3);indices[i]=i;}

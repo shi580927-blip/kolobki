@@ -6,7 +6,7 @@ import {roundedStone,stoneColors,stoneMaterial} from './StoneArt';
 import {makeBoulderGeometry} from './BoulderGeometry';
 import {waterfallFlowGeometry,waterfallFlowMaterial} from './WaterfallFlow';
 import {makeLeafGeometry} from './BerryArt';
-export const SHORE_CASCADE={x:POND.x-26.1,z:POND.z+24,width:7.9,depth:5.8,crest:5.8};
+export const SHORE_CASCADE={x:POND.x-26.1,z:POND.z+24,width:7.9,depth:5.8,crest:9.0};
 /** Low sideward droplets, spread along the full contact instead of a central jet. */
 export function cascadeSpraySample(i:number,time:number){
  const random=(salt:number)=>{const n=Math.sin(i*127.1+salt*311.7)*43758.5453;return n-Math.floor(n);};
@@ -25,6 +25,10 @@ export function addShoreCascade(scene:T.Scene,world:R.World){
  const turn=new T.Quaternion().setFromAxisAngle(new T.Vector3(0,1,0),Math.PI/2);
  // dx,dz,width,depth,top,lean: an irregular outcrop, never a repeated block wall.
  const masses=[[-2.55,.5,3.3,3.6,4.65,-.25],[-2.25,.2,2.8,3.0,6.3,.26,4.20],[2.4,.65,3.3,3.5,4.25,.24],[2.10,.15,2.7,2.9,5.85,-.18,3.95],[-2.0,-1.8,2.9,2.9,6.6,-.36],[2.0,-1.6,2.65,3.0,6.05,.26],[0,-.15,2.5,4.1,5.66,-.06]];
+ // Raise the visual cascade into a proper rocky spring head; its shallow
+ // lagoon and existing water interaction remain at the same level.
+ for(const mass of masses)mass[4]+=3.2;
+ masses.push([0,-2.3,2.65,3.5,crest-.15,0],[-2.15,-2.7,2.2,3.0,crest+1.2,-.1],[2.05,-2.8,2.0,2.8,crest+.9,.1]);
  const pieces:T.BufferGeometry[]=[],dummy=new T.Object3D();
  for(let k=0;k<masses.length;k++){
   const [dx,dz,width,depth,top,lean]=masses[k],px=x+dx,pz=z+dz,base=masses[k][6]??(ground(px,pz)-.38);
@@ -69,14 +73,17 @@ export function addShoreCascade(scene:T.Scene,world:R.World){
  const flowGeometry=new T.BufferGeometry(),positions:number[]=[],uv:number[]=[],indices:number[]=[],rows=12,cols=10;
  for(let j=0;j<=rows;j++){
   const t=j/rows*.25,fall=Math.max(0,(t-.25)/.75),y=t<.25?crest-.06+(.25-t)*.10:crest-.06-(crest-.06-bottom)*fall;
-  const zz=t<.25?z-1.8+t/.25*3.84:front+1.40*fall*fall;
-  const width=1.12+.36*fall+.08*Math.sin(t*9);
+  const zz=t<.25?z-3.9+t/.25*5.94:front+1.40*fall*fall;
+  const width=1.35+.36*fall+.08*Math.sin(t*9);
   for(let i=0;i<=cols;i++){const u=i/cols,bow=Math.sin(u*Math.PI);positions.push(x+(u-.5)*width*2+.07*Math.sin(t*7),y+.018*bow,zz+(.16*bow+.10*Math.sin(u*12+t*4))*fall);uv.push(u,t);if(j<rows&&i<cols){const a=j*(cols+1)+i;indices.push(a,a+cols+1,a+1,a+1,a+cols+1,a+cols+2);}}
  }
  flowGeometry.setAttribute('position',new T.Float32BufferAttribute(positions,3));flowGeometry.setAttribute('uv',new T.Float32BufferAttribute(uv,2));flowGeometry.setIndex(indices);flowGeometry.computeVertexNormals();
  const fall=new T.Mesh(flowGeometry,fallMaterial);fall.name='shore-cascade-water';group.add(fall);
  // Six closed, curved water masses replace the flat falling sheet and ribbons.
- const stream=new T.Mesh(waterfallFlowGeometry(x,front,crest,bottom),waterfallFlowMaterial(uniforms));
+ const volume=waterfallFlowGeometry(x,front,crest,bottom),vp=volume.getAttribute('position');
+ for(let i=0;i<vp.count;i++)vp.setX(i,x+(vp.getX(i)-x)*1.20);
+ volume.computeVertexNormals();
+ const stream=new T.Mesh(volume,waterfallFlowMaterial(uniforms));
  stream.name='shore-cascade-volume-flow';group.add(stream);
  // A low, irregular foam patch: dissipating cells rather than beads or a circular hoop.
  const impact=new T.Mesh(new T.PlaneGeometry(4.7,3.4,1,1),new T.ShaderMaterial({uniforms,transparent:true,depthWrite:false,side:T.DoubleSide,vertexShader:`varying vec2 v;void main(){v=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,fragmentShader:`
@@ -101,7 +108,7 @@ export function addShoreCascade(scene:T.Scene,world:R.World){
  // Small trailing plants grow from the actual top rim, with the spring channel clear.
  const plants=new T.InstancedMesh(makeLeafGeometry(7,4),new T.MeshStandardMaterial({vertexColors:true,roughness:1,side:T.DoubleSide}),72),axis=new T.Vector3(0,0,1);
  for(let i=0;i<12;i++){
-  const side=i<6?-1:1,k=i%6,px=x+side*(2.15+.38*Math.sin(k*2.1)),pz=z+.7+Math.cos(k*2.4)*.58,py=side<0?6.25:5.78;
+  const side=i<6?-1:1,k=i%6,px=x+side*(2.15+.38*Math.sin(k*2.1)),pz=z+.7+Math.cos(k*2.4)*.58,py=side<0?9.45:8.98;
   for(let j=0;j<6;j++){const a=j*2.399+i;dummy.position.set(px,py,pz);dummy.quaternion.setFromUnitVectors(axis,new T.Vector3(Math.cos(a),.35+(j%3)*.4,Math.sin(a)).normalize());dummy.scale.setScalar(.28+(j%3)*.045);dummy.updateMatrix();plants.setMatrixAt(i*6+j,dummy.matrix);}
  }plants.name='shore-cascade-rim-plants';group.add(plants);
  let elapsed=0;

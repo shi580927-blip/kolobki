@@ -7,7 +7,7 @@ import {nearestExplorationPath} from '../src/core/valleyExploration';
 
 test('mountain rock shoulders remain outside broad routes and within the physical field',()=>{
  const g=mountainCliffGeometry(),p=g.getAttribute('position');
- assert.ok(p.count/3<800);assert.ok(p.count/3>100);
+ assert.ok(p.count/3<12000);assert.ok(p.count/3>100);
  for(let i=0;i<p.count;i++){
   assert.ok(Math.abs(p.getX(i))<195&&Math.abs(p.getZ(i))<195);
   assert.ok(Number.isFinite(p.getY(i)));

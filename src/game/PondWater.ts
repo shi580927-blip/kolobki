@@ -40,7 +40,7 @@ export function addPondWater(scene:T.Scene){
  vec4 fieldB=texture2D(normalField,vec2(p.y,-p.x)*vec2(.21,.17)+vec2(-time*.004,time*.005));
  vec3 a=fieldA.xyz*2.-1.,b=fieldB.xyz*2.-1.;
  float shallow=smoothstep(.015,.20,depth);
- vec3 n=normalize(vec3((a.x+b.x)*shallow*.055,1.,(a.y+b.y)*shallow*.055));
+ vec3 n=normalize(vec3((a.x+b.x)*shallow*.08,1.,(a.y+b.y)*shallow*.08));
  vec3 view=normalize(cameraPosition-w);
  float facing=clamp(dot(view,n),0.,1.);
  float fresnel=.025+.975*pow(1.-facing,5.);
@@ -49,13 +49,15 @@ export function addPondWater(scene:T.Scene){
  vec3 sky=mix(vec3(.43,.69,.76),vec3(.16,.43,.68),smoothstep(0.,.85,reflected.y));
 
  float d=smoothstep(.025,.21,depth);
- vec3 water=mix(vec3(.045,.56,.46),vec3(.002,.28,.56),d);
+ vec3 water=mix(vec3(.035,.65,.56),vec3(.005,.36,.64),d);
  vec3 color=mix(water,sky,fresnel*.32);
  // Thin, irregular isocontours, broken by a separately moving field.
  float aa=max(.008,fwidth(fieldA.a)*.8);
- float crest=(1.-smoothstep(.008,.008+aa,abs(fieldA.a-.52)))*smoothstep(.60,.75,fieldB.a);
+ float crest=(1.-smoothstep(.008,.008+aa,abs(fieldA.a-.52)))*smoothstep(.68,.84,fieldB.a);
  color*=.97+.06*fieldA.a;
- color=mix(color,vec3(.72,.96,.98),crest*.40*shallow);
+ color=mix(color,vec3(.72,.96,.98),crest*.66*shallow);
+ float glints=pow(max(0.,sin(p.x*1.7+time*.8+fieldA.a*5.)),20.)*pow(max(0.,sin(p.y*2.3-time*.6+fieldB.a*6.)),18.);
+ color=mix(color,vec3(.90,1.,1.),glints*.5*shallow);
  float shoreBreak=fieldB.a;
  float edge=(1.-smoothstep(.004,.055,depth))*smoothstep(.38,.75,shoreBreak)*.60;
  color=mix(color,vec3(.78,.94,.88),edge);

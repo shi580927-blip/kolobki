@@ -54,10 +54,10 @@ async function start() {
   stage.appendChild(renderer.domElement);
   const scene = new T.Scene();
   scene.background = new T.Color(0x91cbed);
-  scene.fog = new T.Fog(0xb7dbea, 75, 205);
+  scene.fog = new T.Fog(0xbad9e5, 145, 640);
   let sky:ReturnType<typeof import("./game/CloudSky").addCloudSky>|undefined;
   let skyState="pending";
-  scene.add(new T.HemisphereLight(0xfff2dc, 0x586e76, 1.05));
+  scene.add(new T.HemisphereLight(0xfff2dc, 0x72905e, 1.55));
   const sun = new T.DirectionalLight(0xfff1de, 2.65);
   sun.position.set(-25, 45, 20);
   sun.castShadow = true;
@@ -72,7 +72,7 @@ async function start() {
   sun.shadow.camera.far = 110;
   scene.add(sun);
   scene.add(sun.target);
-  const camera = new T.PerspectiveCamera(52, 16 / 9, 0.1, 220);
+  const camera = new T.PerspectiveCamera(52, 16 / 9, 0.1, 950);
   camera.position.set(0, 10, -12);
   const rig = new CameraRig(camera);
   const world = new R.World({ x: 0, y: -18, z: 0 });
@@ -316,6 +316,8 @@ async function start() {
     rig.update(visual.position, player.heading, elapsed, Math.hypot(cameraVelocity.x, cameraVelocity.z),train?.count??0);
     groundLighting.art.updateOcclusion(visual.position,camera.position);
     groundLighting.pond.update(elapsed);
+    groundLighting.landmarks.update(elapsed);
+    groundLighting.horizon.update(elapsed);
     effects.update(elapsed);
     dust.render();wake.update(elapsed);sandFall.update(elapsed);
     casting?.update(elapsed);

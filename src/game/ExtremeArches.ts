@@ -3,6 +3,7 @@ import R from '@dimforge/rapier3d-compat';
 import {mergeGeometries,toCreasedNormals} from 'three/addons/utils/BufferGeometryUtils.js';
 import {heightAt} from '../core/terrain';
 import {stoneColors,stoneMaterial} from './StoneArt';
+import {scenicStone} from './ScenicStone';
 
 export const EXTREME_ARCHES=[
  {name:'north foothill crossing',x:-22,z:-102,halfLength:46,depth:6.4},
@@ -31,14 +32,29 @@ export function extremeArchGeometry(a:ExtremeArch){
  for(let u=a.halfLength;u>=8;u-=2)shape.lineTo(u,floor(u));
  shape.lineTo(8,floor(8));
  shape.lineTo(8,roof-6.5);
- shape.bezierCurveTo(8,roof-3,5.4,roof-2.2,0,roof-2.1);
- shape.bezierCurveTo(-5.4,roof-2.2,-8,roof-3,-8,roof-6.5);
+ shape.bezierCurveTo(8,roof-4.1,5.4,roof-3.65,0,roof-3.5);
+ shape.bezierCurveTo(-5.4,roof-3.65,-8,roof-4.1,-8,roof-6.5);
  shape.lineTo(-8,floor(-8));
  for(let u=-8;u>=-a.halfLength;u-=2)shape.lineTo(u,floor(u));
  shape.lineTo(-a.halfLength,floor(-a.halfLength));shape.closePath();
  const raw=new T.ExtrudeGeometry(shape,{depth:a.depth,bevelEnabled:false,curveSegments:12,steps:1});
+ const position=raw.getAttribute('position');
+ for(let i=0;i<position.count;i++){
+  const u=position.getX(i),edge=position.getZ(i)/a.depth*2-1;
+  position.setZ(i,a.depth/2+edge*(a.depth/2+.28*Math.sin(u*.24)+.12*Math.sin(u*.73)));
+ }
  const g=toCreasedNormals(raw,.8);raw.dispose();stoneColors(g,roof-.3);
- g.translate(a.x,0,a.z-a.depth/2);return g;
+ g.deleteAttribute('uv');g.translate(a.x,0,a.z-a.depth/2);
+ const parts:T.BufferGeometry[]=[g];
+ // Rock buttresses and offset foot stones give the vault substantial eroded
+ // shoulders, while keeping the complete lower opening and upper track free.
+ for(const side of [-1,1])for(let i=0;i<4;i++)for(const face of [-1,1]){
+  const u=side*(11.4+i*5.4),x=a.x+u,z=a.z+face*(a.depth/2+.6+(i%2)*.3);
+  const base=heightAt(x,z)-.55,top=Math.min(archDeckHeight(a,x)-.35,base+3.2+(3-i)*1.1);
+  if(top<base+.6)continue;
+  parts.push(scenicStone(x,z,2.7+(i%2)*.45,1.8,base,top,side*.13,i+face*4+side*7));
+ }
+ const joined=mergeGeometries(parts);parts.forEach(p=>p.dispose());return joined;
 }
 export function addExtremeArches(scene:T.Scene,world:R.World){
  const parts=EXTREME_ARCHES.map(extremeArchGeometry),geometry=mergeGeometries(parts);parts.forEach(g=>g.dispose());
