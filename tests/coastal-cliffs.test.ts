@@ -49,7 +49,7 @@ test('physical player can roll along the connected western ridge in both directi
 });
 
 test('expanded field preserves two-metre ground resolution and solid playable outer terrain',()=>{
- assert.equal(WORLD_SIZE,260);const g=terrainData();assert.equal(g.vertices.length,(131*131)*3);
- assert.equal(g.vertices[3]-g.vertices[0],2);assert.equal(g.vertices[0],-130);
+ assert.equal(WORLD_SIZE,400);const g=terrainData();assert.equal(g.vertices.length,(201*201)*3);
+ assert.equal(g.vertices[3]-g.vertices[0],2);assert.equal(g.vertices[0],-200);
  for(const [x,z] of [[110,61],[-112,-56],[104,83],[-103,-78]])assert.ok(Number.isFinite(heightAt(x,z)));
 });

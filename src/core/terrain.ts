@@ -1,6 +1,7 @@
+import {southCoveFloor} from './southCrossing';
 import {coastHeight,joinWestCoast} from './coast';
 import {landscapeRelief} from './landscapeRelief';
-export const WORLD_SIZE = 260;
+export const WORLD_SIZE = 400;
 export const POND = {x:-35,z:18,water:2.15,radius:5.6,flare:12.0};
 /** Narrow spring inlet under the bridge opens into a broad southern lake.
  * One continuous contour drives water, terrain, coating and prop clearance. */
@@ -34,7 +35,7 @@ export function heightAt(x: number, z: number) {
   const smooth=(a:number,b:number,v:number)=>{const t=Math.max(0,Math.min(1,(v-a)/(b-a)));return t*t*(3-2*t);};
   const dx=Math.abs(x-POND.x),dz=Math.abs(z-POND.z);
   const approach=smooth(5.8,6.4,dx)*(1-smooth(8,20,dx))*(1-smooth(2.6,5,dz));
-  return joinWestCoast(x,z,basin*(1-approach)+(POND.water+.12)*approach+coastHeight(x,z));
+  return southCoveFloor(x,z,joinWestCoast(x,z,basin*(1-approach)+(POND.water+.12)*approach+coastHeight(x,z)));
 }
 /** Shared vertices and indices: rendering and collision use identical triangles. */
 export function terrainData(segments = WORLD_SIZE / 2) {
