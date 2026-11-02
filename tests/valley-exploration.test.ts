@@ -18,7 +18,7 @@ test('large valley has connected outer walks with gentle grades, rather than pat
    }
   }
  }
- assert.ok(length>500);assert.equal(VALLEY_CLEARINGS.length,10);
+ assert.ok(length>500);assert.equal(VALLEY_CLEARINGS.length,12);
 });
 
 test('outer scenery reaches every clearing and keeps broad exploration paths free',()=>{

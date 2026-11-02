@@ -14,6 +14,12 @@ export function valleyLandmarkLayout(){
   if(nearestRoutePoint(x,z).distance<size+11||nearestExplorationPath(x,z).distance<size+5||pondClearance(x,z)<5)continue;
   rocks.push({x,z,size,variant:i,angle:a});
  }
+ // Separate western outcrops, with wide gaps and no continuous boundary fence.
+ for(const [group,[cx,cz]] of [[-175,40],[-176,-75],[-126,-88]].entries())for(let i=0;i<3;i++){
+  const x=cx+(i-1)*4.2,z=cz+Math.sin(i*1.9+group)*2.8,size=[4.8,3.4,2.1][i];
+  if(nearestRoutePoint(x,z).distance<size+11||nearestExplorationPath(x,z).distance<size+5||pondClearance(x,z)<5)continue;
+  rocks.push({x,z,size,variant:(group+i)%5,angle:group*.7+i*.9});
+ }
  return rocks;
 }
 export function addValleyLandmarks(scene:T.Scene,world:R.World){
