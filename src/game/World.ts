@@ -9,6 +9,8 @@ import {addSouthBridge} from './SouthBridge';
 import {addCoastalCliffs} from './CoastalCliffs';
 import {addValleyLandmarks} from './ValleyLandmarks';
 import {addPlateauCliffs} from './PlateauCliffs';
+import {addMountainCliffs} from './MountainCliffs';
+import {addExtremeArches} from './ExtremeArches';
 import {clearRoutePosition} from '../core/valleyRoute';
 export function createWorld(scene: THREE.Scene, world: RAPIER.World) {
   const { vertices, indices } = terrainData();
@@ -52,6 +54,8 @@ export function createWorld(scene: THREE.Scene, world: RAPIER.World) {
   const pond=addPondStudy(scene,world);
   addRockArch(scene,world);
   addPlateauCliffs(scene,world);
+  addMountainCliffs(scene,world);
+  addExtremeArches(scene,world);
   addCoastalCliffs(scene,world);
   addSouthBridge(scene,world);
   addValleyLandmarks(scene,world);

@@ -7,8 +7,18 @@ export function makeGroundLighting(){
  material.onBeforeCompile=shader=>{
   shader.uniforms.groundContacts={value:contacts};
   shader.uniforms.beachColor={value:new T.Color('#e5c891')};
+  shader.uniforms.mountainStone={value:new T.Color('#cbbca4')};
   shader.vertexShader=shader.vertexShader.replace('#include <common>','#include <common>\nvarying vec3 contactWorld;').replace('#include <project_vertex>','contactWorld=(modelMatrix*vec4(transformed,1.)).xyz;\n#include <project_vertex>');
-  shader.fragmentShader=shader.fragmentShader.replace('#include <common>','#include <common>\nvarying vec3 contactWorld;uniform vec4 groundContacts[11];uniform vec3 beachColor;\n'+shoreSandGLSL).replace('#include <color_fragment>',`#include <color_fragment>
+  shader.fragmentShader=shader.fragmentShader.replace('#include <common>','#include <common>\nvarying vec3 contactWorld;uniform vec4 groundContacts[11];uniform vec3 beachColor;uniform vec3 mountainStone;\n'+shoreSandGLSL).replace('#include <color_fragment>',`#include <color_fragment>
+   // World-space exposed rock follows the actual slope. No extra surface or
+   // collision layer: the same terrain triangles carry grass and stone.
+   vec3 groundNormal=normalize(cross(dFdx(contactWorld),dFdy(contactWorld)));
+   float mountainZone=smoothstep(124.,144.,length(contactWorld.xz));
+   float exposed=(1.-smoothstep(.58,.85,abs(groundNormal.y)))*mountainZone;
+   float strata=.5+.5*sin(contactWorld.y*.61+sin(contactWorld.x*.035+contactWorld.z*.04)*1.2);
+   float seams=sin(contactWorld.x*.19+sin(contactWorld.z*.073)*2.+contactWorld.y*.055);
+   float fracture=(1.-smoothstep(.015,.075,abs(seams)))*( .35+.65*strata);
+   diffuseColor.rgb=mix(diffuseColor.rgb,mountainStone*(.89+.13*strata-.12*fracture),exposed);
    float sand=shoreSand(contactWorld.xz);
    float sandMottle=sin(contactWorld.x*.65+sin(contactWorld.z*.42))*sin(contactWorld.z*.83);
    diffuseColor.rgb=mix(diffuseColor.rgb,beachColor*(1.+sandMottle*.045),sand);
@@ -30,6 +40,6 @@ export function makeGroundLighting(){
    diffuseColor.rgb*=1.-contactShade;
   `);
  };
- material.customProgramCacheKey=()=> 'valley-ground-shore-v3';
+ material.customProgramCacheKey=()=> 'valley-ground-mountain-v4';
  return {material,setContacts(positions:readonly T.Vector3[]){contacts.forEach((c,i)=>{const p=positions[i];if(p)c.set(p.x,p.y,p.z,1);else c.w=0;});}};
 }
