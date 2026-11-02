@@ -5,6 +5,8 @@ export const EXPLORATION_PATHS=[
  [[54,6],[68,17],[79,32],[70,48],[54,59],[37,54],[28,42]],
  [[24,-38],[39,-55],[26,-72],[2,-77],[-22,-66],[-38,-30]],
  [[-38,-30],[-57,-37],[-72,-24],[-73,-3],[-61,-7],[-59,4],[-60,12]],
+ [[54,6],[83,8],[108,29],[110,61],[104,83],[88,91],[50,85],[30,70],[28,42]],
+ [[-38,-30],[-58,-57],[-80,-72],[-103,-78],[-112,-56],[-102,-30],[-72,-24]],
 ] as const;
 export const VALLEY_CLEARINGS=[
  {x:-58,z:19,radius:15,kind:0}, // grove below the plateau
@@ -13,6 +15,8 @@ export const VALLEY_CLEARINGS=[
  {x:26,z:-67,radius:19,kind:0}, // southern orchard
  {x:-18,z:-68,radius:17,kind:1},
  {x:-69,z:-24,radius:17,kind:2},
+ {x:104,z:80,radius:15,kind:1},
+ {x:-104,z:-77,radius:15,kind:0},
 ] as const;
 export function nearestExplorationPath(x:number,z:number){
  let nearest={x:0,z:0,distance:Infinity};

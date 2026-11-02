@@ -5,6 +5,7 @@ import {makeGroundLighting} from "./GroundLighting";
 import {addValleyArt,valleyGroundColor,valleyRockGeometry} from "./ValleyArt";
 import {addRockArch} from "./RockArch";
 import {addPondStudy} from "./PondStudy";
+import {addCoastalCliffs} from './CoastalCliffs';
 import {addValleyLandmarks} from './ValleyLandmarks';
 import {addPlateauCliffs} from './PlateauCliffs';
 import {clearRoutePosition} from '../core/valleyRoute';
@@ -50,6 +51,7 @@ export function createWorld(scene: THREE.Scene, world: RAPIER.World) {
   const pond=addPondStudy(scene,world);
   addRockArch(scene,world);
   addPlateauCliffs(scene,world);
+  addCoastalCliffs(scene,world);
   addValleyLandmarks(scene,world);
   // Sparse collision targets: original primitive geometry, no third-party assets.
   for (const [originalX, originalZ, r] of [

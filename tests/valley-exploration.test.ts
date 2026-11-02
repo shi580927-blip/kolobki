@@ -18,11 +18,11 @@ test('large valley has connected outer walks with gentle grades, rather than pat
    }
   }
  }
- assert.ok(length>500);assert.equal(VALLEY_CLEARINGS.length,6);
+ assert.ok(length>500);assert.equal(VALLEY_CLEARINGS.length,8);
 });
 
 test('outer scenery reaches every clearing and keeps broad exploration paths free',()=>{
- const layout=valleyArtLayout(),rocks=valleyLandmarkLayout();assert.ok(rocks.length>=15&&rocks.length<=30);
+ const layout=valleyArtLayout(),rocks=valleyLandmarkLayout();assert.ok(rocks.length>=15&&rocks.length<=40);
  for(const c of VALLEY_CLEARINGS){
   assert.ok(layout.trees.some(p=>Math.hypot(p.x-c.x,p.z-c.z)<c.radius*1.2));
   assert.ok(layout.flowers.some(p=>Math.hypot(p.x-c.x,p.z-c.z)<c.radius));

@@ -5,6 +5,7 @@ import R from '@dimforge/rapier3d-compat';
 import {makeLeafGeometry} from './BerryArt';
 import {heightAt,WORLD_SIZE,POND,pondDistance,pondRadius,pondClearance} from '../core/terrain';
 import {clearRoutePosition,nearestRoutePoint,VALLEY_ROUTE} from '../core/valleyRoute';
+import {COAST_TERRACES} from '../core/coast';
 import {nearestExplorationPath,VALLEY_CLEARINGS} from '../core/valleyExploration';
 import {shoreSandCoverage} from '../core/shore';
 import {randomFrom} from '../core/skin';
@@ -42,7 +43,7 @@ export function valleyArtLayout(){
   const a=i/24*Math.PI*2+(random()-.5)*.2,r=76+random()*24,point=clearRoutePosition(Math.cos(a)*r,Math.sin(a)*r,4.2);
   if(!trees.some(p=>Math.hypot(p.x-point.x,p.z-point.z)<5))trees.push({...point,scale:1+random()*.5,kind:i%3});
  }
- // Compose outer groves around six open clearings, connected by broad optional paths.
+ // Compose outer groves around eight open clearings, connected by broad optional paths.
  for(const [zone,c] of VALLEY_CLEARINGS.entries()){
   for(let i=0;i<9;i++){
    const a=i/9*Math.PI*2+zone*.53,r=c.radius*(.72+random()*.35);
@@ -59,7 +60,7 @@ export function valleyArtLayout(){
  for(let i=trees.length-1;i>=0;i--)if(nearestExplorationPath(trees[i].x,trees[i].z).distance<5.5)trees.splice(i,1);
  // Keep trees away from the water and its gentle shoreline.
  for(const tree of trees){const dx=tree.x-POND.x,dz=tree.z-POND.z,d=Math.hypot(dx,dz);const clearance=pondRadius(Math.atan2(dz,dx))+7;if(d<clearance){const k=clearance/(d||1);tree.x=POND.x+dx*k;tree.z=POND.z+dz*k;}}
- for(let i=trees.length-1;i>=0;i--)if(nearestExplorationPath(trees[i].x,trees[i].z).distance<5.5||Math.abs(trees[i].x)>103||Math.abs(trees[i].z)>103)trees.splice(i,1);
+ for(let i=trees.length-1;i>=0;i--)if(nearestExplorationPath(trees[i].x,trees[i].z).distance<5.5||COAST_TERRACES.some(c=>Math.hypot((trees[i].x-c.x)/(c.rx*1.6+3),(trees[i].z-c.z)/(c.rz+5))<1)||Math.abs(trees[i].x)>WORLD_SIZE/2-7||Math.abs(trees[i].z)>WORLD_SIZE/2-7)trees.splice(i,1);
  const flowers:{x:number;z:number;height:number;size:number;kind:number}[]=[],grass:{x:number;z:number;height:number;angle:number}[]=[],rocks:{x:number;z:number;radius:number}[]=[],pebbles:{x:number;z:number;size:number}[]=[];
  for(let i=0;i<840;i++){
   const p=patches[i%patches.length],a=random()*Math.PI*2,r=Math.sqrt(random())*2.7,x=p.x+Math.cos(a)*r,z=p.z+Math.sin(a)*r;
