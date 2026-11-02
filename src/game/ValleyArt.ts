@@ -43,7 +43,7 @@ export function valleyArtLayout(){
   const a=i/24*Math.PI*2+(random()-.5)*.2,r=76+random()*24,point=clearRoutePosition(Math.cos(a)*r,Math.sin(a)*r,4.2);
   if(!trees.some(p=>Math.hypot(p.x-point.x,p.z-point.z)<5))trees.push({...point,scale:1+random()*.5,kind:i%3});
  }
- // Compose outer groves around eight open clearings, connected by broad optional paths.
+ // Compose outer groves around the open clearings, connected by broad optional paths.
  for(const [zone,c] of VALLEY_CLEARINGS.entries()){
   for(let i=0;i<9;i++){
    const a=i/9*Math.PI*2+zone*.53,r=c.radius*(.72+random()*.35);

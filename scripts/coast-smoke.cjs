@@ -23,10 +23,10 @@ const assert=require('node:assert/strict');
     await R.init();const scene=new T.Scene();scene.background=new T.Color('#bcdfe9');
     scene.add(new T.HemisphereLight('#f4fbff','#7b744c',2.2));const sun=new T.DirectionalLight('#fff1cc',3);sun.position.set(-40,100,-35);scene.add(sun);
     createWorld(scene,new R.World({x:0,y:-18,z:0}));
-    const camera=new T.PerspectiveCamera(42,1280/720,.1,700);camera.position.set(8,67,107);camera.lookAt(-62,3,42);if(view.wide){camera.position.set(300,340,340);camera.lookAt(0,0,0);}else if(view.south){camera.position.set(-15,22,105);camera.lookAt(-46,2,74);}
+    const camera=new T.PerspectiveCamera(42,1280/720,.1,700);camera.position.set(8,67,107);camera.lookAt(-62,3,42);if(view.wide){camera.position.set(300,340,340);camera.lookAt(0,0,0);}else if(view.east){camera.position.set(195,85,215);camera.lookAt(132,4,126);}else if(view.south){camera.position.set(-15,22,105);camera.lookAt(-46,2,74);}
     const renderer=new T.WebGLRenderer({antialias:true});renderer.setSize(1280,720);renderer.setPixelRatio(1);renderer.setAnimationLoop(null);document.body.appendChild(renderer.domElement);renderer.render(scene,camera);
-   },{wide:process.argv.includes('--wide'),south:process.argv.includes('--south')});
-   await page.screenshot({path:process.argv.includes('--wide')?`docs/qa/dev${require('../package.json').version.split('dev.')[1]}-map.png`:process.argv.includes('--south')?'docs/qa/dev63-bridge-overview.png':'docs/qa/dev61-coast-overview.png'});assert.deepEqual(errors,[]);return;
+   },{wide:process.argv.includes('--wide'),south:process.argv.includes('--south'),east:process.argv.includes('--east')});
+   await page.screenshot({path:process.argv.includes('--wide')?`docs/qa/dev${require('../package.json').version.split('dev.')[1]}-map.png`:process.argv.includes('--east')?'docs/qa/dev64-east-overview.png':process.argv.includes('--south')?'docs/qa/dev63-bridge-overview.png':'docs/qa/dev61-coast-overview.png'});assert.deepEqual(errors,[]);return;
   }
   await page.addInitScript(()=>localStorage.setItem('sharobesy.skin.v1','4321'));
   await page.goto(url+'/?skin-test');await page.waitForFunction(()=>window.__SHAROBESY__&&document.querySelector('#boot').hidden);
