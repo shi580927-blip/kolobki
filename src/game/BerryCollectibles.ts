@@ -3,9 +3,10 @@ import {BerryArt,berryPlacement} from './BerryArt';
 import type {EventBus} from '../core/events';
 /** Ordinary berries for the first rolling test; ability fruit is a later task. */
 export class BerryCollectibles {
- readonly total=12;count=0;readonly items:{mesh:T.Group;collected:boolean}[]=[];
+ readonly total:number;count=0;readonly items:{mesh:T.Group;collected:boolean}[]=[];
  private segment=new T.Vector3();private offset=new T.Vector3();private closest=new T.Vector3();
- constructor(scene:T.Scene,private bus:EventBus,environment?:T.Texture){
+ constructor(scene:T.Scene,private bus:EventBus,environment?:T.Texture,enabled=true){
+  this.total=enabled?12:0;if(!enabled)return;
   const art=new BerryArt(environment),placements=Array.from({length:this.total},(_,i)=>berryPlacement(i));
   art.plants(scene,placements);
   placements.forEach((p,i)=>{const group=art.fruit(721+i);group.position.set(p.x,p.centerY,p.z);group.rotation.y=i*1.7;group.name='berry-'+i;group.userData.onPlant=p.onPlant;scene.add(group);this.items.push({mesh:group,collected:false});});

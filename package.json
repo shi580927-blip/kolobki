@@ -1,7 +1,7 @@
 {
   "name": "sharobesy",
   "private": true,
-  "version": "0.1.0-dev.70",
+  "version": "0.1.0-dev.71",
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@dimforge/rapier3d-compat": "0.19.3",
+    "peerjs": "1.5.5",
     "three": "0.180.0"
   },
   "devDependencies": {

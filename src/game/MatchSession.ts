@@ -29,12 +29,15 @@ export class MatchSession {
   const choose=(track:ValleyTrack)=>{this.rules.select(track);buttons.forEach((button,i)=>button.setAttribute('aria-pressed',String(VALLEY_TRACKS[i].id===track.id)));};
   for(const track of VALLEY_TRACKS){
    const button=document.createElement('button');button.type='button';button.dataset.track=track.id;button.textContent=`${track.name} · ${track.halfWidth*2} м`;
+   button.hidden=track.id!==MEADOW_TRACK.id;
    const detail=document.createElement('small');detail.textContent=track.skill;button.appendChild(detail);button.onclick=()=>choose(track);buttons.push(button);choices.appendChild(button);
   }
   choose(this.rules.track);
+  const more=document.createElement('button');more.id='track-more';more.type='button';more.textContent='Другие трассы';more.setAttribute('aria-controls','track-choices');more.setAttribute('aria-expanded','false');
+  more.onclick=()=>{buttons.forEach(b=>b.hidden=false);more.setAttribute('aria-expanded','true');more.hidden=true;};
   this.button=document.createElement('button');this.button.id='match-start';this.button.textContent='Начать матч';this.button.onclick=()=>this.start();
   const sandbox=document.createElement('button');sandbox.id='sandbox-choice';sandbox.textContent='Пока свободное катание';sandbox.onclick=()=>{this.entry.hidden=true;document.querySelector('#tools')!.appendChild(this.button);};
-  this.entry.append(heading,instructions,choices,this.button,sandbox);document.querySelector('#hud')!.appendChild(this.entry);
+  this.entry.append(heading,instructions,choices,more,this.button,sandbox);document.querySelector('#hud')!.appendChild(this.entry);
   const exit=document.createElement('button');exit.id='match-exit';exit.textContent='В песочницу';exit.onclick=()=>this.exit();this.result.appendChild(exit);
  }
  get active(){return this.rules.phase!=='sandbox';}

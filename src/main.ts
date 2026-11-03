@@ -8,7 +8,7 @@ import {validateDesign} from "./skin/SkinDesign";
 import {BerryCollectibles} from "./game/BerryCollectibles";
 import * as T from "three";
 import R from "@dimforge/rapier3d-compat";
-import { loadSkin, randomFrom } from "./core/skin";
+import { loadSkin, skinFrom, randomFrom } from "./core/skin";
 import { fit16by9, heightAt, WORLD_SIZE } from "./core/terrain";
 import { EventBus } from "./core/events";
 import {ImpactMeter} from "./game/ImpactModel";
@@ -30,6 +30,8 @@ import {RoadDust} from "./game/RoadDust";
 import { ImpactAudio } from "./game/ImpactAudio";
 import {addDeviceControls} from "./game/DeviceControls";
 import { OrbitInput } from "./game/OrbitInput";
+import {DuoSession} from './game/DuoSession';
+import {readDuoInvite} from './game/DuoProtocol';
 async function start() {
   document.querySelector(".brand small")!.textContent=`АЛЬФА 0.1 · ${buildVersion.replace("0.1.0-", "")} · ТЕХНИЧЕСКИЙ ТЕСТ`;
   bootProgress("Готовим игру…");
@@ -38,6 +40,7 @@ async function start() {
   const resources=await loadAnimationAtlas(),atlas=gameplayAtlas(resources.data);
   const appearanceTest=new URLSearchParams(location.search).has("skin-test");
   const valleyStudy=new URLSearchParams(location.search).has("valley-study");
+  const duoInvite=readDuoInvite(location.hash),duoMode=new URLSearchParams(location.search).has('duo')||!!duoInvite;
   let berryDetail=valleyStudy&&new URLSearchParams(location.search).has("berry-detail");
   const stage = document.querySelector<HTMLElement>("#stage")!,
     hud = document.querySelector<HTMLElement>("#hud")!,
@@ -83,7 +86,7 @@ async function start() {
   const bus = new EventBus();
   const audio = new ImpactAudio();
   addDeviceControls(audio);
-  const player = new PhysicsPlayer(world, bus);
+  const player = new PhysicsPlayer(world, bus,duoMode?{x:duoInvite?4:-4,z:0}:undefined);
   const dust = new RoadDust(scene);
   const wake = new WaterWake(scene,strength=>audio.splash(strength));
   const waterSafety=new WaterRescue(world);
@@ -102,16 +105,18 @@ async function start() {
   if(appearanceTest){try{const saved=storage.getItem('sharobesy.author.skin-study.v1');if(saved)design=validateDesign(JSON.parse(saved));}catch{/* Invalid author config does not change the player. */}}
   function environmentFor(r:T.WebGLRenderer,force=false){if(!force&&(design.gloss<=0||design.surface!=='smooth'||design.growthCount>0))return undefined;const room=new RoomEnvironment(),pmrem=new T.PMREMGenerator(r),texture=pmrem.fromScene(room,.04).texture;room.dispose();pmrem.dispose();return texture;}
   const worldEnvironment=environmentFor(renderer,true);
-  const berries = new BerryCollectibles(scene, bus,worldEnvironment);
+  const berries = new BerryCollectibles(scene, bus,worldEnvironment,!duoMode);
   const visual=new RuntimeVisual(design,atlas,resources.textures,skin.mood,worldEnvironment);
   scene.add(visual);
   const casting=valleyStudy?addValleyStudy(scene,atlas,resources.textures,worldEnvironment):undefined;
   const contactPositions=[visual.position,...(casting?.actors.map(a=>a.position)??[])];
   if(casting){const label=document.createElement("div");label.textContent="ПРОБА ДОЛИНЫ · 10 образцов без поведения и столкновений";label.style.cssText="position:absolute;left:24px;bottom:76px;font-size:15px;color:#24463c;background:#fff6dfdf;padding:8px 12px;border-radius:12px;text-shadow:none";hud.appendChild(label);const detailButton=document.createElement('button');detailButton.textContent='Ягоды крупно / общий вид';detailButton.onclick=()=>{berryDetail=!berryDetail;};document.querySelector('#tools')!.appendChild(detailButton);}
-  const npcs=!appearanceTest&&!valleyStudy?new NpcSystem(scene,world,bus,atlas,resources.textures,worldEnvironment,crypto.getRandomValues(new Uint32Array(1))[0]):undefined;
+  const npcs=!appearanceTest&&!valleyStudy&&!duoMode?new NpcSystem(scene,world,bus,atlas,resources.textures,worldEnvironment,crypto.getRandomValues(new Uint32Array(1))[0]):undefined;
   const trainOptions:TrainOptions={};
   const train=npcs?new TrainSystem(world,player,npcs.actors.map(a=>({id:a.entry.id,physics:a.physics})),bus,trainOptions):undefined;
   let match:MatchSession|undefined;
+  const duo=duoMode?new DuoSession(scene,player,skin.seed,buildVersion,seed=>{const s=skinFrom(seed);return new RuntimeVisual(designForGame(s),atlas,resources.textures,s.mood,worldEnvironment);}):undefined;
+  if(!duoMode&&!appearanceTest&&!valleyStudy){const button=document.createElement('button');button.id='duo-launch';button.textContent='Вдвоём · тест';button.onclick=()=>{const url=new URL(location.href);url.searchParams.set('duo','1');url.hash='';location.assign(url.href);};document.querySelector('#tools')!.appendChild(button);}
   if(npcs){const label=document.createElement("div");label.id="train-status";label.textContent="Поезд: 0 / 5 · Коснитесь шаробеса без сильного тарана";label.style.cssText="position:absolute;left:30px;top:123px;font-size:13px;color:#fff";hud.appendChild(label);}
   const input = new Input(),
     effects = new Effects(scene);
@@ -165,6 +170,7 @@ async function start() {
       (berries.count === berries.total ? " · Все собраны!" : "");
   };
   updateBerryCount();
+  berryCount.hidden=duoMode;
   bus.on("berry_pickup", ({ position }) => {
     updateBerryCount();
     effects.sparkle(position);
@@ -331,10 +337,11 @@ async function start() {
     dust.render();wake.update(elapsed);sandFall.update(elapsed);
     casting?.update(elapsed);
     npcs?.update(elapsed,alpha);
+    const remote=duo?.update(elapsed);if(remote)wake.emit(-2,{x:remote.p[0],y:remote.p[1],z:remote.p[2]},{x:remote.v[0],y:remote.v[1],z:remote.v[2]});
     for(const actor of npcs?.actors??[])actor.visual.updateSand(actor.physics.coating.sand,actor.physics.coating.wetness);
     if(train)trainStatus();
     match?.render();
-    groundLighting.setContacts(contactPositions);
+    groundLighting.setContacts(duo?.remotePosition?[...contactPositions,duo.remotePosition]:contactPositions);
     sun.position.copy(visual.position).add(new T.Vector3(-25, 45, 20));
     sun.target.position.copy(visual.position);
     if(berryDetail){const ground=heightAt(0,5);camera.position.set(-2.8,ground+1.7,2.7);camera.lookAt(0,ground+.5,5);}
@@ -372,6 +379,7 @@ async function start() {
       wetSand:{wetness:player.coating.wetness,sand:player.coating.sand},waterSubmersion:pondSubmersion(player.current),waterSafety:waterSafety.snapshot(-1),waterWaves:wake.count,waterSplashes:wake.splashCount,dustCount:dust.count, physicsTime,impactCharge:impactMeter.value,train:train?.snapshot(),match:match?.snapshot(),audio:audio.snapshot(),fullscreen:!!document.fullscreenElement,
       npcs:npcs?.snapshot().map(a=>({...a,state:train?.has(a.id)?"wagon":train?.isJoining(a.id)?"joining":match?.controlled(a.id)?a.id===0?"rival":"rival-wagon":a.state}))??[],npcContacts:npcs?.collisionsWithPlayer??0,npcSeed:npcs?.seed,
       buildVersion,worldSize:WORLD_SIZE,worldArt:"sunny-valley-gardens-v2",environmentArt:groundLighting.art,valleyFeatures:groundLighting.features.snapshot(),skyArt:skyState,cloudCount:sky?.clouds.length??0,cameraFov:camera.fov,
+      duo:duo?.snapshot(),
       berryDetail,
       shadowSettings:{mapSize:sun.shadow.mapSize.x,normalBias:sun.shadow.normalBias,contactCount:contactPositions.length},berryArt:"raspberry-plants-v1",
       valleyStudy:!!casting,studyActors:casting?.actors.map(a=>({seed:a.design.seed,surface:a.design.surface,pattern:a.design.pattern,position:a.position.toArray(),facePose:a.face.expression()})),drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles,

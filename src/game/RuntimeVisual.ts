@@ -27,4 +27,8 @@ export class RuntimeVisual extends T.Group {
   this.clearanceOrientation.copy(this.face.quaternion).multiply(this.face.rig.quaternion).multiply(pose.quaternion);
   this.sample.syncDecorations(this.clearanceOrientation);this.rotation.z=this.face.rocking;
  }
+ dispose(){
+  this.sample.dispose();this.face.traverse(o=>{if(o instanceof T.Mesh){o.geometry.dispose();for(const m of Array.isArray(o.material)?o.material:[o.material])m.dispose();}});
+  this.sandCoat.geometry.dispose();(this.sandCoat.material as T.Material).dispose();
+ }
 }
