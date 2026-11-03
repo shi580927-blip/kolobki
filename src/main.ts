@@ -198,7 +198,7 @@ async function start() {
   });
   const resetGame = () => {
     player.reset();
-    dust.reset();wake.reset();sandFall.reset();
+    dust.reset();wake.reset();sandFall.reset();groundLighting.features.reset();
     npcs?.reset();
     train?.reset();trainStatus();
     berries.reset();impactMeter.reset();waterSafety.reset();physicsTime=0;faces.forEach(f=>f.rig.reset());
@@ -276,6 +276,10 @@ async function start() {
       world.step(events);
       player.sync();
       npcs?.sync();
+      for(const boosted of groundLighting.features.step([{id:-1,physics:player},...(npcs?.actors.map(a=>({id:a.entry.id,physics:a.physics}))??[])])){
+        effects.sparkle(boosted.physics.current);
+        if(boosted.id===-1){audio.dash();react('happy');}else npcs?.actors.find(a=>a.entry.id===boosted.id)?.visual.face.play('happy');
+      }
       const rescue=waterSafety.step(-1,player,dt);
       if(rescue){wake.splash(rescue.from.x,rescue.from.z,9);faces.forEach(f=>{f.rig.reset();f.play('fury');});rig.shake=Math.max(rig.shake,.12);}
       for(const actor of npcs?.actors??[]){const rescue=waterSafety.step(actor.entry.id,actor.physics,dt);if(rescue){wake.splash(rescue.from.x,rescue.from.z,9);actor.visual.face.rig.reset();actor.visual.face.play('fury');}}
@@ -367,7 +371,7 @@ async function start() {
       faceVisibility: Object.entries(visual.face.rig.poses).filter(([,g])=>g.visible).map(([name,g])=>({name,rotation:g.rotation.toArray(),opacity:(g.children.find(o=>o.name.startsWith('study-')) as T.Mesh<T.BufferGeometry,T.ShaderMaterial>).material.uniforms.opacity.value})),
       wetSand:{wetness:player.coating.wetness,sand:player.coating.sand},waterSubmersion:pondSubmersion(player.current),waterSafety:waterSafety.snapshot(-1),waterWaves:wake.count,waterSplashes:wake.splashCount,dustCount:dust.count, physicsTime,impactCharge:impactMeter.value,train:train?.snapshot(),match:match?.snapshot(),audio:audio.snapshot(),fullscreen:!!document.fullscreenElement,
       npcs:npcs?.snapshot().map(a=>({...a,state:train?.has(a.id)?"wagon":train?.isJoining(a.id)?"joining":match?.controlled(a.id)?a.id===0?"rival":"rival-wagon":a.state}))??[],npcContacts:npcs?.collisionsWithPlayer??0,npcSeed:npcs?.seed,
-      buildVersion,worldSize:WORLD_SIZE,worldArt:"sunny-valley-gardens-v2",environmentArt:groundLighting.art,skyArt:skyState,cloudCount:sky?.clouds.length??0,cameraFov:camera.fov,
+      buildVersion,worldSize:WORLD_SIZE,worldArt:"sunny-valley-gardens-v2",environmentArt:groundLighting.art,valleyFeatures:groundLighting.features.snapshot(),skyArt:skyState,cloudCount:sky?.clouds.length??0,cameraFov:camera.fov,
       berryDetail,
       shadowSettings:{mapSize:sun.shadow.mapSize.x,normalBias:sun.shadow.normalBias,contactCount:contactPositions.length},berryArt:"raspberry-plants-v1",
       valleyStudy:!!casting,studyActors:casting?.actors.map(a=>({seed:a.design.seed,surface:a.design.surface,pattern:a.design.pattern,position:a.position.toArray(),facePose:a.face.expression()})),drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles,

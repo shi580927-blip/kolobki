@@ -4,7 +4,7 @@ import {treeOcclusion} from './TreeOcclusion';
 import R from '@dimforge/rapier3d-compat';
 import {makeLeafGeometry} from './BerryArt';
 import {heightAt,WORLD_SIZE,POND,pondDistance,pondRadius,pondClearance} from '../core/terrain';
-import {clearRoutePosition,nearestRoutePoint,VALLEY_ROUTE} from '../core/valleyRoute';
+import {clearRoutePosition,nearestRoutePoint,nearestDrivingLane,MEADOW_ROUTE,MEADOW_TRACK,VALLEY_ROUTE} from '../core/valleyRoute';
 import {COAST_TERRACES} from '../core/coast';
 import {nearestExplorationPath,VALLEY_CLEARINGS} from '../core/valleyExploration';
 import {shoreSandCoverage} from '../core/shore';
@@ -23,7 +23,8 @@ export function valleyGroundColor(x:number,y:number,z:number){
  }
  const distance=nearestRoutePoint(x,z).distance,edge=4.5+.35*Math.sin(x*.9+z*.5)+.2*Math.sin(z*1.3);
  const walking=nearestExplorationPath(x,z).distance;
- const path=Math.max(1-T.MathUtils.smoothstep(distance,edge-.6,edge+1),1-T.MathUtils.smoothstep(walking,2.5+.18*Math.sin(z),4.1));
+ const wide=nearestRoutePoint(x,z,MEADOW_ROUTE).distance;
+ const path=Math.max(1-T.MathUtils.smoothstep(wide,MEADOW_TRACK.halfWidth-1.1,MEADOW_TRACK.halfWidth+.5),1-T.MathUtils.smoothstep(distance,edge-.6,edge+1),1-T.MathUtils.smoothstep(walking,2.5+.18*Math.sin(z),4.1));
  const ground=grass.lerp(soil,path*.96),sand=shoreSandCoverage(x,z);
  const gx=(heightAt(x+.35,z)-heightAt(x-.35,z))/.7,gz=(heightAt(x,z+.35)-heightAt(x,z-.35))/.7;
  const slope=Math.hypot(gx,gz),rock=T.MathUtils.smoothstep(slope,.48,.98)*(1-path)*(1-sand);
@@ -50,12 +51,12 @@ export function valleyArtLayout(){
   for(let i=0;i<9;i++){
    const a=i/9*Math.PI*2+zone*.53,r=c.radius*(.72+random()*.35);
    const x=c.x+Math.cos(a)*r,z=c.z+Math.sin(a)*r;
-   if(nearestRoutePoint(x,z).distance<12||nearestExplorationPath(x,z).distance<6||pondClearance(x,z)<6||trees.some(p=>Math.hypot(p.x-x,p.z-z)<5))continue;
+   if(nearestDrivingLane(x,z).clearance<6||nearestExplorationPath(x,z).distance<6||pondClearance(x,z)<6||trees.some(p=>Math.hypot(p.x-x,p.z-z)<5))continue;
    trees.push({x,z,scale:.78+random()*.45,kind:c.kind});
   }
   for(let i=0;i<8;i++){
    const a=i/8*Math.PI*2+.3,r=c.radius*(.4+random()*.5),x=c.x+Math.cos(a)*r,z=c.z+Math.sin(a)*r;
-   if(nearestRoutePoint(x,z).distance>7&&nearestExplorationPath(x,z).distance>4.7&&pondClearance(x,z)>4)patches.push({x,z});
+   if(nearestDrivingLane(x,z).clearance>1&&nearestExplorationPath(x,z).distance>4.7&&pondClearance(x,z)>4)patches.push({x,z});
   }
  }
  // Sparse peripheral groves compose the entire 400 m field. Large gaps keep
@@ -74,15 +75,15 @@ export function valleyArtLayout(){
  for(let i=trees.length-1;i>=0;i--)if(nearestExplorationPath(trees[i].x,trees[i].z).distance<5.5)trees.splice(i,1);
  // Keep trees away from the water and its gentle shoreline.
  for(const tree of trees){const dx=tree.x-POND.x,dz=tree.z-POND.z,d=Math.hypot(dx,dz);const clearance=pondRadius(Math.atan2(dz,dx))+7;if(d<clearance){const k=clearance/(d||1);tree.x=POND.x+dx*k;tree.z=POND.z+dz*k;}}
- for(let i=trees.length-1;i>=0;i--)if(nearestExplorationPath(trees[i].x,trees[i].z).distance<5.5||COAST_TERRACES.some(c=>Math.hypot((trees[i].x-c.x)/(c.rx*1.6+3),(trees[i].z-c.z)/(c.rz+5))<1)||Math.abs(trees[i].x)>WORLD_SIZE/2-7||Math.abs(trees[i].z)>WORLD_SIZE/2-10||landmarkClearance(trees[i].x,trees[i].z)<8||EXTREME_ARCHES.some(a=>Math.abs(trees[i].x-a.x)<a.halfLength+3&&Math.abs(trees[i].z-a.z)<a.depth/2+4))trees.splice(i,1);
+ for(let i=trees.length-1;i>=0;i--)if(nearestDrivingLane(trees[i].x,trees[i].z).clearance<5.5||nearestExplorationPath(trees[i].x,trees[i].z).distance<5.5||COAST_TERRACES.some(c=>Math.hypot((trees[i].x-c.x)/(c.rx*1.6+3),(trees[i].z-c.z)/(c.rz+5))<1)||Math.abs(trees[i].x)>WORLD_SIZE/2-7||Math.abs(trees[i].z)>WORLD_SIZE/2-10||landmarkClearance(trees[i].x,trees[i].z)<8||EXTREME_ARCHES.some(a=>Math.abs(trees[i].x-a.x)<a.halfLength+3&&Math.abs(trees[i].z-a.z)<a.depth/2+4))trees.splice(i,1);
  const flowers:{x:number;z:number;height:number;size:number;kind:number}[]=[],grass:{x:number;z:number;height:number;angle:number}[]=[],rocks:{x:number;z:number;radius:number}[]=[],pebbles:{x:number;z:number;size:number}[]=[];
  for(let i=0;i<1500;i++){
   const p=patches[i%patches.length],a=random()*Math.PI*2,r=Math.sqrt(random())*2.7,x=p.x+Math.cos(a)*r,z=p.z+Math.sin(a)*r;
-  if(nearestRoutePoint(x,z).distance<6.5||nearestExplorationPath(x,z).distance<4.3||pondClearance(x,z)<4)continue;
+  if(nearestDrivingLane(x,z).clearance<.5||nearestExplorationPath(x,z).distance<4.3||pondClearance(x,z)<4)continue;
   flowers.push({x,z,height:.26+random()*.42,size:.7+random()*.7,kind:Math.floor(random()*10)});
  }
  for(let i=0;i<5000;i++){
-  const p=patches[i%patches.length],x=p.x+(random()-.5)*8,z=p.z+(random()-.5)*8;if(nearestRoutePoint(x,z).distance<6.2||nearestExplorationPath(x,z).distance<4.0||pondClearance(x,z)<4)continue;
+  const p=patches[i%patches.length],x=p.x+(random()-.5)*8,z=p.z+(random()-.5)*8;if(nearestDrivingLane(x,z).clearance<.2||nearestExplorationPath(x,z).distance<4.0||pondClearance(x,z)<4)continue;
   grass.push({x,z,height:.16+random()*.35,angle:random()*Math.PI*2});
  }
  for(let i=0;i<16;i++){

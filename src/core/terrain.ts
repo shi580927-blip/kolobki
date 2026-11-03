@@ -2,6 +2,7 @@ import {southCoveFloor} from './southCrossing';
 import {coastHeight,joinWestCoast} from './coast';
 import {landscapeRelief} from './landscapeRelief';
 import {compositionHeight} from './valleyComposition';
+import {meadowTrackFloor} from './valleyRoute';
 export const WORLD_SIZE = 400;
 export const POND = {x:-35,z:18,water:2.15,radius:5.6,flare:12.0};
 /** Narrow spring inlet under the bridge opens into a broad southern lake.
@@ -41,7 +42,10 @@ export function heightAt(x: number, z: number) {
   // Small legacy undulations fade on major landforms so a mountain reads as
   // one mass; outer ground remains continuous with the unchanged inner valley.
   const detail=1-Math.min(.82,macro/26);
-  const original=spawn*(1-blend)+natural*blend*detail+hills*rise+landscapeRelief(x,z)*detail+macro;
+  const naturalGround=spawn*(1-blend)+natural*blend*detail+hills*rise+landscapeRelief(x,z)*detail+macro;
+  // Preparing a wide course must not alter the accepted beaches or bridge banks.
+  const shoreT=Math.max(0,Math.min(1,(pondClearance(x,z)-14)/10)),protection=shoreT*shoreT*(3-2*shoreT);
+  const original=naturalGround+(meadowTrackFloor(x,z,naturalGround)-naturalGround)*protection;
   // A shallow, gently blended basin off the route. Its bottom remains solid terrain.
   const d=pondDistance(x,z),tpond=Math.max(0,Math.min(1,(pondClearance(x,z)-2)/12)),shore=tpond*tpond*(3-2*tpond);
   const bank=POND.water-.38+.48*Math.min(1.2,d)**2-lagoonDepression(x,z);

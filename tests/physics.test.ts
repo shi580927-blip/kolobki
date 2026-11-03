@@ -10,7 +10,8 @@ test("Rapier sphere rests on shared terrain and rolls downhill without tunnellin
   world.createCollider(R.ColliderDesc.trimesh(d.vertices, d.indices));
   const body = world.createRigidBody(
     R.RigidBodyDesc.dynamic()
-      .setTranslation(8, heightAt(8, 0) + 3, 0)
+      // x=8 is now part of the deliberately level beginner corridor.
+      .setTranslation(45, heightAt(45, 4) + 3, 4)
       .setCcdEnabled(true),
   );
   world.createCollider(R.ColliderDesc.ball(1).setFriction(0.8), body);
@@ -21,7 +22,7 @@ test("Rapier sphere rests on shared terrain and rolls downhill without tunnellin
     assert.ok(p.y > heightAt(p.x, p.z) - 0.3, "sphere stays above surface");
   }
   const p = body.translation();
-  assert.ok(Math.hypot(p.x - 8, p.z) > 1, "rolls on slope");
+  assert.ok(Math.hypot(p.x - 45, p.z - 4) > 1, "rolls on slope");
   world.free();
 });
 

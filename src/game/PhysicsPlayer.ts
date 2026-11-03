@@ -193,6 +193,14 @@ export class PhysicsPlayer {
   applySandDrag(dt:number){const s=this.coating.sand;if(s<=0||!this.hasSurfaceSupport())return;const v=this.body.linvel(),amount=1-Math.exp(-s*.9*dt),mass=this.body.mass();this.body.applyImpulse({x:-v.x*amount*mass,y:0,z:-v.z*amount*mass},true);}
   get impactVelocity(){return this.velocityBeforeStep;}
   captureVelocity(){this.velocityBeforeStep.copy(this.body.linvel());}
+  /** Environmental boost coasts briefly through the touch controller's braking. */
+  boost(x:number,z:number){
+    if(this.immobilized)return false;
+    const length=Math.hypot(x,z);if(length<.01)return false;x/=length;z/=length;
+    const v=this.body.linvel(),change=Math.max(0,19-v.x*x-v.z*z);if(change===0)return false;
+    const mass=this.body.mass();this.body.applyImpulse({x:x*change*mass,y:0,z:z*change*mass},true);
+    this.touchImpulseGrace=Math.max(this.touchImpulseGrace,1.1);this.captureVelocity();return true;
+  }
   contact(strength: number, other?:R.Collider, otherVelocity?:Vector3, internal=false) {
     if(internal)return;
     let source:'collision'|'landing'='collision',closingSpeed=this.collisionSpeedChange;

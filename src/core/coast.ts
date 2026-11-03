@@ -1,4 +1,4 @@
-import {nearestRoutePoint} from './valleyRoute';
+import {nearestDrivingLane} from './valleyRoute';
 /** Two connected-to-land headlands: steep water face, long ramp on the dry side. */
 export const COAST_TERRACES=[
  {x:-65,z:56,rx:9,rz:10,height:5.8,facing:1},
@@ -33,5 +33,5 @@ export function coastHeight(x:number,z:number){
   const inner=.34+.36*smooth(-.5,.5,dx*c.facing);
   h=Math.max(h,c.height*(1-smooth(inner,1,r)));
  }
- return h*smooth(10,18,nearestRoutePoint(x,z).distance);
+ return h*smooth(2,8,nearestDrivingLane(x,z).clearance);
 }

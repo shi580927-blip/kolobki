@@ -31,7 +31,7 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict'),fs=r
   await page.waitForTimeout(100);
  }
  for(const k of held)await page.keyboard.up(k);
- const end=await state();assert.equal(end.match.phase,'finished');assert.ok(captured,'player collects a real NPC during the match');assert.ok(maxRivalWagons>0,'NPC collects its own train');assert.ok(maxRivalProgress>0,'NPC follows checkpoints');assert.ok(end.match.progress.some(p=>p===12),'a full two-lap route is completed, not only timeout');
+ const end=await state();assert.equal(end.match.phase,'finished');assert.ok(captured,'player collects a real NPC during the match');assert.ok(maxRivalWagons>0,'NPC collects its own train');assert.ok(maxRivalProgress>0,'NPC follows checkpoints');assert.ok(end.match.progress.some(p=>p===end.match.laps*end.match.checkpoints),'a full selected route is completed, not only timeout');
  assert.ok(maxGap<3,'bounded train gaps');await page.screenshot({path:'test-results/match-finished.png'});assert.ok(await page.locator('#match-result').isVisible());
  await page.locator('#match-start').click();const replay=await state();assert.equal(replay.match.phase,'countdown');assert.deepEqual(replay.match.progress,[0,0]);assert.equal(replay.skin.seed,4321);assert.deepEqual(replay.npcs.map(n=>n.appearanceSeed),original.npcs.map(n=>n.appearanceSeed));
  await page.getByRole('button',{name:'На старт',exact:true}).click();const reset=await state();assert.equal(reset.match.phase,'sandbox');assert.equal(reset.train.count,0);assert.equal(reset.match.rivalTrain.count,0);

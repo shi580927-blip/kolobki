@@ -1,12 +1,12 @@
 {
   "name": "sharobesy",
   "private": true,
-  "version": "0.1.0-dev.69",
+  "version": "0.1.0-dev.70",
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
     "build": "tsc --noEmit && vite build",
-    "test": "node --import tsx --test tests/*.test.ts",
+    "test": "node --import tsx --test --test-concurrency=2 tests/*.test.ts",
     "preview": "vite preview --host 0.0.0.0",
     "test:browser": "node scripts/browser-smoke.cjs"
   },

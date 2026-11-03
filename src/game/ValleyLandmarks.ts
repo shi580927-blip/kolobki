@@ -1,7 +1,7 @@
 import * as T from 'three';
 import R from '@dimforge/rapier3d-compat';
 import {VALLEY_CLEARINGS,nearestExplorationPath} from '../core/valleyExploration';
-import {nearestRoutePoint} from '../core/valleyRoute';
+import {nearestDrivingLane} from '../core/valleyRoute';
 import {heightAt,pondClearance} from '../core/terrain';
 import {makeBoulderGeometry} from './BoulderGeometry';
 import {stoneMaterial} from './StoneArt';
@@ -11,13 +11,13 @@ export function valleyLandmarkLayout(){
  const rocks:{x:number;z:number;size:number;variant:number;angle:number}[]=[];
  for(const [zone,c] of VALLEY_CLEARINGS.entries())for(let i=0;i<5;i++){
   const a=zone*1.7+.6+(i-2)*.15,r=c.radius*(.79+(i%2)*.16),x=c.x+Math.cos(a)*r,z=c.z+Math.sin(a)*r,size=i===2?2.8:1.0+(i%3)*.6;
-  if(nearestRoutePoint(x,z).distance<size+11||nearestExplorationPath(x,z).distance<size+5||pondClearance(x,z)<5)continue;
+  if(nearestDrivingLane(x,z).clearance<size+5||nearestExplorationPath(x,z).distance<size+5||pondClearance(x,z)<5)continue;
   rocks.push({x,z,size,variant:i,angle:a});
  }
  // Separate western outcrops, with wide gaps and no continuous boundary fence.
  for(const [group,[cx,cz]] of [[-175,40],[-176,-75],[-126,-88]].entries())for(let i=0;i<3;i++){
   const x=cx+(i-1)*4.2,z=cz+Math.sin(i*1.9+group)*2.8,size=[4.8,3.4,2.1][i];
-  if(nearestRoutePoint(x,z).distance<size+11||nearestExplorationPath(x,z).distance<size+5||pondClearance(x,z)<5)continue;
+  if(nearestDrivingLane(x,z).clearance<size+5||nearestExplorationPath(x,z).distance<size+5||pondClearance(x,z)<5)continue;
   rocks.push({x,z,size,variant:(group+i)%5,angle:group*.7+i*.9});
  }
  return rocks;

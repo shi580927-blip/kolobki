@@ -1,5 +1,5 @@
 import * as T from 'three';
-import {nearestRoutePoint} from '../core/valleyRoute';
+import {nearestDrivingLane} from '../core/valleyRoute';
 import {heightAt} from '../core/terrain';
 
 type Puff={age:number;life:number;x:number;y:number;z:number;vx:number;vz:number;width:number;height:number;angle:number;spin:number;shade:number};
@@ -30,13 +30,13 @@ export class RoadDust {
   const speed=Math.hypot(vx,vz),dx=speed>.2?vx/speed:0,dz=speed>.2?vz/speed:1,side=(Math.random()-.5)*(landing?1.7:1.25);
   const back=landing?.1:.45+Math.random()*.6;
   const px=x-dx*back+dz*side,pz=z-dz*back-dx*side;
-  if(nearestRoutePoint(px,pz).distance>4.2)return;
+  if(nearestDrivingLane(px,pz).clearance>-1.8)return;
   const scale=(strong?1.25:1)*(0.75+Math.random()*.5);
   this.particles.push({age:0,life:.52+Math.random()*.22,x:px,y:heightAt(px,pz)+.09,z:pz,vx:(landing?dz*side:-dx*.5)+(Math.random()-.5)*.3,vz:(landing?-dx*side:-dz*.5)+(Math.random()-.5)*.3,width:1.15*scale,height:.53*scale,angle:(Math.random()-.5)*.35,spin:(Math.random()-.5)*.6,shade:Math.random()});
  }
  step(dt:number,position:T.Vector3,velocity:{x:number;y:number;z:number},supported:boolean){
   const v=new T.Vector2(velocity.x,velocity.z),speed=v.length();
-  const onRoad=nearestRoutePoint(position.x,position.z).distance<4.2;
+  const onRoad=nearestDrivingLane(position.x,position.z).clearance<-1.8;
   const acceleration=v.clone().sub(this.lastV).length()/dt;
   const landing=supported&&!this.wasSupported&&this.airborneTime>.1&&this.lastVertical<-.5;
   if(supported&&onRoad){

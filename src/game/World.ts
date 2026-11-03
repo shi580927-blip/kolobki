@@ -13,7 +13,7 @@ import {addMountainCliffs} from './MountainCliffs';
 import {addExtremeArches} from './ExtremeArches';
 import {addSunnyLandmarks} from './SunnyLandmarks';
 import {addIslandHorizon} from './IslandHorizon';
-import {addRacingArt} from './RacingArt';
+import {ValleyFeatures} from './ValleyFeatures';
 import {clearRoutePosition} from '../core/valleyRoute';
 export function createWorld(scene: THREE.Scene, world: RAPIER.World) {
   const { vertices, indices } = terrainData();
@@ -64,7 +64,7 @@ export function createWorld(scene: THREE.Scene, world: RAPIER.World) {
   addValleyLandmarks(scene,world);
   const landmarks=addSunnyLandmarks(scene,world);
   const horizon=addIslandHorizon(scene);
-  const racing=addRacingArt(scene,world);
+  const features=new ValleyFeatures(scene,world);
   // Sparse collision targets: original primitive geometry, no third-party assets.
   for (const [originalX, originalZ, r] of [
     [12, 6, 1.8],
@@ -89,5 +89,5 @@ export function createWorld(scene: THREE.Scene, world: RAPIER.World) {
       ),
     );
   }
-  return {...lighting,art,pond,landmarks,horizon,racing};
+  return {...lighting,art,pond,landmarks,horizon,features};
 }

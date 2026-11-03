@@ -69,6 +69,9 @@ test('a strong side impact against scenery breaks wagons while a sixth wagon is 
 
 test('five colliding wagons survive repeated reversals, acceleration and normal jumps without a two-body gap',async()=>{
  const s=await setup(5,55);for(let id=0;id<5;id++)s.collect(id);
+ // Begin driving stress after the newly recruited tail has settled into line.
+ for(let i=0;i<180&&s.train.snapshot().gaps.some(g=>g>2.6);i++)s.tick();
+ assert.equal(s.train.count,5);assert.ok(s.train.snapshot().gaps.every(g=>g<2.65),'formed train is settled before the driving trial');
  let largestGap=0,closest=10;
  for(let i=0;i<780;i++){
   const reverse=i>=240&&i<480;

@@ -15,7 +15,7 @@ test('meadow composition is seeded, covers outer hills and keeps a bounded insta
  for(const p of layout.flowers)assert.ok(nearestRoutePoint(p.x,p.z).distance>=6.5);
 });
 test('ground separates warm dirt from greener meadow with finite colours',()=>{
- const road=valleyGroundColor(0,heightAt(0,0),0),meadow=valleyGroundColor(9,heightAt(9,5),5);
+ const road=valleyGroundColor(0,heightAt(0,0),0),meadow=valleyGroundColor(30,heightAt(30,8),8);
  assert.ok(road.r>road.g&&road.g>road.b);assert.ok(meadow.g>meadow.r&&meadow.g>meadow.b);
  for(let x=-100;x<=100;x+=10)for(let z=-100;z<=100;z+=10)assert.ok(valleyGroundColor(x,heightAt(x,z),z).toArray().every(v=>Number.isFinite(v)&&v>=0&&v<=1));
 });

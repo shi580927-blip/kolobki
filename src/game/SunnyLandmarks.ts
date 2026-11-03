@@ -4,7 +4,7 @@ import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
 import {SUNNY_BUILDINGS} from '../core/scenicLayout';
 import {heightAt} from '../core/terrain';
 import {nearestExplorationPath,VALLEY_CLEARINGS} from '../core/valleyExploration';
-import {nearestRoutePoint} from '../core/valleyRoute';
+import {nearestDrivingLane} from '../core/valleyRoute';
 
 /** Small reusable opaque colour batch; no external models, fonts or textures. */
 export class ColourBatch{
@@ -92,7 +92,7 @@ export function addSunnyLandmarks(scene:T.Scene,world:R.World){
  const details=new ColourBatch();
  for(const [i,c] of VALLEY_CLEARINGS.entries()){
   const a=i*1.37+.3,x=c.x+Math.cos(a)*(c.radius+4),z=c.z+Math.sin(a)*(c.radius+4);
-  if(nearestRoutePoint(x,z).distance<12||nearestExplorationPath(x,z).distance<7)continue;
+  if(nearestDrivingLane(x,z).clearance<6||nearestExplorationPath(x,z).distance<7)continue;
   const y=heightAt(x,z);
   details.cylinder(x,y+2,z,.07,.11,4,timber,6);
   const flag=new T.Shape();flag.moveTo(0,0);flag.lineTo(1.45,0);flag.lineTo(1.45,-1.65);flag.lineTo(.72,-1.35);flag.lineTo(0,-1.65);flag.closePath();
