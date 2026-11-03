@@ -55,9 +55,9 @@ export function addPondWater(scene:T.Scene){
  float aa=max(.008,fwidth(fieldA.a)*.8);
  float crest=(1.-smoothstep(.008,.008+aa,abs(fieldA.a-.52)))*smoothstep(.68,.84,fieldB.a);
  color*=.97+.06*fieldA.a;
- color=mix(color,vec3(.72,.96,.98),crest*.66*shallow);
+ color=mix(color,vec3(.72,.96,.98),crest*.30*shallow);
  float glints=pow(max(0.,sin(p.x*1.7+time*.8+fieldA.a*5.)),20.)*pow(max(0.,sin(p.y*2.3-time*.6+fieldB.a*6.)),18.);
- color=mix(color,vec3(.90,1.,1.),glints*.5*shallow);
+ color=mix(color,vec3(.90,1.,1.),glints*.22*shallow);
  float shoreBreak=fieldB.a;
  float edge=(1.-smoothstep(.004,.055,depth))*smoothstep(.38,.75,shoreBreak)*.60;
  color=mix(color,vec3(.78,.94,.88),edge);

@@ -1,0 +1,234 @@
+{
+  "view": {
+    "position": [
+      0,
+      2.870281934738159,
+      0
+    ],
+    "rotation": [
+      0,
+      0,
+      0,
+      1
+    ],
+    "faceRotation": [
+      0,
+      0,
+      0,
+      "XYZ"
+    ],
+    "facePose": "sly",
+    "portraitPose": "sly",
+    "faceEyes": [
+      true,
+      true
+    ],
+    "faceArt": "animated-atlas-v03",
+    "faceVisibility": [
+      {
+        "name": "sly",
+        "rotation": [
+          0,
+          0,
+          0,
+          "XYZ"
+        ],
+        "opacity": 1
+      }
+    ],
+    "wetSand": {
+      "wetness": 0,
+      "sand": 0
+    },
+    "waterSubmersion": 0,
+    "waterSafety": {
+      "idle": 0,
+      "under": 0,
+      "flying": false,
+      "rescues": 0
+    },
+    "waterWaves": 0,
+    "waterSplashes": 0,
+    "dustCount": 0,
+    "physicsTime": 3.21666666666666,
+    "impactCharge": 0,
+    "audio": {
+      "state": "running",
+      "muted": false,
+      "failed": false,
+      "tones": 0
+    },
+    "fullscreen": false,
+    "npcs": [],
+    "npcContacts": 0,
+    "buildVersion": "0.1.0-dev.69",
+    "worldSize": 400,
+    "worldArt": "sunny-valley-gardens-v2",
+    "environmentArt": {
+      "trees": 146,
+      "flowers": 1393,
+      "grass": 4457,
+      "rocks": 14,
+      "pebbles": 476
+    },
+    "skyArt": "soft-clouds-v1",
+    "cloudCount": 10,
+    "cameraFov": 52,
+    "berryDetail": false,
+    "shadowSettings": {
+      "mapSize": 2048,
+      "normalBias": 0.008,
+      "contactCount": 1
+    },
+    "berryArt": "raspberry-plants-v1",
+    "valleyStudy": false,
+    "drawCalls": 79,
+    "triangles": 974862,
+    "design": {
+      "version": 1,
+      "seed": 4321,
+      "regular": false,
+      "gloss": 0,
+      "surfaceAccent": true,
+      "base": "#05c4d5",
+      "accent": "#1655b8",
+      "pattern": "none",
+      "scale": 0.9797823517466896,
+      "density": 0.39470621712505816,
+      "sizeScatter": 0.25,
+      "positionScatter": 0.6,
+      "rotationScatter": 0.35,
+      "surface": "segments",
+      "furCount": 24,
+      "furLength": 0.08,
+      "furScatter": 0.65,
+      "surfaceScale": 1,
+      "relief": 0.045,
+      "growthCount": 0,
+      "growthSize": 0.1,
+      "growthScatter": 0.3,
+      "growthShape": "soft",
+      "growthAccent": false
+    },
+    "appearanceTest": true,
+    "faceScale": 0.9,
+    "comboPhase": "IDLE",
+    "immobilized": false,
+    "heading": 0,
+    "velocity": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "viewForward": [
+      -0.9102759082189589,
+      -0.4140017926404064,
+      0.0005353565909005374
+    ],
+    "skin": {
+      "seed": 4321,
+      "color": "#05c4d5",
+      "accent": "#1655b8",
+      "pattern": "hearts",
+      "mood": "sly"
+    },
+    "camera": 0,
+    "freeOrbit": true,
+    "orbitYaw": 1.5707970690436652,
+    "followYaw": 0,
+    "orbitPitch": 0.4267953549425851,
+    "fps": 1.7143836790673774,
+    "stun": 0,
+    "phase": "IDLE",
+    "berries": {
+      "count": 0,
+      "total": 12,
+      "positions": [
+        [
+          0,
+          2.3213678910716693,
+          5
+        ],
+        [
+          -4,
+          2.9607177546239387,
+          9
+        ],
+        [
+          4,
+          3.042095540131061,
+          10
+        ],
+        [
+          11.966636646547233,
+          4.115668206962023,
+          17
+        ],
+        [
+          -12.39057241225587,
+          3.1395410916978164,
+          21
+        ],
+        [
+          -5.12521983269907,
+          7.273109728342315,
+          45.41108476952758
+        ],
+        [
+          -6.139339677967989,
+          7.12911338103294,
+          41.75790623170387
+        ],
+        [
+          0.47078921356179193,
+          2.5066201498008978,
+          33
+        ],
+        [
+          22.222700187776287,
+          2.0035497302224625,
+          37
+        ],
+        [
+          27.156914703662416,
+          0.7202019730247269,
+          41
+        ],
+        [
+          11.539317586769185,
+          -0.08032317499618624,
+          45
+        ],
+        [
+          -4.978458552680003,
+          3.0641195709349462,
+          59.94276423719173
+        ]
+      ]
+    },
+    "input": {
+      "x": 0,
+      "z": 0,
+      "touchDrive": true
+    },
+    "controlHand": "left"
+  },
+  "reset": {
+    "seed": 4321,
+    "immobilized": false,
+    "wetSand": {
+      "wetness": 0,
+      "sand": 0
+    }
+  },
+  "aspect": {
+    "x": 560,
+    "y": 180,
+    "width": 1280,
+    "height": 720
+  },
+  "raceStart": {
+    "phase": "running"
+  },
+  "errors": []
+}

@@ -22,7 +22,7 @@ export class MatchSession {
   this.result=document.createElement('div');this.result.id='match-result';this.result.hidden=true;document.querySelector('#hud')!.appendChild(this.result);
   this.entry=document.createElement('div');this.entry.id='match-entry';
   const heading=document.createElement('h2');heading.textContent='Матч с соперником';
-  const instructions=document.createElement('p');instructions.textContent='Два круга по жёлтым точкам. Все начинают одиночными — собирайте поезд по дороге!';
+  const instructions=document.createElement('p');instructions.textContent='Два круга по гоночной трассе. Следуйте стрелкам и собирайте поезд по дороге!';
   this.button=document.createElement('button');this.button.id='match-start';this.button.textContent='Начать матч';this.button.onclick=()=>this.start();
   const sandbox=document.createElement('button');sandbox.id='sandbox-choice';sandbox.textContent='Пока свободное катание';sandbox.onclick=()=>{this.entry.hidden=true;document.querySelector('#tools')!.appendChild(this.button);};
   this.entry.append(heading,instructions,this.button,sandbox);document.querySelector('#hud')!.appendChild(this.entry);

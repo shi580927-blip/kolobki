@@ -5,6 +5,7 @@ import {heightAt} from '../core/terrain';
 import {nearestExplorationPath} from '../core/valleyExploration';
 import {stoneMaterial} from './StoneArt';
 import {scenicStone} from './ScenicStone';
+import {addStoneGreenery} from './StoneGreenery';
 
 /** Irregular broad shoulders follow the three major massifs, leaving their
  * grassy approaches and the southern beginner meadow open. */
@@ -44,6 +45,7 @@ export function addMountainCliffs(scene:T.Scene,world:R.World){
  const geometry=mountainCliffGeometry(),material=stoneMaterial();
  material.emissive.set('#b7aa92');material.emissiveIntensity=.12;
  const mesh=new T.Mesh(geometry,material);mesh.name='valley-mountain-rock-shoulders';mesh.castShadow=true;mesh.receiveShadow=true;scene.add(mesh);
+ addStoneGreenery(mesh,mountainCliffLayout().flatMap(p=>[-.35,0,.35].flatMap(u=>[-.3,0,.3].map(v=>({x:p.x+u*p.width,z:p.z+v*p.depth})))));
  const vertices=new Float32Array(geometry.getAttribute('position').array),indices=Uint32Array.from({length:vertices.length/3},(_,i)=>i);
  world.createCollider(R.ColliderDesc.trimesh(vertices,indices).setFriction(.9));return mesh;
 }

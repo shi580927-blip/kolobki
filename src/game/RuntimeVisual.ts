@@ -4,6 +4,7 @@ import {AnimatedAtlasRig,type AnimationAtlas} from '../face/AnimatedAtlas';
 import {SkinSample} from '../skin/SkinSample';
 import {limitProtrusions,type SkinDesign} from '../skin/SkinDesign';
 import type {Mood} from '../face/FaceState';
+import {clipFaceToWater} from './WaterFaceClip';
 export class RuntimeFace extends T.Group {
  readonly rig:AnimatedAtlasRig;
  constructor(atlas:AnimationAtlas,textures:T.Texture[],mood:Mood){super();this.rig=new AnimatedAtlasRig(atlas,textures);this.rig.base=mood==='grumpy'?'grumpy':mood==='worried'?'scared':'sly';this.add(this.rig);this.rig.update(0);}
@@ -19,7 +20,7 @@ export class RuntimeFace extends T.Group {
 export class RuntimeVisual extends T.Group {
  readonly sandCoat=new SandCoat();
  readonly rollingBody:T.Group;readonly face:RuntimeFace;private sample:SkinSample;private clearanceOrientation=new T.Quaternion();
- constructor(readonly design:SkinDesign,atlas:AnimationAtlas,textures:T.Texture[],mood:Mood,environment?:T.Texture){super();this.design=limitProtrusions(design);design=this.design;this.sample=new SkinSample(textures[0],'sly',environment);this.sample.face.visible=false;this.sample.apply(design);this.rollingBody=this.sample.rollingBody;this.face=new RuntimeFace(atlas,textures,mood);this.add(this.sample,this.face,this.sandCoat);}
+ constructor(readonly design:SkinDesign,atlas:AnimationAtlas,textures:T.Texture[],mood:Mood,environment?:T.Texture){super();this.design=limitProtrusions(design);design=this.design;this.sample=new SkinSample(textures[0],'sly',environment);this.sample.face.visible=false;this.sample.apply(design);this.rollingBody=this.sample.rollingBody;this.face=new RuntimeFace(atlas,textures,mood);this.add(this.sample,this.face,this.sandCoat);clipFaceToWater(this.face);}
  updateSand(sand:number,wetness:number){this.sandCoat.update(sand,this.rollingBody.quaternion,this.clearanceOrientation,wetness);}
  updateDecorations(){
   const pose=this.face.rig.poses[this.face.expression()];

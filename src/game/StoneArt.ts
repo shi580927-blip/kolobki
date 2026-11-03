@@ -1,6 +1,7 @@
 import * as T from 'three';
 import {ConvexGeometry} from 'three/addons/geometries/ConvexGeometry.js';
 import {toCreasedNormals} from 'three/addons/utils/BufferGeometryUtils.js';
+import {STONE_RELIEF_GLSL} from './StoneRelief';
 
 /** Bevel a sculpted convex core, retaining large planes instead of a triangulated sphere. */
 export function roundedStone(core:T.Vector3[],bevel:number){
@@ -24,21 +25,35 @@ export function stoneColors(g:T.BufferGeometry,top?:number){
  }
  g.setAttribute('color',new T.Float32BufferAttribute(colors,3));g.setAttribute('stoneCoord',new T.Float32BufferAttribute(coords,3));return g;
 }
-export function stoneMaterial(){
+export function stoneMaterial(arches:readonly {x:number;y:number;z:number;rx:number;ry:number}[]=[]){
  const m=new T.MeshStandardMaterial({vertexColors:true,roughness:1});
  m.onBeforeCompile=s=>{
-  s.vertexShader=s.vertexShader.replace('#include <common>','#include <common>\nattribute vec3 stoneCoord;varying vec3 stonePoint;').replace('#include <begin_vertex>','#include <begin_vertex>\nstonePoint=stoneCoord;');
-  s.fragmentShader=s.fragmentShader.replace('#include <common>','#include <common>\nvarying vec3 stonePoint;').replace('#include <color_fragment>',`#include <color_fragment>
-   float mottling=sin(stonePoint.x*3.1+sin(stonePoint.z*2.7))*sin(stonePoint.y*3.8+stonePoint.z);
-   diffuseColor.rgb*=.985+.025*mottling;
-   float curve=.16+.10*sin(stonePoint.y*4.1+stonePoint.z);
-   float crack=(1.-smoothstep(.003,.012,abs(stonePoint.x-curve)))*smoothstep(-.65,-.40,stonePoint.y)*(1.-smoothstep(.28,.55,stonePoint.y));
-   float branch=(1.-smoothstep(.003,.010,abs(stonePoint.x-curve-(stonePoint.y+.05)*.55)))*smoothstep(-.05,.02,stonePoint.y)*(1.-smoothstep(.18,.27,stonePoint.y));
-   diffuseColor.rgb*=1.-min(1.,crack+branch)*smoothstep(.55,.80,abs(stonePoint.z))*.25;
-   float strata=sin(stonePoint.y*12.+sin(stonePoint.x*2.7+stonePoint.z*1.8)*.5);
-   float seam=(1.-smoothstep(.025,.10,abs(strata)))*.075;
-   diffuseColor.rgb*=1.-seam;
-  `);
+  s.uniforms.stoneArchCount={value:arches.length};
+  s.uniforms.stoneArch0={value:new T.Vector4(arches[0]?.x??0,arches[0]?.y??0,arches[0]?.z??0,arches[0]?.rx??1)};
+  s.uniforms.stoneArch1={value:new T.Vector4(arches[1]?.x??0,arches[1]?.y??0,arches[1]?.z??0,arches[1]?.rx??1)};
+  s.uniforms.stoneArchY={value:new T.Vector2(arches[0]?.ry??1,arches[1]?.ry??1)};
+  s.vertexShader=s.vertexShader.replace('#include <common>','#include <common>\nvarying vec3 stoneWorld;').replace('#include <project_vertex>',`vec4 stoneVertex=vec4(transformed,1.);
+   #ifdef USE_INSTANCING
+    stoneVertex=instanceMatrix*stoneVertex;
+   #endif
+   stoneWorld=(modelMatrix*stoneVertex).xyz;
+   #include <project_vertex>`);
+  s.fragmentShader=s.fragmentShader.replace('#include <common>','#include <common>\nvarying vec3 stoneWorld;uniform float stoneArchCount;uniform vec4 stoneArch0;uniform vec4 stoneArch1;uniform vec2 stoneArchY;\n'+STONE_RELIEF_GLSL).replace('#include <color_fragment>',`#include <color_fragment>
+   vec2 front=stoneWorld.xy;
+   for(int i=0;i<2;i++){
+    vec4 frame=i==0?stoneArch0:stoneArch1;float ry=i==0?stoneArchY.x:stoneArchY.y;
+    if(float(i)<stoneArchCount&&abs(stoneWorld.z-frame.z)<8.&&abs(stoneWorld.x-frame.x)<frame.w*1.5&&stoneWorld.y>frame.y){
+     vec2 q=vec2((stoneWorld.x-frame.x)/frame.w,(stoneWorld.y-frame.y)/ry);
+     front=vec2(atan(q.x,q.y)*4.5,length(q)*4.5);
+    }
+   }
+   vec3 stoneNormalWorld=normalize(cross(dFdx(stoneWorld),dFdy(stoneWorld)));
+   vec3 plate=stoneRelief(stoneWorld,stoneNormalWorld,front);
+   float bareStone=1.-smoothstep(.015,.11,diffuseColor.g-diffuseColor.r);
+   diffuseColor.rgb*=mix(1.,plate.y,bareStone);
+   float footprint=max(length(dFdx(stoneWorld)),length(dFdy(stoneWorld)));
+   float stoneHeight=plate.x*.14*bareStone*(1.-smoothstep(.08,.5,footprint));
+  `).replace('#include <normal_fragment_maps>','#include <normal_fragment_maps>\nnormal=stoneReliefNormal(-vViewPosition,normal,stoneHeight);');
  };
- m.customProgramCacheKey=()=> 'valley-warm-stone-v1';return m;
+ m.customProgramCacheKey=()=> 'valley-stone-plates-v2';return m;
 }

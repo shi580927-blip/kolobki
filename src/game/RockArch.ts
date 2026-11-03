@@ -5,6 +5,7 @@ import {stoneColors,stoneMaterial} from './StoneArt';
 import {makeLeafGeometry} from './BerryArt';
 import {heightAt} from '../core/terrain';
 import {scenicStone} from './ScenicStone';
+import {addStoneGreenery} from './StoneGreenery';
 export const ROCK_ARCH={x:-49,z:0,inner:3.8,outer:5.5,depth:2.6};
 /** A physical, open landmark off the route, with irregular stone wedges. */
 export function addRockArch(scene:T.Scene,world:R.World){
@@ -38,7 +39,8 @@ export function addRockArch(scene:T.Scene,world:R.World){
  }
  for(const [px,seed] of [[-1.7,5],[1.6,9]])parts.push(scenicStone(px,depth/2,2.3,1.5,spring+4.0,spring+5.65,.1,seed));
  const g=mergeGeometries(parts);parts.forEach(p=>p.dispose());
- const arch=new T.Mesh(g,stoneMaterial());arch.name='valley-rock-arch';arch.position.set(x,0,z-depth/2+.16);arch.castShadow=arch.receiveShadow=true;scene.add(arch);
+ const arch=new T.Mesh(g,stoneMaterial([{x,y:spring,z,rx:4.3,ry:3.8}]));arch.name='valley-rock-arch';arch.position.set(x,0,z-depth/2+.16);arch.castShadow=arch.receiveShadow=true;scene.add(arch);
+ addStoneGreenery(arch,[-5.7,0,5.7].map(u=>({x:x+u,z:z-depth/2+.3})));
  const p=g.getAttribute('position'),vertices=new Float32Array(p.count*3),indices=new Uint32Array(p.count);
  for(let i=0;i<p.count;i++){vertices.set([p.getX(i),p.getY(i),p.getZ(i)],i*3);indices[i]=i;}
  world.createCollider(R.ColliderDesc.trimesh(vertices,indices).setTranslation(arch.position.x,arch.position.y,arch.position.z).setFriction(.85));

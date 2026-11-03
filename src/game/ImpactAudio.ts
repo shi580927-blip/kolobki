@@ -46,4 +46,5 @@ export class ImpactAudio {
   collect(){this.tone(740,740,.15,.075);this.tone(1110,1110,.15,.075,'sine',.075);}
   jump(){this.tone(220,480,.12,.06);}
   dash(){this.tone(180,70,.14,.08,'triangle');}
+  splash(strength=1){const volume=.035+.055*Math.max(0,Math.min(1,strength));this.tone(240,72,.28,volume);this.tone(480,120,.12,volume*.4,'sine',.04);}
 }

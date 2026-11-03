@@ -7,7 +7,7 @@ import {nearestExplorationPath,VALLEY_CLEARINGS} from '../core/valleyExploration
 import {nearestRoutePoint} from '../core/valleyRoute';
 
 /** Small reusable opaque colour batch; no external models, fonts or textures. */
-class ColourBatch{
+export class ColourBatch{
  parts:T.BufferGeometry[]=[];
  add(geometry:T.BufferGeometry,color:string,position:T.Vector3,rotation=new T.Euler()){
   const g=geometry.index?geometry.toNonIndexed():geometry.clone();geometry.dispose();

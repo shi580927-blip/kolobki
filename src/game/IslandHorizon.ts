@@ -1,6 +1,7 @@
 import * as T from 'three';
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
 import {WORLD_SIZE,heightAt} from '../core/terrain';
+import {stoneMaterial} from './StoneArt';
 
 export const SEA_LEVEL=-10;
 /** Scenic coastline beyond the existing playable boundary. Its first ring
@@ -21,7 +22,7 @@ export function islandCoastGeometry(){
  const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(p,3));g.setAttribute('color',new T.Float32BufferAttribute(colors,3));g.setIndex(indices);g.computeVertexNormals();return g;
 }
 export function addIslandHorizon(scene:T.Scene){
- const coast=new T.Mesh(islandCoastGeometry(),new T.MeshStandardMaterial({vertexColors:true,roughness:1}));coast.name='valley-scenic-island-coast';coast.receiveShadow=true;scene.add(coast);
+ const coast=new T.Mesh(islandCoastGeometry(),stoneMaterial());coast.name='valley-scenic-island-coast';coast.receiveShadow=true;scene.add(coast);
  const uniforms={time:{value:0}};
  const ocean=new T.Mesh(new T.PlaneGeometry(2400,2400),new T.ShaderMaterial({uniforms,vertexShader:`varying vec3 w;void main(){vec4 p=modelMatrix*vec4(position,1.);w=p.xyz;gl_Position=projectionMatrix*viewMatrix*p;}`,fragmentShader:`
  uniform float time;varying vec3 w;

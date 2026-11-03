@@ -1,5 +1,6 @@
 import * as T from 'three';
 import {shoreSandGLSL} from '../core/shore';
+import {STONE_RELIEF_GLSL} from './StoneRelief';
 /** Contact shading is part of the opaque ground, never a translucent disc/plane. */
 export function makeGroundLighting(){
  const contacts=Array.from({length:11},()=>new T.Vector4(0,0,0,0));
@@ -9,7 +10,7 @@ export function makeGroundLighting(){
   shader.uniforms.beachColor={value:new T.Color('#e5c891')};
   shader.uniforms.mountainStone={value:new T.Color('#cbbca4')};
   shader.vertexShader=shader.vertexShader.replace('#include <common>','#include <common>\nvarying vec3 contactWorld;').replace('#include <project_vertex>','contactWorld=(modelMatrix*vec4(transformed,1.)).xyz;\n#include <project_vertex>');
-  shader.fragmentShader=shader.fragmentShader.replace('#include <common>','#include <common>\nvarying vec3 contactWorld;uniform vec4 groundContacts[11];uniform vec3 beachColor;uniform vec3 mountainStone;\n'+shoreSandGLSL).replace('#include <color_fragment>',`#include <color_fragment>
+  shader.fragmentShader=shader.fragmentShader.replace('#include <common>','#include <common>\nvarying vec3 contactWorld;uniform vec4 groundContacts[11];uniform vec3 beachColor;uniform vec3 mountainStone;\n'+shoreSandGLSL+STONE_RELIEF_GLSL).replace('#include <color_fragment>',`#include <color_fragment>
    // World-space exposed rock follows the actual slope. No extra surface or
    // collision layer: the same terrain triangles carry grass and stone.
    vec3 groundNormal=normalize(cross(dFdx(contactWorld),dFdy(contactWorld)));
@@ -19,6 +20,8 @@ export function makeGroundLighting(){
    float seams=sin(contactWorld.x*.19+sin(contactWorld.z*.073)*2.+contactWorld.y*.055);
    float fracture=(1.-smoothstep(.015,.075,abs(seams)))*( .35+.65*strata);
    diffuseColor.rgb=mix(diffuseColor.rgb,mountainStone*(.89+.13*strata-.12*fracture),exposed);
+   float mountainReliefHeight=0.;
+   if(exposed>.02){vec3 plate=stoneRelief(contactWorld,groundNormal,contactWorld.xy);diffuseColor.rgb*=mix(1.,plate.y,exposed);mountainReliefHeight=plate.x*.12*exposed*(1.-smoothstep(.08,.5,max(length(dFdx(contactWorld)),length(dFdy(contactWorld)))));}
    float sand=shoreSand(contactWorld.xz);
    float sandMottle=sin(contactWorld.x*.65+sin(contactWorld.z*.42))*sin(contactWorld.z*.83);
    diffuseColor.rgb=mix(diffuseColor.rgb,beachColor*(1.+sandMottle*.045),sand);
@@ -38,8 +41,8 @@ export function makeGroundLighting(){
     }
    }
    diffuseColor.rgb*=1.-contactShade;
-  `);
+  `).replace('#include <normal_fragment_maps>','#include <normal_fragment_maps>\nnormal=stoneReliefNormal(-vViewPosition,normal,mountainReliefHeight);');
  };
- material.customProgramCacheKey=()=> 'valley-ground-mountain-v4';
+ material.customProgramCacheKey=()=> 'valley-ground-stoneplates-v5';
  return {material,setContacts(positions:readonly T.Vector3[]){contacts.forEach((c,i)=>{const p=positions[i];if(p)c.set(p.x,p.y,p.z,1);else c.w=0;});}};
 }

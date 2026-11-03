@@ -4,6 +4,7 @@ import {mergeGeometries,toCreasedNormals} from 'three/addons/utils/BufferGeometr
 import {heightAt} from '../core/terrain';
 import {stoneColors,stoneMaterial} from './StoneArt';
 import {scenicStone} from './ScenicStone';
+import {addStoneGreenery} from './StoneGreenery';
 
 export const EXTREME_ARCHES=[
  {name:'north foothill crossing',x:-22,z:-102,halfLength:46,depth:6.4},
@@ -58,7 +59,8 @@ export function extremeArchGeometry(a:ExtremeArch){
 }
 export function addExtremeArches(scene:T.Scene,world:R.World){
  const parts=EXTREME_ARCHES.map(extremeArchGeometry),geometry=mergeGeometries(parts);parts.forEach(g=>g.dispose());
- const material=stoneMaterial(),mesh=new T.Mesh(geometry,material);mesh.name='valley-driveable-rock-arches';mesh.castShadow=mesh.receiveShadow=true;scene.add(mesh);
+ const material=stoneMaterial(EXTREME_ARCHES.map(a=>({x:a.x,y:archRoofHeight(a)-6.5,z:a.z,rx:8,ry:3.4}))),mesh=new T.Mesh(geometry,material);mesh.name='valley-driveable-rock-arches';mesh.castShadow=mesh.receiveShadow=true;scene.add(mesh);
+ addStoneGreenery(mesh,EXTREME_ARCHES.flatMap(a=>[-1,1].flatMap(side=>[12,22].map(u=>({x:a.x+side*u,z:a.z-a.depth/2-.4})))));
  const vertices=new Float32Array(geometry.getAttribute('position').array),indices=Uint32Array.from({length:vertices.length/3},(_,i)=>i);
  world.createCollider(R.ColliderDesc.trimesh(vertices,indices).setFriction(.9));return mesh;
 }

@@ -21,7 +21,7 @@ test('wide valley loop has real height variation, bounded grades and safe cleara
 });
 test('all large chevrons face along their segment and their corners stay above hills',()=>{
  const v=new MatchRouteVisual(new Scene()),marks=v.group.children.find(o=>o instanceof InstancedMesh) as InstancedMesh;let index=0,arrows=0;
- VALLEY_ROUTE.forEach((b,i)=>{const a=VALLEY_ROUTE[(i+5)%6],dx=b.x-a.x,dz=b.z-a.z,l=Math.hypot(dx,dz),dir=new Vector3(dx/l,0,dz/l),side=new Vector3(-dz/l,0,dx/l);for(let d=1;d<l;d+=2)index+=2;const locations:number[]=[];for(let d=4;d<l-10;d+=9)locations.push(d);for(const back of [8,5,2])if(l>back+1)locations.push(l-back);
+ VALLEY_ROUTE.forEach((b,i)=>{const a=VALLEY_ROUTE[(i+5)%6],dx=b.x-a.x,dz=b.z-a.z,l=Math.hypot(dx,dz),dir=new Vector3(dx/l,0,dz/l),side=new Vector3(-dz/l,0,dx/l);const locations:number[]=[];for(let d=4;d<l-10;d+=9)locations.push(d);for(const back of [8,5,2])if(l>back+1)locations.push(l-back);
   for(const d of locations){const tip:Vector3[]=[],tail:Vector3[]=[],center=new Vector3(a.x+dir.x*d,0,a.z+dir.z*d);for(let arm=0;arm<2;arm++){const m=new Matrix4();marks.getMatrixAt(index++,m);const ends=[-1,1].map(s=>new Vector3(0,0,s*.55).applyMatrix4(m));ends.sort((p,q)=>Math.abs(p.clone().sub(center).dot(side))-Math.abs(q.clone().sub(center).dot(side)));tip.push(ends[0]);tail.push(ends[1]);}assert.ok(tip[0].clone().add(tip[1]).sub(tail[0]).sub(tail[1]).dot(dir)>0);arrows++;}
  });
  assert.equal(index,marks.count);assert.ok(arrows>30);const positions=marks.geometry.getAttribute('position'),m=new Matrix4();for(let i=0;i<marks.count;i++){marks.getMatrixAt(i,m);for(let j=0;j<positions.count;j++){const p=new Vector3().fromBufferAttribute(positions,j).applyMatrix4(m);assert.ok(p.y-heightAt(p.x,p.z)>.015,`buried mark ${i}`);}}

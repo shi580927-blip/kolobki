@@ -1,0 +1,31 @@
+{
+  "views": [
+    {
+      "name": "race",
+      "drawCalls": 71,
+      "triangles": 911974
+    },
+    {
+      "name": "stone",
+      "drawCalls": 53,
+      "triangles": 891406
+    },
+    {
+      "name": "lagoon",
+      "drawCalls": 68,
+      "triangles": 909822
+    },
+    {
+      "name": "north",
+      "drawCalls": 31,
+      "triangles": 813604
+    },
+    {
+      "name": "arches",
+      "drawCalls": 69,
+      "triangles": 908486
+    }
+  ],
+  "errors": [],
+  "mode": "actual World geometry; review cameras; Chromium SwiftShader"
+}

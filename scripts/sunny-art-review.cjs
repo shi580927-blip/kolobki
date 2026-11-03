@@ -22,9 +22,10 @@ const assert=require('node:assert/strict');
    const camera=new T.PerspectiveCamera(48,16/9,.1,1600);
    window.renderArtView=(position,target)=>{camera.position.set(...position);camera.lookAt(...target);scene.fog.near=position[1]>300?650:145;scene.fog.far=position[1]>300?1600:640;environment.horizon.update(.2);environment.pond.update(.2);environment.landmarks.update(.2);sky.update(.2,camera);renderer.render(scene,camera);return {drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles};};
   });
-  const views=[['island',[360,370,410],[0,8,0]],['valley',[96,35,139],[-25,5,10]],['lagoon',[2,22,100],[-43,4,45]],['north',[22,48,-77],[-28,25,-150]],['arches',[68,24,150],[20,3,110]],['windmill',[76,25,79],[112,8,125]]];
+  const views=[['race',[22,15,-25],[0,4,9]],['stone',[-34,13,20],[-49,8,0]],['island',[360,370,410],[0,8,0]],['valley',[96,35,139],[-25,5,10]],['lagoon',[2,22,100],[-43,4,45]],['north',[22,48,-77],[-28,25,-150]],['arches',[68,24,150],[20,3,110]],['windmill',[76,25,79],[112,8,125]]];
   const report=[];fs.mkdirSync('docs/qa',{recursive:true});
-  for(const [name,position,target] of views){const stats=await page.evaluate(({position,target})=>window.renderArtView(position,target),{position,target});await page.screenshot({path:`docs/qa/dev${version}-${name}-art.png`,timeout:120000});report.push({name,...stats});}
+  const selected=process.argv.includes('--race-only')?views.filter(v=>v[0]==='race'):process.argv.includes('--stone-only')?views.filter(v=>['north','arches','lagoon','race','stone'].includes(v[0])):views;
+  for(const [name,position,target] of selected){const stats=await page.evaluate(({position,target})=>window.renderArtView(position,target),{position,target});await page.screenshot({path:`docs/qa/dev${version}-${name}-art.png`,timeout:120000});report.push({name,...stats});}
   assert.deepEqual(errors,[]);fs.writeFileSync(`docs/qa/dev${version}-art.json`,JSON.stringify({views:report,errors,mode:'actual World geometry; review cameras; Chromium SwiftShader'},null,2));console.log(JSON.stringify(report));
  }finally{if(browser)await browser.close();server.kill();}
 })().catch(e=>{console.error(e);process.exit(1)});

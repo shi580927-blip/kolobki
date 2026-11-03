@@ -7,7 +7,7 @@ import {MATCH_ROUTE,RouteMatch} from './RouteMatch';
 export class MatchRouteVisual {
  readonly group=new T.Group();private gates:T.Group[]=[];
  private activeMaterial=new T.MeshBasicMaterial({color:0xffd531,toneMapped:false});
- private routeMaterial=new T.MeshBasicMaterial({color:0x70efdc,transparent:true,opacity:.9,depthWrite:false,toneMapped:false});
+ private routeMaterial=new T.MeshBasicMaterial({color:0xffd168,transparent:true,opacity:.9,depthWrite:false,toneMapped:false});
  constructor(scene:T.Scene){
   this.group.name='match-route';this.group.visible=false;scene.add(this.group);
   const geo=new T.BoxGeometry(.22,.035,1.1),dummy=new T.Object3D(),pieces:T.Matrix4[]=[];
@@ -19,21 +19,12 @@ export class MatchRouteVisual {
   };
   MATCH_ROUTE.forEach((point,i)=>{
    const from=MATCH_ROUTE[(i+MATCH_ROUTE.length-1)%MATCH_ROUTE.length],dx=point.x-from.x,dz=point.z-from.z,length=Math.hypot(dx,dz),nx=-dz/length,nz=dx/length,angle=Math.atan2(dx,dz);
-   for(let d=1;d<length;d+=2)for(const side of [-1,1])mark(from.x+dx*d/length+nx*side*ROUTE_HALF_WIDTH,from.z+dz*d/length+nz*side*ROUTE_HALF_WIDTH,angle);
+
    // Larger chevrons point forward; three close together announce each turn.
    const arrows:number[]=[];for(let d=4;d<length-10;d+=9)arrows.push(d);
    for(const back of [8,5,2])if(length>back+1)arrows.push(length-back);
    for(const d of arrows)for(const side of [-1,1])mark(from.x+dx*d/length-nx*side*.85,from.z+dz*d/length-nz*side*.85,angle-side*.8,2,2.2);
    const gate=new T.Group();gate.position.set(point.x,heightAt(point.x,point.z),point.z);
-   // A contour-following ring stays visible on a crest instead of cutting into it.
-   const positions:number[]=[],indices:number[]=[];
-   for(let j=0;j<=64;j++)for(const radius of [ROUTE_HALF_WIDTH-.3,ROUTE_HALF_WIDTH-.1]){
-    const a=j/64*Math.PI*2,x=Math.cos(a)*radius,z=Math.sin(a)*radius;
-    positions.push(x,heightAt(point.x+x,point.z+z)-gate.position.y+.19,z);
-    if(j<64&&radius===ROUTE_HALF_WIDTH-.3){const n=j*2;indices.push(n,n+2,n+1,n+1,n+2,n+3);}
-   }
-   const ringGeo=new T.BufferGeometry();ringGeo.setAttribute('position',new T.Float32BufferAttribute(positions,3));ringGeo.setIndex(indices);ringGeo.computeVertexNormals();gate.add(new T.Mesh(ringGeo,this.routeMaterial));
-   for(const side of [-1,1]){const x=nx*side*ROUTE_HALF_WIDTH,z=nz*side*ROUTE_HALF_WIDTH,post=new T.Mesh(new T.CylinderGeometry(.12,.12,6,6),this.routeMaterial);post.position.set(x,heightAt(point.x+x,point.z+z)-gate.position.y+3,z);gate.add(post);}
    const marker=new T.Mesh(new T.OctahedronGeometry(.75),this.activeMaterial);marker.name='next-marker';marker.position.y=7;gate.add(marker);
    this.gates.push(gate);this.group.add(gate);
   });

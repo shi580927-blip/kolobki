@@ -23,6 +23,7 @@ import { createWorld } from "./game/World";
 import { PhysicsPlayer } from "./game/PhysicsPlayer";
 import { Effects } from "./game/Effects";
 import {applyPondWater,pondSubmersion} from "./game/WaterPhysics";
+import {WaterRescue} from './game/WaterRescue';
 import {SandFall} from "./game/SandFall";
 import {WaterWake} from "./game/WaterWake";
 import {RoadDust} from "./game/RoadDust";
@@ -84,7 +85,8 @@ async function start() {
   addDeviceControls(audio);
   const player = new PhysicsPlayer(world, bus);
   const dust = new RoadDust(scene);
-  const wake = new WaterWake(scene);
+  const wake = new WaterWake(scene,strength=>audio.splash(strength));
+  const waterSafety=new WaterRescue(world);
   const sandFall = new SandFall(scene);
   let storage: Storage;
   try {
@@ -199,7 +201,7 @@ async function start() {
     dust.reset();wake.reset();sandFall.reset();
     npcs?.reset();
     train?.reset();trainStatus();
-    berries.reset();impactMeter.reset();physicsTime=0;faces.forEach(f=>f.rig.reset());
+    berries.reset();impactMeter.reset();waterSafety.reset();physicsTime=0;faces.forEach(f=>f.rig.reset());
     updateBerryCount();
   };
   document.querySelector<HTMLButtonElement>("#reset")!.onclick=()=>{match?.exit();resetGame();};
@@ -273,10 +275,13 @@ async function start() {
       for(const actor of npcs?.actors??[])applyPondWater(actor.physics.body,dt);
       world.step(events);
       player.sync();
+      npcs?.sync();
+      const rescue=waterSafety.step(-1,player,dt);
+      if(rescue){wake.splash(rescue.from.x,rescue.from.z,9);faces.forEach(f=>{f.rig.reset();f.play('fury');});rig.shake=Math.max(rig.shake,.12);}
+      for(const actor of npcs?.actors??[]){const rescue=waterSafety.step(actor.entry.id,actor.physics,dt);if(rescue){wake.splash(rescue.from.x,rescue.from.z,9);actor.visual.face.rig.reset();actor.visual.face.play('fury');}}
       wake.emit(-1,player.current,player.body.linvel());
       for(const actor of npcs?.actors??[])wake.emit(actor.entry.id,actor.physics.body.translation(),actor.physics.body.linvel());
       dust.step(dt, player.current, player.body.linvel(), player.hasSurfaceSupport());
-      npcs?.sync();
       player.updateCoating(dt);
       sandFall.emit(-1,player.coating.shed,player.current);
       for(const actor of npcs?.actors??[]){actor.physics.updateCoating(dt);sandFall.emit(actor.entry.id,actor.physics.coating.shed,actor.physics.current);}
@@ -360,7 +365,7 @@ async function start() {
       faceEyes: visual.face.eyes.map(e => e.visible),
       faceArt: "animated-atlas-v03",
       faceVisibility: Object.entries(visual.face.rig.poses).filter(([,g])=>g.visible).map(([name,g])=>({name,rotation:g.rotation.toArray(),opacity:(g.children.find(o=>o.name.startsWith('study-')) as T.Mesh<T.BufferGeometry,T.ShaderMaterial>).material.uniforms.opacity.value})),
-      wetSand:{wetness:player.coating.wetness,sand:player.coating.sand},waterSubmersion:pondSubmersion(player.current),dustCount:dust.count, physicsTime,impactCharge:impactMeter.value,train:train?.snapshot(),match:match?.snapshot(),audio:audio.snapshot(),fullscreen:!!document.fullscreenElement,
+      wetSand:{wetness:player.coating.wetness,sand:player.coating.sand},waterSubmersion:pondSubmersion(player.current),waterSafety:waterSafety.snapshot(-1),waterWaves:wake.count,waterSplashes:wake.splashCount,dustCount:dust.count, physicsTime,impactCharge:impactMeter.value,train:train?.snapshot(),match:match?.snapshot(),audio:audio.snapshot(),fullscreen:!!document.fullscreenElement,
       npcs:npcs?.snapshot().map(a=>({...a,state:train?.has(a.id)?"wagon":train?.isJoining(a.id)?"joining":match?.controlled(a.id)?a.id===0?"rival":"rival-wagon":a.state}))??[],npcContacts:npcs?.collisionsWithPlayer??0,npcSeed:npcs?.seed,
       buildVersion,worldSize:WORLD_SIZE,worldArt:"sunny-valley-gardens-v2",environmentArt:groundLighting.art,skyArt:skyState,cloudCount:sky?.clouds.length??0,cameraFov:camera.fov,
       berryDetail,

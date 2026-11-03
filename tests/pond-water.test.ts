@@ -7,7 +7,7 @@ test('rendered pond uses physical world contour and actual ground depth, facing 
  for(let i=0;i<p.count;i++){
   const x=p.getX(i),z=p.getZ(i);assert.ok(pondDistance(x,z)<1.000001);assert.ok(Math.abs(d.getX(i)-(POND.water-heightAt(x,z)))<.00001);assert.ok(n.getY(i)>.99);maxDepth=Math.max(maxDepth,d.getX(i));
  }
- assert.ok(maxDepth>.35&&maxDepth<.5);g.dispose();
+ assert.ok(maxDepth>2.5&&maxDepth<3);g.dispose();
 });
 
 test('lake opens beyond the bridge without covering the match route or placing plants underwater',async()=>{

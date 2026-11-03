@@ -13,6 +13,7 @@ const assert=require('node:assert/strict');
   const page=await browser.newPage({viewport:{width:1280,height:720}}),errors=[];
   page.setDefaultTimeout(120000);
   page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
+  page.on('response',r=>{if(r.status()>=400)console.error('RESOURCE_FAILURE',r.status(),r.url());});
   if(process.argv.includes('--map')){
    await page.route('**/qa-map',route=>route.fulfill({contentType:'text/html',body:'<html><body style="margin:0"></body></html>'}));
    await page.goto(url+'/qa-map');
@@ -30,6 +31,7 @@ const assert=require('node:assert/strict');
   }
   await page.addInitScript(()=>localStorage.setItem('sharobesy.skin.v1','4321'));
   await page.goto(url+'/?skin-test');await page.waitForFunction(()=>window.__SHAROBESY__&&document.querySelector('#boot').hidden);
+  console.log('BOOT',await page.evaluate(()=>window.__SHAROBESY__.buildVersion));
   // Drive only through the normal pointer controls, with no teleport or test camera.
   const state=()=>page.evaluate(()=>window.__SHAROBESY__);
   const stick=await page.locator('#stick').boundingBox(),sx=stick.x+stick.width/2,sy=stick.y+stick.height/2,r=stick.width/2;
@@ -60,11 +62,20 @@ const assert=require('node:assert/strict');
   await page.waitForFunction(()=>window.__SHAROBESY__.comboPhase!=='IDLE');
   await page.waitForFunction(()=>window.__SHAROBESY__.comboPhase==='IDLE');
   assert.ok((await state()).faceVisibility.every(p=>p.opacity===1));
+  console.log('COMBO PASS');
   await page.locator('#reset').click();await page.waitForTimeout(500);const reset=await state();assert.equal(reset.skin.seed,4321);assert.equal(reset.immobilized,false);
   for(let i=1;i<=4;i++){await page.keyboard.press('Digit'+i);assert.equal((await state()).camera,i-1);}
   await page.setViewportSize({width:2400,height:1080});const box=await page.locator('#stage').boundingBox();assert.ok(Math.abs(box.width/box.height-16/9)<.001);
+  let raceStart;
+  if(process.argv.includes('--match-start')){
+   await page.setViewportSize({width:1280,height:720});await page.goto(url);await page.waitForFunction(()=>window.__SHAROBESY__?.match&&document.querySelector('#boot').hidden);
+   await page.locator('#match-start').click();assert.equal((await state()).match.phase,'countdown');await page.waitForFunction(()=>window.__SHAROBESY__.match.phase==='running');
+   console.log('RACE RUNNING');
+   raceStart={phase:(await state()).match.phase};await page.screenshot({path:`docs/qa/dev${require('../package.json').version.split('dev.')[1]}-race-start.png`,timeout:120000});
+   await page.getByRole('button',{name:'На старт',exact:true}).click();assert.equal((await state()).match.phase,'sandbox');
+  }
   assert.deepEqual(errors,[]);
-  fs.writeFileSync(`docs/qa/dev${require('../package.json').version.split('dev.')[1]}-browser.json`,JSON.stringify({view:seen,reset:{seed:reset.skin.seed,immobilized:reset.immobilized,wetSand:reset.wetSand},aspect:box,errors},null,2));
+  fs.writeFileSync(`docs/qa/dev${require('../package.json').version.split('dev.')[1]}-browser.json`,JSON.stringify({view:seen,reset:{seed:reset.skin.seed,immobilized:reset.immobilized,wetSand:reset.wetSand},aspect:box,raceStart,errors},null,2));
   console.log('PASS',JSON.stringify({position:seen.position,drawCalls:seen.drawCalls,triangles:seen.triangles,errors}));
  }finally{if(browser)await browser.close();server.kill();}
 })().catch(e=>{console.error(e);process.exit(1)});

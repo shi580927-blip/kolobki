@@ -20,7 +20,8 @@ test('visible mountain rock triangles match their actual Rapier support',async()
  mesh.material.side=DoubleSide;mesh.updateMatrixWorld(true);w.step();
  for(const p of mountainCliffLayout()){
   const origin=new Vector3(p.x,85,p.z),direction=new Vector3(0,-1,0);
-  const visual=new Raycaster(origin,direction).intersectObject(mesh)[0],physical=w.castRay(new R.Ray(origin,direction),120,true);
+  // Decorative leaves are non-solid; support must match the stone itself.
+  const visual=new Raycaster(origin,direction).intersectObject(mesh,false)[0],physical=w.castRay(new R.Ray(origin,direction),120,true);
   assert.ok(visual&&physical);assert.ok(Math.abs(visual.distance-physical.timeOfImpact)<.002);
  }
  assert.equal(scene.children.length,1);w.free();

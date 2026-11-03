@@ -3,6 +3,14 @@ import assert from 'node:assert/strict';
 import {Scene} from 'three';
 import {WaterWake} from '../src/game/WaterWake';
 import {POND} from '../src/core/terrain';
+import {addPondWater} from '../src/game/PondWater';
+import {InstancedMesh,ShaderMaterial} from 'three';
+test('lagoon interaction overlays use the current contour and render above its transparent surface',()=>{
+ const scene=new Scene();addPondWater(scene);const wake=new WaterWake(scene),surface=scene.getObjectByName('pond-water')!,mesh=scene.getObjectByName('water-motion-wakes') as InstancedMesh;
+ const shape=(mesh.material as ShaderMaterial).uniforms.pondShape.value;
+ assert.deepEqual(shape.toArray(),[POND.x,POND.z,POND.radius,POND.flare]);assert.ok(mesh.renderOrder>surface.renderOrder);
+ wake.emit(0,{x:-35,y:POND.water,z:53},{x:4,z:0});wake.update(.1);assert.equal(mesh.count,1);
+});
 test('movement wake emits only in water, is bounded, fades and resets',()=>{
  const w=new WaterWake(new Scene()),p={x:POND.x,y:POND.water+.7,z:POND.z};
  w.emit(0,{...p,y:POND.water+2},{x:4,z:0});assert.equal(w.count,0);
@@ -10,7 +18,7 @@ test('movement wake emits only in water, is bounded, fades and resets',()=>{
  w.emit(0,p,{x:4,z:0});assert.equal(w.count,1);
  w.emit(0,p,{x:4,z:0});assert.equal(w.count,1);
  for(let i=0;i<100;i++)w.emit(i+1,p,{x:4,z:0});assert.equal(w.count,64);
- w.update(1);assert.equal(w.count,0);w.reset();assert.equal(w.count,0);
+ w.update(1.6);assert.equal(w.count,0);w.reset();assert.equal(w.count,0);
 });
 test('one falling entry creates a capped splash; ordinary wet movement does not repeat it',()=>{
  const w=new WaterWake(new Scene()),p={x:POND.x,y:POND.water+2,z:POND.z};

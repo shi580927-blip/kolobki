@@ -13,6 +13,16 @@ export function pondRadius(angle:number){
 export function pondDistance(x:number,z:number){const dx=x-POND.x,dz=z-POND.z;return Math.hypot(dx,dz)/pondRadius(Math.atan2(dz,dx));}
 /** Conservative nominal water edge, in metres, for dry prop placement. */
 export function pondClearance(x:number,z:number){const a=Math.atan2(z-POND.z,x-POND.x);return Math.hypot(x-POND.x,z-POND.z)-pondRadius(a);}
+/** Only the open middle is deep. Both bridges and all accepted beach exits
+ * keep their shallow floor; no sudden underwater ledge at a shoreline. */
+export const LAGOON_DEEP={x:-35,z:53,rx:17,rz:21,maxDepth:2.8};
+export function lagoonDepression(x:number,z:number){
+ const r=Math.hypot((x-LAGOON_DEEP.x)/LAGOON_DEEP.rx,(z-LAGOON_DEEP.z)/LAGOON_DEEP.rz);
+ if(r>=1||pondClearance(x,z)>-6)return 0;
+ const t=Math.max(0,Math.min(1,(r-.18)/.82)),d=pondDistance(x,z),shallowDepth=.38-.48*Math.min(1.2,d)**2;
+ const edge=Math.max(0,Math.min(1,(-pondClearance(x,z)-6)/4));
+ return (LAGOON_DEEP.maxDepth-shallowDepth)*(1-t*t*(3-2*t))*edge*edge*(3-2*edge);
+}
 export function heightAt(x: number, z: number) {
   const natural = (
     3.8 * Math.sin(x / 19) * Math.cos(z / 23) +
@@ -34,7 +44,7 @@ export function heightAt(x: number, z: number) {
   const original=spawn*(1-blend)+natural*blend*detail+hills*rise+landscapeRelief(x,z)*detail+macro;
   // A shallow, gently blended basin off the route. Its bottom remains solid terrain.
   const d=pondDistance(x,z),tpond=Math.max(0,Math.min(1,(pondClearance(x,z)-2)/12)),shore=tpond*tpond*(3-2*tpond);
-  const bank=POND.water-.38+.48*Math.min(1.2,d)**2;
+  const bank=POND.water-.38+.48*Math.min(1.2,d)**2-lagoonDepression(x,z);
   const basin=bank*(1-shore)+original*shore;
   // Dry approaches meet the 13 m bridge without an abrupt bank at its ends.
   const smooth=(a:number,b:number,v:number)=>{const t=Math.max(0,Math.min(1,(v-a)/(b-a)));return t*t*(3-2*t);};
