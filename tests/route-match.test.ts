@@ -31,3 +31,11 @@ test('selected track owns its width, ordered gates and finish count; racing cann
  assert.equal(m.phase,'finished');assert.equal(m.progress[0],20);assert.equal(m.winner,'player');
  m.reset();m.select(HILL_TRACK);assert.equal(m.snapshot().width,12);assert.equal(m.target(0),MATCH_ROUTE[0]);
 });
+
+test('a crossing near the edge counts across the full wide gate but stays outside the narrow one',()=>{
+ for(const track of [MEADOW_TRACK,HILL_TRACK]){
+  const target=track.points[0],before={x:target.x+8.5,z:target.z-12},after={x:target.x+8.5,z:target.z+12},m=new RouteMatch(track);
+  m.start([before,start[1]]);m.step(3,[before,start[1]]);m.step(.1,[after,start[1]]);
+  assert.equal(m.progress[0],track===MEADOW_TRACK?1:0);
+ }
+});

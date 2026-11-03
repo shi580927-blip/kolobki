@@ -24,7 +24,7 @@ export class RouteMatch {
    const target=this.target(i),a=this.previous[i]??p,dx=p.x-a.x,dz=p.z-a.z,length=dx*dx+dz*dz;
    const t=length?Math.max(0,Math.min(1,((target.x-a.x)*dx+(target.z-a.z)*dz)/length)):0;
    // Swept test avoids missing a gate during a dash. One ordered gate per tick.
-   if(Math.hypot(a.x+dx*t-target.x,a.z+dz*t-target.z)<=MATCH_RULES.radius){
+   if(Math.hypot(a.x+dx*t-target.x,a.z+dz*t-target.z)<=Math.max(MATCH_RULES.radius,this.track.halfWidth)){
     this.progress[i]++;if(this.progress[i]>=this.track.points.length*MATCH_RULES.laps)arrivals.push(i);
    }
   });
