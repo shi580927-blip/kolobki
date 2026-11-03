@@ -9,13 +9,14 @@ const {chromium}=require('playwright'),{spawn}=require('node:child_process'),fs=
   page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
   await page.addInitScript(()=>localStorage.setItem('sharobesy.skin.v1','4321'));await page.goto(url);
   await page.waitForFunction(()=>window.__SHAROBESY__?.match&&document.querySelector('#boot').hidden);
+  if(await page.locator("#menu-match").isVisible())await page.locator("#menu-match").click();
   const state=()=>page.evaluate(()=>window.__SHAROBESY__),report=[];
   assert.equal(await page.locator('#track-choices button').count(),2);assert.equal(await page.locator('#track-choices button:visible').count(),1);assert.equal((await state()).match.phase,'sandbox');
   if(!quick)await page.screenshot({path:`docs/qa/dev${version}-track-choice.png`,timeout:120000});
   await page.locator('#sandbox-choice').click();let s=await state();assert.deepEqual(s.match.visual.visibleTracks,[]);assert.equal(s.valleyFeatures.boostPads,2);assert.equal(s.valleyFeatures.hurdles,1);
   if(!quick)await page.screenshot({path:`docs/qa/dev${version}-sandbox.png`,timeout:120000});report.push({phase:'sandbox',visual:s.match.visual,features:s.valleyFeatures});
   for(const [track,width,gates] of [['meadow',20,10],['hills',12,6]]){
-   if(track==='hills'){await page.locator('#reset').click();await page.waitForFunction(()=>window.__SHAROBESY__.match.phase==='sandbox');await page.locator('#track-more').click();await page.locator('[data-track="hills"]').click();}
+   if(track==='hills'){await page.locator('#reset').click();await page.waitForFunction(()=>window.__SHAROBESY__.match.phase==='sandbox');if(await page.locator('#menu-open').isVisible()){await page.locator('#menu-open').click();await page.locator('#menu-match').click();}await page.locator('#track-more').click();await page.locator('[data-track="hills"]').click();}
    await page.locator('#match-start').click();await page.waitForFunction(quick=>quick?window.__SHAROBESY__.match.visual.visible:window.__SHAROBESY__.match.phase==='running',quick);
    if(!quick)await page.waitForFunction(()=>window.__SHAROBESY__.match.progress[1]>0);
    s=await state();assert.equal(s.match.trackId,track);assert.equal(s.match.width,width);assert.equal(s.match.checkpoints,gates);assert.deepEqual(s.match.visual.visibleTracks,[track]);

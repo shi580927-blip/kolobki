@@ -104,3 +104,7 @@ test('wet head cannot tow or recollect, while the bridge does not release a trai
  s.leader.body.setTranslation({x:POND.x,y:POND.water+1.23,z:POND.z},true);s.leader.sync();s.train.afterStep();assert.equal(s.train.count,1);
  s.leader.body.setTranslation({x:POND.x,y:POND.water+.7,z:POND.z},true);s.leader.sync();s.train.afterStep();assert.equal(s.train.count,0);assert.equal(s.train.snapshot().joining,undefined);s.world.free();
 });
+
+test('a targeted ability release detaches only the affected tail and keeps the front train',async()=>{
+ const s=await setup(3,65);try{for(let id=0;id<3;id++)s.collect(id);assert.deepEqual(s.train.snapshot().ids,[0,1,2]);assert.deepEqual(s.train.releaseFrom(1,'ability-bomb'),[1,2]);assert.deepEqual(s.train.snapshot().ids,[0]);for(let i=0;i<20;i++)s.tick();assert.equal(s.train.has(0),true);assert.equal(s.train.has(1),false);assert.equal(s.train.has(2),false);assert.equal(s.actors[1].physics.body.bodyType(),R.RigidBodyType.Dynamic);assert.ok(s.train.snapshot().cooldowns[1]>0);}finally{s.world.free();}
+});

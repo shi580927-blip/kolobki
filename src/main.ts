@@ -31,6 +31,10 @@ import { ImpactAudio } from "./game/ImpactAudio";
 import {addDeviceControls} from "./game/DeviceControls";
 import { OrbitInput } from "./game/OrbitInput";
 import {DuoSession} from './game/DuoSession';
+import {AbilityInventory,COMBO_LABELS,ABILITIES} from './game/AbilityModel';
+import {AbilitySystem,type AbilityActor} from './game/AbilitySystem';
+import {PowerPanel} from './game/PowerPanel';
+import {GameMenu} from './game/GameMenu';
 import {readDuoInvite} from './game/DuoProtocol';
 async function start() {
   document.querySelector(".brand small")!.textContent=`АЛЬФА 0.1 · ${buildVersion.replace("0.1.0-", "")} · ТЕХНИЧЕСКИЙ ТЕСТ`;
@@ -40,7 +44,11 @@ async function start() {
   const resources=await loadAnimationAtlas(),atlas=gameplayAtlas(resources.data);
   const appearanceTest=new URLSearchParams(location.search).has("skin-test");
   const valleyStudy=new URLSearchParams(location.search).has("valley-study");
-  const duoInvite=readDuoInvite(location.hash),duoMode=new URLSearchParams(location.search).has('duo')||!!duoInvite;
+  const duoInvite=readDuoInvite(location.hash),hadDuoLink=new URLSearchParams(location.search).has('duo')||!!duoInvite;
+  // Network trial is parked while the local gameplay is being completed.
+  const duoMode=Boolean(false);
+  if(hadDuoLink){const url=new URL(location.href);url.searchParams.delete('duo');url.hash='';history.replaceState(null,'',url.href);}
+  const standardMode=!appearanceTest&&!valleyStudy&&!duoMode;
   let berryDetail=valleyStudy&&new URLSearchParams(location.search).has("berry-detail");
   const stage = document.querySelector<HTMLElement>("#stage")!,
     hud = document.querySelector<HTMLElement>("#hud")!,
@@ -105,7 +113,8 @@ async function start() {
   if(appearanceTest){try{const saved=storage.getItem('sharobesy.author.skin-study.v1');if(saved)design=validateDesign(JSON.parse(saved));}catch{/* Invalid author config does not change the player. */}}
   function environmentFor(r:T.WebGLRenderer,force=false){if(!force&&(design.gloss<=0||design.surface!=='smooth'||design.growthCount>0))return undefined;const room=new RoomEnvironment(),pmrem=new T.PMREMGenerator(r),texture=pmrem.fromScene(room,.04).texture;room.dispose();pmrem.dispose();return texture;}
   const worldEnvironment=environmentFor(renderer,true);
-  const berries = new BerryCollectibles(scene, bus,worldEnvironment,!duoMode);
+  const inventory=new AbilityInventory();
+  const berries = new BerryCollectibles(scene, bus,worldEnvironment,!duoMode,standardMode?kind=>inventory.add(kind):undefined);
   const visual=new RuntimeVisual(design,atlas,resources.textures,skin.mood,worldEnvironment);
   scene.add(visual);
   const casting=valleyStudy?addValleyStudy(scene,atlas,resources.textures,worldEnvironment):undefined;
@@ -116,10 +125,18 @@ async function start() {
   const train=npcs?new TrainSystem(world,player,npcs.actors.map(a=>({id:a.entry.id,physics:a.physics})),bus,trainOptions):undefined;
   let match:MatchSession|undefined;
   const duo=duoMode?new DuoSession(scene,player,skin.seed,buildVersion,seed=>{const s=skinFrom(seed);return new RuntimeVisual(designForGame(s),atlas,resources.textures,s.mood,worldEnvironment);}):undefined;
-  if(!duoMode&&!appearanceTest&&!valleyStudy){const button=document.createElement('button');button.id='duo-launch';button.textContent='Вдвоём · тест';button.onclick=()=>{const url=new URL(location.href);url.searchParams.set('duo','1');url.hash='';location.assign(url.href);};document.querySelector('#tools')!.appendChild(button);}
-  if(npcs){const label=document.createElement("div");label.id="train-status";label.textContent="Поезд: 0 / 5 · Коснитесь шаробеса без сильного тарана";label.style.cssText="position:absolute;left:30px;top:123px;font-size:13px;color:#fff";hud.appendChild(label);}
+  if(!duoMode&&!appearanceTest&&!valleyStudy){const button=document.createElement('button');button.id='duo-launch';button.textContent='Вдвоём · в доработке';button.disabled=true;button.onclick=()=>{const url=new URL(location.href);url.searchParams.set('duo','1');url.hash='';location.assign(url.href);};document.querySelector('#tools')!.appendChild(button);}
+  if(npcs){const label=document.createElement("div");label.id="train-status";label.textContent="Поезд: 0 / 5 · Коснитесь шаробеса без сильного тарана";label.style.cssText="position:absolute;left:30px;top:95px;font-size:16px;color:#fff;max-width:760px;background:#193b38cc;padding:7px 12px;border-radius:12px";hud.appendChild(label);}
   const input = new Input(),
-    effects = new Effects(scene);
+    effects = new Effects(scene,camera);
+  let menu:GameMenu|undefined,powerPanel:PowerPanel|undefined;
+  const paused=()=>!!menu?.open||!!match?.choosing;
+  const feedback=document.createElement("div");feedback.id="action-feedback";feedback.hidden=true;feedback.setAttribute("role","status");hud.append(feedback);let feedbackLife=0;
+  const tell=(text:string)=>{feedback.textContent=text;feedback.hidden=false;feedbackLife=2;};
+  const abilityRoster:AbilityActor[]=npcs?.actors.map(a=>({id:a.entry.id,physics:a.physics,hit:()=>{a.brain.hit();a.visual.face.play("dazed");}}))??[];
+  const abilityActors=()=>abilityRoster;
+  const abilities=new AbilitySystem(inventory,world,player,abilityActors,id=>!!train?.has(id)||!!train?.isJoining(id),id=>{match?.rivalTrain.releaseFrom(id,"ability-bomb");},result=>{tell(COMBO_LABELS[result.kind]+(result.count>1?" ×"+result.count:""));if(result.kind!=="blast"){effects.burst(result.position,result.kind==="air-hit"?"lemon":result.kind);audio.play();}rig.shake=Math.max(rig.shake,.10);});
+  if(standardMode)powerPanel=new PowerPanel(inventory,()=>!paused()&&!player.controlsLocked);
   const events = new R.EventQueue(true);
   const portraitCanvas =
     document.querySelector<HTMLCanvasElement>("#portrait")!;
@@ -139,7 +156,7 @@ async function start() {
   const portraitVisual=new RuntimeVisual({...design,furCount:Math.min(design.furCount,24)},atlas,resources.textures,skin.mood,environmentFor(portraitRenderer));
   portraitScene.add(portraitVisual);
   const portraitCamera = new T.PerspectiveCamera(38, 1, 0.1, 10);
-  portraitCamera.position.set(0, 0.1, 3.9);
+  portraitCamera.position.set(0, 0.1, 4.5);
   portraitCamera.lookAt(0, 0, 0);
   const faces=[visual.face,portraitVisual.face];
   const react=(name:string)=>faces.forEach(f=>f.play(name));
@@ -147,7 +164,7 @@ async function start() {
   bus.on("player_dash",()=>{react("fury");audio.dash();});
   let npcSoundCooldown=0;
   bus.on("npc_impact",({position})=>{if(position.distanceTo(visual.position)<24){effects.burst(position);if(performance.now()>npcSoundCooldown){audio.play();npcSoundCooldown=performance.now()+250;}}});
-  const trainStatus=()=>{const label=document.querySelector('#train-status');if(label){const text=`Поезд: ${train?.count??0} / 5 · ${train?.snapshot().joining!==undefined?"Новичок подкатывается к хвосту":match?.active?"Проба маршрута: сцепки удерживаются":"Сильный удар разрывает состав"}`;if(label.textContent!==text)label.textContent=text;}};
+  const trainStatus=()=>{const label=document.querySelector('#train-status');if(label){const text=`Поезд: ${train?.count??0} / 5 · ${train?.snapshot().joining!==undefined?"Новичок подкатывается к хвосту":match?.active?"Собирай поезд для заезда":"Сильный удар разрывает состав"}`;if(label.textContent!==text)label.textContent=text;}};
   bus.on('train_attach',e=>{trainStatus();effects.sparkle(e.position);audio.collect();react('happy');npcs?.actors.find(a=>a.entry.id===e.id)?.visual.face.play('shocked');});
   bus.on('train_water_release',()=>{trainStatus();});
   bus.on('train_break',e=>{trainStatus();effects.burst(e.position);audio.play();rig.shake=.2;react('scared');for(const a of npcs?.actors??[])if(e.ids.includes(a.entry.id)){a.brain.hit();a.visual.face.play('dazed');}});
@@ -157,6 +174,7 @@ async function start() {
     effects.burst(position);
     audio.play();
     rig.shake = 0.25;
+    if(abilities.successfulAttack){react("fury");return;}
     if(impactMeter.add({source,closingSpeed,severity},physicsTime))bus.emit("combo",{count:1});else react("dazed");
   });
   bus.on("face_unhinged", () => {
@@ -177,6 +195,7 @@ async function start() {
     audio.collect();
     react("happy");
   });
+  bus.on("power_pickup",({kind,position})=>{effects.sparkle(position);audio.collect();react("happy");tell(ABILITIES[kind].name+" · заряд в запасе");});
   const cameraButton = document.querySelector<HTMLButtonElement>("#camera")!;
   function setCamera(n: number) {
     berryDetail=false;
@@ -207,11 +226,12 @@ async function start() {
     dust.reset();wake.reset();sandFall.reset();groundLighting.features.reset();
     npcs?.reset();
     train?.reset();trainStatus();
-    berries.reset();impactMeter.reset();waterSafety.reset();physicsTime=0;faces.forEach(f=>f.rig.reset());
+    berries.reset();abilities.reset();effects.reset();feedback.hidden=true;feedbackLife=0;impactMeter.reset();waterSafety.reset();physicsTime=0;faces.forEach(f=>f.rig.reset());
     updateBerryCount();
   };
-  document.querySelector<HTMLButtonElement>("#reset")!.onclick=()=>{match?.exit();resetGame();};
+  document.querySelector<HTMLButtonElement>("#reset")!.onclick=()=>{match?.exit();match?.hideChoice();resetGame();};
   if(npcs&&train)match=new MatchSession(world,scene,player,npcs,train,trainOptions,resetGame,bus);
+  if(standardMode){document.querySelector<HTMLElement>('#help')!.hidden=true;match?.hideChoice();if(hadDuoLink)tell('Сетевой тест отложен. Сейчас доступна одиночная долина.');menu=new GameMenu(()=>match?.showChoice(),()=>{match?.exit();match?.hideChoice();},()=>{powerPanel?.takeRequest();},'Украшение: '+({none:'без головного убора',crown:'корона',horns:'рожки',helmet:'шлем'}[visual.decorations.style.head])+'.');}
   if(appearanceTest){const button=document.createElement('button');button.textContent='Проба комбо';button.onclick=()=>bus.emit('combo',{count:3});document.querySelector('#tools')!.appendChild(button);}
   if(npcs)contactPositions.push(...npcs.actors.map(a=>a.visual.position));
   const resize = () => {
@@ -262,15 +282,18 @@ async function start() {
       requestAnimationFrame(frame);
       return;
     }
-    input.sample();
+    input.blocked=paused();input.sample();
+    const gameElapsed=paused()?0:elapsed;
     camera.getWorldDirection(direction);
-    acc += elapsed;
+    if(paused())acc=0;else acc += elapsed;
     let steps = 0;
     while (acc >= dt && steps < 6) {
       match?.preStep(dt);
       if(match?.frozen){input.jump=input.dash=false;player.previous.copy(player.current);npcs?.actors.forEach(a=>a.physics.previous.copy(a.physics.current));acc-=dt;steps++;continue;}
       physicsTime+=dt;
       player.setImmobilized(visual.face.immobilized);
+      abilities.step(dt);berries.step(dt);
+      if(powerPanel?.takeRequest()){const kind=inventory.selected,result=abilities.activate(kind);if(result.ok){effects.power(kind,player.current);if(kind==='pepper')audio.dash();else if(kind==='bomb')audio.play();react(kind==='bomb'?'fury':'happy');}else tell(result.message);}
       player.step(dt, input, direction);
       npcs?.step(dt,player,id=>(train?.has(id)||train?.isJoining(id)||match?.controlled(id))??false);
       train?.step(dt);
@@ -298,6 +321,8 @@ async function start() {
       berries.checkSegment(player.previous, player.current);
       events.drainContactForceEvents((e) => {
         const internal=(train?.isInternalContact(e.collider1(),e.collider2())||match?.internal(e.collider1(),e.collider2()))??false;
+        const aa=abilityActors(),first=aa.find(a=>a.physics.collider.handle===e.collider1()),second=aa.find(a=>a.physics.collider.handle===e.collider2());
+        if(first&&second){const direction=second.physics.current.clone().sub(first.physics.current).normalize(),closing=first.physics.impactVelocity.clone().sub(second.physics.impactVelocity).dot(direction);abilities.actorContact(first,second,closing,internal);}
         npcs?.contact(e.collider1(),e.collider2(),e.totalForceMagnitude(),internal,player);
         if (
           e.collider1() === player.collider.handle ||
@@ -306,6 +331,7 @@ async function start() {
           {
           const handle=e.collider1()===player.collider.handle?e.collider2():e.collider1();
           const otherNpc=npcs?.actors.find(a=>a.physics.collider.handle===handle);
+          if(otherNpc&&!internal){const contact=player.inspectContact(world.getCollider(handle),otherNpc.physics.impactVelocity),actor=aa.find(a=>a.id===otherNpc.entry.id)!;abilities.playerContact(actor,contact.closingSpeed,contact.normal);}
           player.contact(e.totalForceMagnitude(),world.getCollider(handle),otherNpc?.physics.impactVelocity,internal);
         }
       });
@@ -314,15 +340,16 @@ async function start() {
       acc -= dt;
       steps++;
     }
-    const alpha = acc / dt;
+    const alpha = paused()?1:acc / dt;
+    menu?.update();powerPanel?.update();if(feedbackLife>0){feedbackLife-=gameElapsed;feedback.hidden=feedbackLife<=0;}
     visual.position.lerpVectors(player.previous, player.current, alpha);
     visual.rollingBody.quaternion.slerpQuaternions(
       player.prevRotation,
       player.rotation,
       alpha,
     );
-    visual.face.update(elapsed, player.heading);
-    portraitVisual.face.update(elapsed, 0);
+    visual.face.update(gameElapsed, player.heading);
+    portraitVisual.face.update(gameElapsed, 0);
     portraitVisual.rollingBody.quaternion.copy(visual.rollingBody.quaternion);
     visual.updateDecorations();portraitVisual.updateDecorations();
     visual.updateSand(player.coating.sand,player.coating.wetness);
@@ -333,10 +360,11 @@ async function start() {
     groundLighting.pond.update(elapsed);
     groundLighting.landmarks.update(elapsed);
     groundLighting.horizon.update(elapsed);
-    effects.update(elapsed);
+    effects.update(gameElapsed);
+    if(player.powerTime>0)effects.speedTrail(gameElapsed,player.current,player.body.linvel());
     dust.render();wake.update(elapsed);sandFall.update(elapsed);
     casting?.update(elapsed);
-    npcs?.update(elapsed,alpha);
+    npcs?.update(gameElapsed,alpha);
     const remote=duo?.update(elapsed);if(remote)wake.emit(-2,{x:remote.p[0],y:remote.p[1],z:remote.p[2]},{x:remote.v[0],y:remote.v[1],z:remote.v[2]});
     for(const actor of npcs?.actors??[])actor.visual.updateSand(actor.physics.coating.sand,actor.physics.coating.wetness);
     if(train)trainStatus();
@@ -379,7 +407,7 @@ async function start() {
       wetSand:{wetness:player.coating.wetness,sand:player.coating.sand},waterSubmersion:pondSubmersion(player.current),waterSafety:waterSafety.snapshot(-1),waterWaves:wake.count,waterSplashes:wake.splashCount,dustCount:dust.count, physicsTime,impactCharge:impactMeter.value,train:train?.snapshot(),match:match?.snapshot(),audio:audio.snapshot(),fullscreen:!!document.fullscreenElement,
       npcs:npcs?.snapshot().map(a=>({...a,state:train?.has(a.id)?"wagon":train?.isJoining(a.id)?"joining":match?.controlled(a.id)?a.id===0?"rival":"rival-wagon":a.state}))??[],npcContacts:npcs?.collisionsWithPlayer??0,npcSeed:npcs?.seed,
       buildVersion,worldSize:WORLD_SIZE,worldArt:"sunny-valley-gardens-v2",environmentArt:groundLighting.art,valleyFeatures:groundLighting.features.snapshot(),skyArt:skyState,cloudCount:sky?.clouds.length??0,cameraFov:camera.fov,
-      duo:duo?.snapshot(),
+      duo:duo?.snapshot(),abilities:abilities.snapshot(),powerDrops:berries.powers.map(p=>({kind:p.kind,position:p.mesh.position.toArray(),available:p.respawn===0})),menu:menu?.open,decorations:visual.decorations.style,effectParticles:effects.count,
       berryDetail,
       shadowSettings:{mapSize:sun.shadow.mapSize.x,normalBias:sun.shadow.normalBias,contactCount:contactPositions.length},berryArt:"raspberry-plants-v1",
       valleyStudy:!!casting,studyActors:casting?.actors.map(a=>({seed:a.design.seed,surface:a.design.surface,pattern:a.design.pattern,position:a.position.toArray(),facePose:a.face.expression()})),drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles,

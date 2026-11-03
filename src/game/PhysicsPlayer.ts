@@ -15,7 +15,7 @@ export class PhysicsPlayer {
   prevRotation = new Quaternion();
   rotation = new Quaternion();
   heading = 0;
-  private immobilized=false;
+  private immobilized=false;private pepperTime=0;
   private groundHold=false;
   private jumpCooldown = 0;
   private dashCooldown = 0;
@@ -74,7 +74,7 @@ export class PhysicsPlayer {
   }
   reset() {
     this.setImmobilized(false);
-    this.coating.reset();
+    this.coating.reset();this.pepperTime=0;
     this.jumpCooldown=this.dashCooldown=this.impactCooldown=this.touchImpulseGrace=0;
     this.body.setTranslation({ x: this.spawn.x, y: heightAt(this.spawn.x, this.spawn.z) + 1.1, z: this.spawn.z }, true);
     this.body.setLinvel({ x: 0, y: 0, z: 0 }, true);
@@ -87,6 +87,7 @@ export class PhysicsPlayer {
   step(dt: number, input: DriveInput, viewForward: Vector3) {
     this.previous.copy(this.current);
     this.prevRotation.copy(this.rotation);
+    this.pepperTime=Math.max(0,this.pepperTime-dt);
     this.jumpCooldown -= dt;
     this.dashCooldown -= dt;
     this.impactCooldown -= dt;
@@ -124,7 +125,7 @@ export class PhysicsPlayer {
       // Ground-only arcade assistance: small deflection requests a low speed;
       // release brakes, while airborne motion and recent combat impulses coast.
       const amount=Math.min(1,direction.length()),target=direction.clone();
-      if(amount>0)target.normalize().multiplyScalar(14*Math.pow(amount,1.4));
+      if(amount>0)target.normalize().multiplyScalar((this.pepperTime>0?21:14)*Math.pow(amount,1.4));
       const v=this.body.linvel(),change=new Vector3(target.x-v.x,0,target.z-v.z).multiplyScalar(5*dt).clampLength(0,(amount>0?18:24)*dt);
       this.body.applyImpulse({x:change.x*mass,y:0,z:change.z*mass},true);
       let next=this.body.linvel();
@@ -135,9 +136,9 @@ export class PhysicsPlayer {
     } else if (direction.lengthSq() > 0) {
       this.body.applyImpulse(
         {
-          x: direction.x * mass * 12 * dt,
+          x: direction.x * mass * (this.pepperTime>0?17:12) * dt,
           y: 0,
-          z: direction.z * mass * 12 * dt,
+          z: direction.z * mass * (this.pepperTime>0?17:12) * dt,
         },
         true,
       );
@@ -172,9 +173,10 @@ export class PhysicsPlayer {
     input.dash = false;
     const v = this.body.linvel(),
       speed = Math.hypot(v.x, v.z);
-    if (speed > 22)
+    const cap=this.pepperTime>0?26:22;
+    if (speed > cap)
       this.body.setLinvel(
-        { x: (v.x / speed) * 22, y: v.y, z: (v.z / speed) * 22 },
+        { x: (v.x / speed) * cap, y: v.y, z: (v.z / speed) * cap },
         true,
       );
     this.velocityBeforeStep.copy(this.body.linvel());
@@ -201,8 +203,13 @@ export class PhysicsPlayer {
     const mass=this.body.mass();this.body.applyImpulse({x:x*change*mass,y:0,z:z*change*mass},true);
     this.touchImpulseGrace=Math.max(this.touchImpulseGrace,1.1);this.captureVelocity();return true;
   }
-  contact(strength: number, other?:R.Collider, otherVelocity?:Vector3, internal=false) {
-    if(internal)return;
+  get controlsLocked(){return this.immobilized;}
+  get powerTime(){return this.pepperTime;}
+  get isDashing(){return this.dashCooldown>.75;}
+  externalKick(change:Vector3){if(!this.body.isDynamic())return false;const delta=change.clone().clampLength(0,10);const mass=this.body.mass();this.body.applyImpulse({x:delta.x*mass,y:delta.y*mass,z:delta.z*mass},true);this.touchImpulseGrace=Math.max(this.touchImpulseGrace,.8);return true;}
+  speedPower(){if(this.immobilized||!this.body.isDynamic())return false;this.pepperTime=3;const direction=new Vector3(Math.sin(this.heading),0,Math.cos(this.heading)),v=this.body.linvel();this.externalKick(direction.multiplyScalar(Math.max(0,24-v.x*direction.x-v.z*direction.z)));return true;}
+  springJump(){if(this.immobilized||!this.body.isDynamic()||!this.hasSurfaceSupport())return false;const v=this.body.linvel();this.body.applyImpulse({x:0,y:this.body.mass()*Math.max(0,11.2-v.y),z:0},true);this.jumpCooldown=.35;this.touchImpulseGrace=.8;this.bus.emit('player_jump',{});return true;}
+  inspectContact(other?:R.Collider,otherVelocity?:Vector3){
     let source:'collision'|'landing'='collision',closingSpeed=this.collisionSpeedChange;
     if(other){
       let sideSpeed=0,landingSpeed=0;
@@ -218,6 +225,11 @@ export class PhysicsPlayer {
       });
       source=sideSpeed>=5?'collision':'landing';closingSpeed=source==='collision'?sideSpeed:landingSpeed;
     }
+    return {source,closingSpeed,normal:other?new Vector3().copy(other.translation()).sub(this.current).normalize():new Vector3()};
+  }
+  contact(strength: number, other?:R.Collider, otherVelocity?:Vector3, internal=false) {
+    if(internal)return;
+    const {source,closingSpeed}=this.inspectContact(other,otherVelocity);
     const severity=impactSeverity(closingSpeed,source);
     if(severity===0)return;
     if (

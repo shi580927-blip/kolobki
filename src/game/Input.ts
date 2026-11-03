@@ -5,6 +5,7 @@ export function joystickAxes(x:number,z:number){
   return {x:x/length*strength,z:z/length*strength};
 }
 export class Input {
+  blocked=false;
   x = 0;
   z = 0;
   jump = false;
@@ -15,6 +16,7 @@ export class Input {
   private touchZ = 0;
   constructor() {
     addEventListener("keydown", (e) => {
+      if(this.blocked||(e.target instanceof Element&&e.target.closest("input,textarea,select")))return;
       if (
         ["Space", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(
           e.code,
@@ -83,6 +85,7 @@ export class Input {
       `translate(${this.touchX * 51}px,${this.touchZ * 51}px)`;
   }
   sample() {
+    if(this.blocked){this.x=this.z=0;this.jump=this.dash=false;return;}
     this.x =
       Number(this.keys.has("KeyD") || this.keys.has("ArrowRight")) -
       Number(this.keys.has("KeyA") || this.keys.has("ArrowLeft")) +

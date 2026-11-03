@@ -1,5 +1,6 @@
 import type { Vector3 } from "three";
 export interface GameEvents {
+  power_pickup:{kind:import('../game/AbilityModel').AbilityKind;position:Vector3};
   match_start: {format:'route-unprepared'};
   match_finish: {winner:'player'|'rival'|'draw';progress:number[]};
   train_water_release: {ids:number[];count:number;position:Vector3};

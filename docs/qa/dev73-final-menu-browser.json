@@ -1,0 +1,16 @@
+{
+  "oldInviteReturnsToSolo": true,
+  "networkTrialParked": true,
+  "settingsControls": true,
+  "multitouchMovementCameraItem": true,
+  "pauseAndResume": true,
+  "resetReturnsToFreeRide": true,
+  "menuBounds": {
+    "x": 221.875,
+    "y": 43.75,
+    "width": 356.25,
+    "height": 375
+  },
+  "errors": [],
+  "externalRequests": []
+}

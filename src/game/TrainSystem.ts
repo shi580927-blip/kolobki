@@ -190,6 +190,13 @@ export class TrainSystem {
    }
   }
  }
+ /** One explicit power may detach a tail while the front keeps its ownership. */
+ releaseFrom(id:number,reason='ability'){
+  if(this.joining?.actor.id===id){const actor=this.joining.actor;this.joining=undefined;this.cooldown.set(id,TRAIN_RULES.recollectDelay);this.setGroups();this.bus.emit('train_break',{ids:[id],count:1,reason,position:actor.physics.current.clone()});return [id];}
+  const index=this.wagons.findIndex(a=>a.id===id);if(index<0)return [];
+  const released=this.wagons.splice(index);released.forEach(a=>this.cooldown.set(a.id,TRAIN_RULES.recollectDelay));this.breakTotal++;this.setGroups();
+  this.bus.emit('train_break',{ids:released.map(a=>a.id),count:released.length,reason,position:released[0].physics.current.clone()});return released.map(a=>a.id);
+ }
  break(reason:'head-impact'|'collision'|'stretch'|'respawn'){
   if(!this.count&&!this.joining)return;
   const released=this.wagons;

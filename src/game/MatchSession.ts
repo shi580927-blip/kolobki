@@ -23,7 +23,7 @@ export class MatchSession {
   this.result=document.createElement('div');this.result.id='match-result';this.result.hidden=true;document.querySelector('#hud')!.appendChild(this.result);
   this.entry=document.createElement('div');this.entry.id='match-entry';
   const heading=document.createElement('h2');heading.textContent='Матч с соперником';
-  const instructions=document.createElement('p');instructions.textContent='Выберите трассу. Светящийся маршрут появится на время матча. Два круга — собирайте поезд по дороге!';
+  const instructions=document.createElement('p');instructions.textContent='Выберите трассу. Светящийся маршрут появится на время матча. Два круга, старт без запаса — собирайте поезд и предметы по дороге!';
   const choices=document.createElement('div');choices.id='track-choices';choices.setAttribute('aria-label','Трасса матча');
   const buttons:HTMLButtonElement[]=[];
   const choose=(track:ValleyTrack)=>{this.rules.select(track);buttons.forEach((button,i)=>button.setAttribute('aria-pressed',String(VALLEY_TRACKS[i].id===track.id)));};
@@ -38,8 +38,11 @@ export class MatchSession {
   this.button=document.createElement('button');this.button.id='match-start';this.button.textContent='Начать матч';this.button.onclick=()=>this.start();
   const sandbox=document.createElement('button');sandbox.id='sandbox-choice';sandbox.textContent='Пока свободное катание';sandbox.onclick=()=>{this.entry.hidden=true;document.querySelector('#tools')!.appendChild(this.button);};
   this.entry.append(heading,instructions,choices,more,this.button,sandbox);document.querySelector('#hud')!.appendChild(this.entry);
-  const exit=document.createElement('button');exit.id='match-exit';exit.textContent='В песочницу';exit.onclick=()=>this.exit();this.result.appendChild(exit);
+  const exit=document.createElement('button');exit.id='match-exit';exit.textContent='В песочницу';exit.onclick=()=>{this.exit();this.hideChoice();};this.result.appendChild(exit);
  }
+ get choosing(){return !this.entry.hidden;}
+ hideChoice(){this.entry.hidden=true;}
+ showChoice(){this.exit();this.entry.hidden=false;}
  get active(){return this.rules.phase!=='sandbox';}
  get running(){return this.rules.phase==='running';}
  get frozen(){return this.active&&!this.running;}
