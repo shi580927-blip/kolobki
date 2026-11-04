@@ -30,10 +30,10 @@ export async function startSkinStudy(){
  let sample:SkinSample,mini:SkinSample,expression:StudyExpression='sly',angle=0,rolling=false,shadow=false,closed=false,elapsed=0;
  const v4=new URLSearchParams(location.search).has('face-v4');
  const v2=v4||new URLSearchParams(location.search).has('face-v2');
- let halfBlink=false;
+ let halfBlink=false,boost=false;
  let pose:FacePose='base',short=false,reactionUntil=0;
  if(v2){design={...defaultDesign,base:'#202331',pattern:'none',growthCount:0,gloss:.24};outfit=readOutfit(null);}
- if(v4){design={...defaultDesign,base:'#aca8be',accent:'#52cacb',pattern:'leopard',growthCount:0,gloss:.32};title.textContent+=' · V4';}
+ if(v4){design={...defaultDesign,base:'#ac4569',accent:'#52cacb',pattern:'none',growthCount:0,gloss:.32};title.textContent+=' · V4';}
  const modules=new Map<SkinSample,ModularFace|ControlFace>();
  const selectors=new Map<'head'|'mark',HTMLSelectElement>();
  function updateDecor(){
@@ -45,7 +45,7 @@ export async function startSkinStudy(){
   for(const [slot,select] of selectors)select.value=outfit[slot];
  }
  function serialize(){return {...design,outfit:{...outfit}};}
- function rebuildFaces(){if(sample){scene.remove(sample,mini);for(const model of [sample,mini]){const old=model.getObjectByName('head-decor');if(old instanceof HeadDecor)old.dispose();modules.get(model)?.dispose();modules.delete(model);model.dispose();}}sample=new SkinSample(texture,expression,glossEnvironment);sample.position.set(-1.72,.21,0);sample.scale.setScalar(1.8);scene.add(sample);mini=new SkinSample(texture,expression,glossEnvironment);mini.position.set(-4.8,-2.4,0);mini.scale.setScalar(.31);scene.add(mini);sample.apply(design);mini.apply(design);if(v2)for(const m of [sample,mini]){m.face.visible=false;const rig=v4?new ControlFace():new ModularFace();m.add(rig);modules.set(m,rig);}updateDecor();}
+ function rebuildFaces(){if(sample){scene.remove(sample,mini);for(const model of [sample,mini]){const old=model.getObjectByName('head-decor');if(old instanceof HeadDecor)old.dispose();modules.get(model)?.dispose();modules.delete(model);model.dispose();}}sample=new SkinSample(texture,expression,glossEnvironment);sample.position.set(-1.72,.21,0);sample.scale.setScalar(1.8);scene.add(sample);mini=new SkinSample(texture,expression,glossEnvironment);mini.position.set(-4.8,-2.4,0);mini.scale.setScalar(.31);scene.add(mini);sample.apply(design);mini.apply(design);if(v2)for(const m of [sample,mini]){m.face.visible=false;const rig=v4?new ControlFace(glossEnvironment):new ModularFace();m.add(rig);modules.set(m,rig);}updateDecor();}
  rebuildFaces();
  const fitting=document.createElement('fieldset');fitting.className='fitting';
  const legend=document.createElement('legend');legend.textContent='Примерочная';fitting.append(legend);
@@ -106,6 +106,7 @@ export async function startSkinStudy(){
   faceSelect.onchange=()=>{pose=faceSelect.value as FacePose;reactionUntil=0;};
   button(panel,'Полуморгание',()=>{halfBlink=!halfBlink;closed=false;});
   button(toolbar,'Профиль',()=>{angle=Math.PI/2;});
+  if(v4){const toggle=button(toolbar,'Усиление',()=>{boost=!boost;reviewFrames=0;toggle.setAttribute('aria-pressed',String(boost));toggle.style.background=boost?'#81516a':'';});toggle.setAttribute('aria-pressed','false');}
   if(!v4)button(toolbar,'Короткие брови',()=>{short=!short;});
   if(!v4)button(toolbar,'Испуг → обратно',()=>{reactionUntil=performance.now()+1300;});
  }else button(panel,'Открыть мимику v2',()=>location.assign('?skin-study&face-v2'));
@@ -113,6 +114,6 @@ export async function startSkinStudy(){
  function resize(){const f=fit16by9(innerWidth,innerHeight);stage.style.width=f.width+'px';stage.style.height=f.height+'px';hud.style.transform=`scale(${f.scale})`;renderer.setSize(f.width,f.height,false);}addEventListener('resize',resize);resize();refresh();
  let reviewFrames=0,previousPose:FacePose=pose,previousAngle=angle,lastBlink=0;
  if(v4)Object.defineProperty(window,"__FACE_REVIEW__",{get:()=>({ready:previousPose===pose && previousAngle===angle && reviewFrames>=25 && lastBlink===0,closed:closed && lastBlink===1})});
- let last=performance.now();function frame(now:number){const dt=Math.min(.05,(now-last)/1000);last=now;elapsed+=dt;reviewFrames=pose===previousPose && angle===previousAngle?reviewFrames+1:0;previousPose=pose;previousAngle=angle;for(const s of [sample,mini]){s.rotation.y=angle;s.update(dt,rolling);const phase=(elapsed+1)%4,blink=closed?1:halfBlink?.5:phase<.15?phase/.15:phase<.25?1:phase<.4?1-(phase-.25)/.15:0;lastBlink=blink;s.face.update(dt,blink);modules.get(s)?.updatePose(dt,now<reactionUntil?'scared':pose,blink,short,design.base);}renderer.render(scene,camera);bootReady();requestAnimationFrame(frame);}requestAnimationFrame(frame);
+ let last=performance.now();function frame(now:number){const dt=Math.min(.05,(now-last)/1000);last=now;elapsed+=dt;reviewFrames=pose===previousPose && angle===previousAngle?reviewFrames+1:0;previousPose=pose;previousAngle=angle;for(const s of [sample,mini]){s.rotation.y=angle;s.update(dt,rolling);const phase=(elapsed+1)%4,blink=closed?1:halfBlink?.5:phase<.15?phase/.15:phase<.25?1:phase<.4?1-(phase-.25)/.15:0;lastBlink=blink;s.face.update(dt,blink);modules.get(s)?.updatePose(dt,now<reactionUntil?'scared':pose,blink,short,design.base,boost);}renderer.render(scene,camera);bootReady();requestAnimationFrame(frame);}requestAnimationFrame(frame);
  Object.defineProperty(window,'__SKIN_STUDY__',{get:()=>({design:{...design},outfit:{...outfit},expression,rolling,shadow,angle,faceScale:SKIN_STUDY_FACE_SCALE,bodyAngle:sample.rotationAngle,faceQuaternion:sample.face.quaternion.toArray(),growthInstances:sample.growthInstances,surfaceCells:sample.cellCount,furInstances:sample.furInstances,drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles,storageKey})});
 }

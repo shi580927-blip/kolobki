@@ -21,14 +21,14 @@ async function main() {
     });
     await page.goto('http://127.0.0.1:4224/?skin-study&face-v4');
     await page.waitForFunction(() => window.__SKIN_STUDY__);
+    await page.getByRole('button',{name:'↷ 30°'}).click();
     for(const pose of ['base','surprised','happy','angry']) {
       await page.getByLabel('Выражение лица').selectOption(pose);
-      for(const angle of [0,30,60,90]) {
-        if(angle) await page.getByRole('button',{name:'↷ 30°'}).click();
+      for(const mode of ['normal','boost']) {
         await page.waitForFunction(() => window.__FACE_REVIEW__?.ready);
-        await page.screenshot({path:path.join(output,pose+'-'+angle+'.png')});
+        await page.screenshot({path:path.join(output,pose+'-'+mode+'.png')});
+        await page.getByRole('button',{name:'Усиление',exact:true}).click();
       }
-      for(let i=0;i<3;i++) await page.getByRole('button',{name:'↶ 30°'}).click();
     }
     await page.getByRole('button',{name:'Моргание',exact:true}).click();
     await page.waitForFunction(() => window.__FACE_REVIEW__?.closed);
