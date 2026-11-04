@@ -49,10 +49,41 @@ const irisPatch=eyePatch(.318,.38),pupilPatch=eyePatch(.222,.272,0,.01),glintPat
 const brows=[wedge(-1),wedge(1)];
 const smile=new T.TubeGeometry(new T.QuadraticBezierCurve3(new T.Vector3(-.23,.034,-.018),new T.Vector3(0,-.085,.003),new T.Vector3(.23,.043,-.018)),18,.017,8,false);
 const mouthInterior=paint(0x280e16),tongue=paint(0xf75668);
+// Pose the source mesh in face coordinates, then wrap its silhouette onto the globe.
+class SurfaceDetail {
+ private output:T.Mesh;
+ private point=new T.Vector3();
+ constructor(private rig:T.Group,private source:T.Mesh,private brow:boolean){
+  const geometry=source.geometry.clone();geometry.morphAttributes={};
+  this.output=new T.Mesh(geometry,source.material);this.output.castShadow=brow;
+  this.output.frustumCulled=false;rig.add(this.output);source.visible=false;
+ }
+ update(visible:boolean){
+  this.output.visible=visible;if(!visible)return;
+  const mesh=this.source;
+  mesh.updateMatrix();const transform=mesh.matrix.clone();
+  for(let parent=mesh.parent;parent&&parent!==this.rig;parent=parent.parent){
+   parent.updateMatrix();transform.premultiply(parent.matrix);
+  }
+  const src=mesh.geometry.attributes.position,dst=this.output.geometry.attributes.position;
+  const target=mesh.geometry.morphAttributes.position?.[0],weight=mesh.morphTargetInfluences?.[0]??0;
+  for(let i=0;i<src.count;i++){
+   const p=this.point.fromBufferAttribute(src,i);
+   if(target)p.y+=(target.getY(i)-p.y)*weight;
+   p.applyMatrix4(transform);
+   // Relief is measured radially in units of a 75 mm sphere radius.
+   const relief=this.brow ? .037+.015*Math.sin(2*Math.PI*(i%17)/16)
+     : .004+.31*(mesh.position.z*Number(mesh.parent!==this.rig)+src.getZ(i)*mesh.scale.z);
+   dst.setXYZ(i,p.x,p.y,Math.sqrt(Math.max(.001,(1+relief)**2-p.x*p.x-p.y*p.y)));
+  }
+  dst.needsUpdate=true;this.output.geometry.computeVertexNormals();
+ }
+ dispose(){this.output.geometry.dispose();}
+}
 export class ModularFace extends T.Group{
  private lidMaterial=paint(0x316de0);
  private eyes=[-1,1].map((side,i)=>{
-  const socket=new T.Group();socket.position.set(side*.378,.025,.811);socket.rotation.y=side*.39;this.add(socket);
+  const socket=new T.Group();socket.position.set(side*.378,.025,.743);socket.rotation.y=side*.39;this.add(socket);
   oval(socket,white,0,0,.012,.375,.336,.192).receiveShadow=true;
   // Rotate the markings on nested ellipsoids so the eyeball cannot cut their rims.
   const eyeFrame=new T.Group();eyeFrame.position.z=.012;eyeFrame.scale.set(.375,.336,.192);socket.add(eyeFrame);
@@ -67,6 +98,8 @@ export class ModularFace extends T.Group{
  });
  private line=new T.Mesh(smile,ink);
  private openMouth=new T.Group();
+ private details:{detail:SurfaceDetail;group:T.Object3D|null}[]=[];
+ private lastShape="";
  private weights={sly:0,scared:0,surprised:0,happy:0,angry:0,sleepy:0};
  private worriedMouth=new T.Group();
  constructor(){super();this.name='modular-face-v2';this.line.position.set(0,-.34,.954);this.add(this.line,this.openMouth);
@@ -84,6 +117,11 @@ export class ModularFace extends T.Group{
   this.openMouth.position.set(0,-.35,.942);this.openMouth.rotation.x=.37;
   oval(this.openMouth,ink,0,0,0,.206,.168,.035);oval(this.openMouth,mouthInterior,0,0,.015,.19,.15,.033);
   oval(this.openMouth,tongue,0,-.073,.046,.12,.046,.013);
+  for(const eye of this.eyes)this.details.push({detail:new SurfaceDetail(this,eye.brow,true),group:null});
+  this.details.push({detail:new SurfaceDetail(this,this.line,false),group:this.line});
+  for(const group of [this.openMouth,this.worriedMouth])for(const child of group.children)
+   this.details.push({detail:new SurfaceDetail(this,child as T.Mesh,false),group});
+
  }
  updatePose(dt:number,pose:FacePose,blink:number,short:boolean,base:string){
   const k=1-Math.exp(-dt*13);
@@ -111,6 +149,12 @@ export class ModularFace extends T.Group{
   this.line.visible=!this.worriedMouth.visible&&!this.openMouth.visible;
   this.line.scale.set(1+.17*sly-.28*sleepy,1-1.72*angry-.86*sleepy,1);
   this.line.rotation.z=sly*.31-sleepy*.11;
+  const shape=[short,...Object.values(this.weights).map(w=>Math.round(w*1000))].join(',');
+  if(shape!==this.lastShape){
+   for(const {detail,group} of this.details)detail.update(group?.visible??true);
+   this.lastShape=shape;
+  }
+  this.line.visible=false;
  }
- dispose(){(this.worriedMouth.children[0] as T.Mesh).geometry.dispose();this.lidMaterial.dispose();}
+ dispose(){for(const {detail} of this.details)detail.dispose();(this.worriedMouth.children[0] as T.Mesh).geometry.dispose();this.lidMaterial.dispose();}
 }
