@@ -99,7 +99,7 @@ export async function startSkinStudy(){
  button(toolbar,'Спереди / ¾',()=>{angle=angle===0?.55:0;});button(toolbar,'Свет / тень',()=>{shadow=!shadow;hemi.intensity=shadow?.65:1.65;sun.position.z=shadow?-7:7;});button(toolbar,'Качение',()=>{rolling=!rolling;});button(toolbar,'Моргание',()=>{closed=!closed;halfBlink=false;});
  const faceSelect=document.createElement('select');faceSelect.setAttribute('aria-label','Выражение лица');faceSelect.style.cssText='padding:7px;border-radius:8px';for(const [value,text] of [['sly','Хитрый'],['happy','Довольный'],['grumpy','Хмурый']]){const o=document.createElement('option');o.value=value;o.textContent=text;faceSelect.appendChild(o);}faceSelect.onchange=()=>{expression=faceSelect.value as StudyExpression;rebuildFaces();};toolbar.appendChild(faceSelect);
  if(v2){
-  faceSelect.replaceChildren();for(const [key,name] of [['base','Базовое'],['sly','Хитрый'],['scared','Испуганный']])faceSelect.add(new Option(name,key));
+  faceSelect.replaceChildren();for(const [key,name] of [['base','Базовое'],['sly','Хитрый'],['scared','Испуг'],['surprised','Удивление'],['happy','Радость'],['angry','Сердитый'],['sleepy','Сонный']])faceSelect.add(new Option(name,key));
   faceSelect.onchange=()=>{pose=faceSelect.value as FacePose;reactionUntil=0;};
   button(panel,'Полуморгание',()=>{halfBlink=!halfBlink;closed=false;});
   button(toolbar,'Профиль',()=>{angle=Math.PI/2;});
