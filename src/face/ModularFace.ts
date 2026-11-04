@@ -15,7 +15,7 @@ function wedge(side:number){
  const steps=32,ring=16;
  for(let i=0;i<=steps;i++){
   const t=i/steps,x=-.415+.75*t;
-  const width=(.032+.064*t)*Math.min(1,Math.sqrt(Math.min(t,1-t)*40));
+  const width=(.040+.064*t)*Math.min(1,Math.sqrt(Math.min(t,1-t)*40));
   for(let j=0;j<=ring;j++){
    const angle=2*Math.PI*j/ring;
    const y=-.025+.115*t+width*Math.cos(angle);
@@ -48,7 +48,7 @@ function eyePatch(radiusX:number,radiusY:number,offsetX=0,offsetY=0){
 const irisPatch=eyePatch(.318,.38),pupilPatch=eyePatch(.222,.272,0,.01),glintPatch=eyePatch(.055,.06,-.076,.123);
 const brows=[wedge(-1),wedge(1)];
 const smile=new T.TubeGeometry(new T.QuadraticBezierCurve3(new T.Vector3(-.23,.034,-.018),new T.Vector3(0,-.085,.003),new T.Vector3(.23,.043,-.018)),18,.017,8,false);
-const mouthInterior=paint(0x44101b),tongue=paint(0xf75668);
+const mouthInterior=paint(0x280e16),tongue=paint(0xf75668);
 export class ModularFace extends T.Group{
  private lidMaterial=paint(0x316de0);
  private eyes=[-1,1].map((side,i)=>{
@@ -77,6 +77,10 @@ export class ModularFace extends T.Group{
   const points=worried.geometry.attributes.position;
   for(let i=0;i<points.count;i++){const x=points.getX(i);points.setY(i,points.getY(i)-1.4*x*x);}
   worried.geometry.computeVertexNormals();
+  // Teeth and lower lip follow the arched opening of the frightened mouth.
+  oval(this.worriedMouth,white,0,.074,.021,.091,.025,.012);
+  oval(this.worriedMouth,tongue,0,-.048,.024,.113,.023,.012);
+  oval(this.openMouth,white,0,.112,.046,.128,.032,.014);
   this.openMouth.position.set(0,-.35,.942);this.openMouth.rotation.x=.37;
   oval(this.openMouth,ink,0,0,0,.206,.168,.035);oval(this.openMouth,mouthInterior,0,0,.015,.19,.15,.033);
   oval(this.openMouth,tongue,0,-.073,.046,.12,.046,.013);
@@ -89,15 +93,15 @@ export class ModularFace extends T.Group{
   const {sly,scared,surprised,happy,angry,sleepy}=this.weights;
   this.lidMaterial.color.set(base);this.lidMaterial.roughness=.67;
   for(const {side,upper,lower,brow,gaze} of this.eyes){
-   const rest=.26+.29*sly-.19*scared-.24*surprised+.24*angry+.56*sleepy;
+   const rest=.26+.29*sly-.24*scared-.24*surprised+.24*angry+.56*sleepy;
    const closure=rest+(1-rest)*blink;
    upper.rotation.order="ZXY";upper.rotation.z=side*(.34-.34*(scared+surprised+sleepy))*(1-blink);
    upper.rotation.x=-(1-closure)*1.12;lower.rotation.x=(1-blink)*(1.5-.42*happy-.18*scared);
-   gaze.rotation.set(.12-.46*scared-.08*surprised+.18*sleepy,-side*.35+sly*.11,0);
-   brow.position.set(-side*.04,.205+.12*scared+.21*surprised+.07*happy-.07*angry+side*.045*sly,.257);
-   brow.rotation.z=side*(.30-1.02*scared-.31*surprised+.12*angry-.34*sleepy+side*.13*sly);
-   brow.scale.set(short?.65:.81,1.24,1);
-   brow.morphTargetInfluences![0]=.10*scared+.85*surprised+.72*side*sly+.45*happy;
+   gaze.rotation.set(.12-.29*scared-.08*surprised+.18*sleepy,-side*.35+sly*.33+scared*.16+sleepy*.16,0);
+   brow.position.set(-side*.035,.240+.12*scared+.21*surprised+.07*happy-.07*angry+side*.045*sly,.257);
+   brow.rotation.z=side*(.42-1.02*scared-.31*surprised+.12*angry-.34*sleepy+side*.13*sly);
+   brow.scale.set(short?.81:1.05,1.24,1);
+   brow.morphTargetInfluences![0]=.46*scared+.85*surprised+.72*side*sly+.45*happy;
   }
   this.worriedMouth.visible=scared>.35;
   this.worriedMouth.scale.set(scared,scared,1);
@@ -105,8 +109,8 @@ export class ModularFace extends T.Group{
   this.openMouth.visible=opening>.35;
   this.openMouth.scale.set(.72*surprised+1.22*happy,1.05*surprised+.80*happy,1);
   this.line.visible=!this.worriedMouth.visible&&!this.openMouth.visible;
-  this.line.scale.set(1-.28*sleepy,1-1.72*angry-.86*sleepy,1);
-  this.line.rotation.z=sly*.19;
+  this.line.scale.set(1+.17*sly-.28*sleepy,1-1.72*angry-.86*sleepy,1);
+  this.line.rotation.z=sly*.31-sleepy*.11;
  }
  dispose(){(this.worriedMouth.children[0] as T.Mesh).geometry.dispose();this.lidMaterial.dispose();}
 }
