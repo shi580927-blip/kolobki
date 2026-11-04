@@ -6,10 +6,19 @@ export function decorForSeed(seed:number):Outfit {
  const mark=seed%4===0?(['stripes','star','bolt'] as const)[Math.floor(seed/4)%3]:'none';
  return {head:'none',mark};
 }
+const paints=new Map<string,T.Texture>();
+function paintTexture(mark:string){
+ let texture=paints.get(mark);
+ if(!texture){
+  texture=new T.TextureLoader().load(import.meta.env.BASE_URL+'assets/paint/'+mark+'.svg');
+  texture.colorSpace=T.SRGBColorSpace;paints.set(mark,texture);
+ }
+ return texture;
+}
 /** Cosmetic frame follows the heading, never the rolling body. No physical shape. */
 export class HeadDecor extends T.Group {
  readonly style:ReturnType<typeof decorForSeed>;
- constructor(seed:number,base:string,outfit=decorForSeed(seed)){super();this.name='head-decor';this.style={...outfit};
+ constructor(seed:number,_base:string,outfit=decorForSeed(seed)){super();this.name='head-decor';this.style={...outfit};
   const add=(parts:T.BufferGeometry[],color:number,metal=false)=>{if(!parts.length)return;const geometry=mergeGeometries(parts.map(g=>g.index?g.toNonIndexed():g));parts.forEach(g=>g.dispose());const material=new T.MeshStandardMaterial({color,roughness:metal?.38:.65,metalness:metal?.35:0});const mesh=new T.Mesh(geometry,material);if(!metal)material.side=T.DoubleSide;mesh.castShadow=true;this.add(mesh);};
   const metal:T.BufferGeometry[]=[],detail:T.BufferGeometry[]=[];
   if(this.style.head==='crown'){
@@ -26,22 +35,16 @@ export class HeadDecor extends T.Group {
    for(const sign of [-1,1])detail.push(new T.SphereGeometry(.055,6,4).translate(sign*.5,.80,.42));
   }
   add(metal,this.style.head==='crown'?0xf2bc35:this.style.head==='horns'?0xe3d6af:0x70889b,true);add(detail,this.style.head==='crown'?0x8b48df:0xd6a249,true);
-  const marks:T.BufferGeometry[]=[],edges:T.BufferGeometry[]=[];
-  if(this.style.mark!=='none')for(const side of [-1,1]){
-   const direction=new T.Vector3(side*.69,-.09,Math.sqrt(1-.69**2-.09**2)),q=new T.Quaternion().setFromUnitVectors(new T.Vector3(0,0,1),direction),matrix=new T.Matrix4().compose(direction.clone().multiplyScalar(1.022),q,new T.Vector3(1,1,1));
-   if(this.style.mark==='stripes'||this.style.mark==='bolt'){
-    const slash=this.style.mark==='stripes';
-    const points=slash?[[-.20,.32],[-.05,.24],[.12,-.17],[.02,-.12],[-.12,.08]]:[[-.06,.44],[.19,.42],[.01,.12],[.19,.15],[-.18,-.40],[-.05,-.04],[-.19,-.02]];
-    for(let k=0;k<(slash?3:1);k++){
-     const shape=new T.Shape(points.map(([x,y])=>new T.Vector2(side*(x+(slash?(k-1)*.17:0)),y)));
-     shape.closePath();const g=new T.ShapeGeometry(shape),p=g.attributes.position;
-     for(let i=0;i<p.count;i++){const v=new T.Vector3(p.getX(i),p.getY(i),0).applyMatrix4(matrix).normalize().multiplyScalar(1.055);p.setXYZ(i,v.x,v.y,v.z);}
-     g.computeVertexNormals();marks.push(g);
-    }
+  const mark=this.style.mark;
+  if(mark!=='none'){
+   // A spherical patch follows the heading with the eyes. The UV seam stays behind the art.
+   const geometry=new T.SphereGeometry(1.026,40,22,Math.PI/2-1.55,3.1,.14,2.77);
+   const material=new T.MeshStandardMaterial({color:0xffffff,roughness:.47,alphaTest:.08,transparent:true,depthWrite:false});
+   if(typeof document!=='undefined'){
+    material.map=paintTexture(mark);
    }
-   else{const shape=new T.Shape();for(let i=0;i<10;i++){const a=i*Math.PI/5+Math.PI/2,r=i%2?.055:.13;i?shape.lineTo(Math.cos(a)*r,Math.sin(a)*r):shape.moveTo(Math.cos(a)*r,Math.sin(a)*r);}shape.closePath();marks.push(new T.ShapeGeometry(shape).translate(0,-.03,.004).applyMatrix4(matrix));}
+   const paint=new T.Mesh(geometry,material);paint.name='surface-paint';paint.castShadow=true;this.add(paint);
   }
-  add(edges,0x492e45);const color=new T.Color(base);add(marks,this.style.mark==='bolt'?0xffaf13:this.style.mark==='star'?0xffdd64:color.r>.7&&color.g<.4?0xffe1ba:0xf45b64);
  }
  update(heading:number){this.rotation.y=heading;}
  dispose(){this.traverse(o=>{if(o instanceof T.Mesh){o.geometry.dispose();(o.material as T.Material).dispose();}});}
