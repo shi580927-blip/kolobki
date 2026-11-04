@@ -29,7 +29,7 @@ export async function startSkinStudy(){
  let sample:SkinSample,mini:SkinSample,expression:StudyExpression='sly',angle=0,rolling=false,shadow=false,closed=false,elapsed=0;
  const v2=new URLSearchParams(location.search).has('face-v2');
  let pose:FacePose='base',short=false,reactionUntil=0;
- if(v2){design={...defaultDesign,base:'#1451cf',accent:'#ffd225',pattern:'lightning',density:.12,scale:1.65,gloss:.42};outfit=readOutfit(null);}
+ if(v2){design={...defaultDesign,base:'#202331',pattern:'none',growthCount:0,gloss:.24};outfit=readOutfit(null);}
  const modules=new Map<SkinSample,ModularFace>();
  const selectors=new Map<'head'|'mark',HTMLSelectElement>();
  function updateDecor(){
@@ -100,6 +100,7 @@ export async function startSkinStudy(){
  if(v2){
   faceSelect.replaceChildren();for(const [key,name] of [['base','Базовое'],['sly','Хитрый'],['scared','Испуганный']])faceSelect.add(new Option(name,key));
   faceSelect.onchange=()=>{pose=faceSelect.value as FacePose;reactionUntil=0;};
+  button(toolbar,'Профиль',()=>{angle=Math.PI/2;});
   button(toolbar,'Короткие брови',()=>{short=!short;});
   button(toolbar,'Испуг → обратно',()=>{reactionUntil=performance.now()+1300;});
  }else button(panel,'Открыть мимику v2',()=>location.assign('?skin-study&face-v2'));
