@@ -1,3 +1,4 @@
+import {Wardrobe} from './game/Wardrobe';
 import "./style.css";
 import {version as buildVersion} from "../package.json";
 import {RoomEnvironment} from "three/addons/environments/RoomEnvironment.js";
@@ -153,7 +154,10 @@ async function start() {
   const portraitLight = new T.DirectionalLight(0xfff1de, 2);
   portraitLight.position.set(-3, 4, 5);
   portraitScene.add(portraitLight);
+  const wardrobe=new Wardrobe();
   const portraitVisual=new RuntimeVisual({...design,furCount:Math.min(design.furCount,24)},atlas,resources.textures,skin.mood,environmentFor(portraitRenderer));
+  function wear(){visual.setOutfit(wardrobe.outfit);portraitVisual.setOutfit(wardrobe.outfit);}
+  wear();
   portraitScene.add(portraitVisual);
   const portraitCamera = new T.PerspectiveCamera(38, 1, 0.1, 10);
   portraitCamera.position.set(0, 0.1, 4.5);
@@ -184,12 +188,13 @@ async function start() {
   const berryCount = document.querySelector<HTMLElement>("#berry-count")!;
   const updateBerryCount = () => {
     berryCount.textContent =
-      `Ягоды: ${berries.count} / ${berries.total}` +
+      `Ягоды: ${berries.count} / ${berries.total} · Монеты: ${wardrobe.coins}` +
       (berries.count === berries.total ? " · Все собраны!" : "");
   };
   updateBerryCount();
   berryCount.hidden=duoMode;
   bus.on("berry_pickup", ({ position }) => {
+    if(standardMode)wardrobe.earn();
     updateBerryCount();
     effects.sparkle(position);
     audio.collect();
@@ -231,7 +236,7 @@ async function start() {
   };
   document.querySelector<HTMLButtonElement>("#reset")!.onclick=()=>{match?.exit();match?.hideChoice();resetGame();};
   if(npcs&&train)match=new MatchSession(world,scene,player,npcs,train,trainOptions,resetGame,bus);
-  if(standardMode){document.querySelector<HTMLElement>('#help')!.hidden=true;match?.hideChoice();if(hadDuoLink)tell('Сетевой тест отложен. Сейчас доступна одиночная долина.');menu=new GameMenu(()=>match?.showChoice(),()=>{match?.exit();match?.hideChoice();},()=>{powerPanel?.takeRequest();},'Украшение: '+({none:'без головного убора',crown:'корона',horns:'рожки',helmet:'шлем'}[visual.decorations.style.head])+'.');}
+  if(standardMode){document.querySelector<HTMLElement>('#help')!.hidden=true;match?.hideChoice();if(hadDuoLink)tell('Сетевой тест отложен. Сейчас доступна одиночная долина.');menu=new GameMenu(()=>match?.showChoice(),()=>{match?.exit();match?.hideChoice();},()=>{powerPanel?.takeRequest();},wardrobe,wear);}
   if(appearanceTest){const button=document.createElement('button');button.textContent='Проба комбо';button.onclick=()=>bus.emit('combo',{count:3});document.querySelector('#tools')!.appendChild(button);}
   if(npcs)contactPositions.push(...npcs.actors.map(a=>a.visual.position));
   const resize = () => {

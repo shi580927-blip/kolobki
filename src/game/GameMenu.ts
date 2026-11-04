@@ -1,6 +1,7 @@
+import {GOODS,Wardrobe} from './Wardrobe';
 export class GameMenu {
  private panel:HTMLElement;private title:HTMLElement;private body:HTMLElement;private actions:HTMLElement;private started=false;private settingsButtons:{button:HTMLButtonElement;original:HTMLButtonElement}[]=[];
- constructor(private openMatch:()=>void,private freeRide:()=>void,private changed:()=>void,private character:string){
+ constructor(private openMatch:()=>void,private freeRide:()=>void,private changed:()=>void,private wardrobe:Wardrobe,private wear:()=>void){
   this.panel=document.createElement('section');this.panel.id='game-menu';this.panel.setAttribute('role','dialog');this.panel.setAttribute('aria-modal','true');this.panel.setAttribute('aria-labelledby','game-menu-title');
   this.title=document.createElement('h2');this.title.id='game-menu-title';this.body=document.createElement('p');this.actions=document.createElement('div');this.panel.append(this.title,this.body,this.actions);document.querySelector('#hud')!.append(this.panel);
   const button=document.createElement('button');button.id='menu-open';button.textContent='Меню';button.onclick=()=>this.show();document.querySelector('#tools')!.prepend(button);
@@ -18,6 +19,15 @@ export class GameMenu {
  }
  private settings(){this.title.textContent='Настройки';this.body.textContent='Звук, полный экран и удобная рука для джойстика.';this.actions.replaceChildren();for(const [id,text] of [['sound','Переключить звук'],['fullscreen','Во весь экран'],['control-hand','Сменить руку джойстика']]){const original=document.querySelector<HTMLButtonElement>('#'+id);const button=this.action(original?.textContent??text,()=>{original?.click();},'menu-'+id);if(original)this.settingsButtons.push({button,original});}this.action('Назад',()=>this.show(),'menu-back');}
  private help(){this.title.textContent='Первые шаги';this.body.textContent='Катись джойстиком или WASD. Прыжок — кнопка справа или пробел, таран — соседняя кнопка или Shift. Подбирай перчик, лимон и бомбочку. Листай предметы свайпом или Q/R, тапни картинку или E для применения. Мягкое касание шаробеса собирает поезд. Камеру вращай на полупрозрачной области экрана.';this.actions.replaceChildren();this.action('Понятно',()=>this.show(),'menu-back');}
- private profile(){this.title.textContent='Твой шаробес';this.body.textContent=this.character+' Облик сохраняется между входами. Украшения меняют только внешний вид.';this.actions.replaceChildren();this.action('Назад',()=>this.show(),'menu-back');}
+ private profile(slot:'head'|'mark'='head'){
+  this.title.textContent='Мой шаробес';this.body.textContent='Монеты: '+this.wardrobe.coins+' · Каждая собранная ягода даёт 1 монету.';
+  this.actions.replaceChildren();this.action(slot==='head'?'К раскраскам':'К головным уборам',()=>this.profile(slot==='head'?'mark':'head'),'wardrobe-tab');
+  for(const item of GOODS.filter(x=>x.slot===slot)){
+   const owned=this.wardrobe.owned.has(item.id),worn=this.wardrobe.outfit[slot]===item.id;
+   const button=this.action(item.name+' · '+(worn?'Снять':owned?'Надеть':item.price+' мон.'),()=>{this.wardrobe.choose(item);this.wear();this.profile(slot);},'wear-'+item.id);
+   button.disabled=!owned&&this.wardrobe.coins<item.price;
+  }
+  this.action('Назад',()=>this.show(),'menu-back');
+ }
  close(){this.panel.hidden=true;this.changed();dispatchEvent(new Event('sharobesy-controls-change'));}
 }

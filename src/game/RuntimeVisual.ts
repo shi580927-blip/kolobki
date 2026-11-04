@@ -19,9 +19,13 @@ export class RuntimeFace extends T.Group {
  get rocking(){const c=this.rig.combo;if(c.phase==='DIZZY')return Math.sin(this.rig.time*8)*.075;if(c.phase==='RECOVER')return Math.sin(this.rig.time*8)*.075*(1-T.MathUtils.clamp((c.elapsed-c.orbit-c.dizzy)/c.recover,0,1));return 0;}
 }
 export class RuntimeVisual extends T.Group {
- readonly sandCoat=new SandCoat();readonly decorations:HeadDecor;
+ readonly sandCoat=new SandCoat();decorations:HeadDecor;
  readonly rollingBody:T.Group;readonly face:RuntimeFace;private sample:SkinSample;private clearanceOrientation=new T.Quaternion();
  constructor(readonly design:SkinDesign,atlas:AnimationAtlas,textures:T.Texture[],mood:Mood,environment?:T.Texture){super();this.decorations=new HeadDecor(design.seed,design.base);this.add(this.decorations);this.design=limitProtrusions(design);design=this.design;this.sample=new SkinSample(textures[0],'sly',environment);this.sample.face.visible=false;this.sample.apply(design);this.rollingBody=this.sample.rollingBody;this.face=new RuntimeFace(atlas,textures,mood);this.add(this.sample,this.face,this.sandCoat);clipFaceToWater(this.face);}
+ setOutfit(outfit:HeadDecor['style']){
+  this.remove(this.decorations);this.decorations.dispose();
+  this.decorations=new HeadDecor(this.design.seed,this.design.base,outfit);this.add(this.decorations);this.updateDecorations();
+ }
  updateSand(sand:number,wetness:number){this.sandCoat.update(sand,this.rollingBody.quaternion,this.clearanceOrientation,wetness);}
  updateDecorations(){
   this.decorations.update(this.face.rotation.y);
