@@ -28,6 +28,7 @@ export async function startSkinStudy(){
  if(design.surface!=='smooth')design.pattern='none';
  let sample:SkinSample,mini:SkinSample,expression:StudyExpression='sly',angle=0,rolling=false,shadow=false,closed=false,elapsed=0;
  const v2=new URLSearchParams(location.search).has('face-v2');
+ let halfBlink=false;
  let pose:FacePose='base',short=false,reactionUntil=0;
  if(v2){design={...defaultDesign,base:'#202331',pattern:'none',growthCount:0,gloss:.24};outfit=readOutfit(null);}
  const modules=new Map<SkinSample,ModularFace>();
@@ -95,17 +96,18 @@ export async function startSkinStudy(){
  const upload=document.createElement('input');upload.type='file';upload.accept='.json,application/json';upload.hidden=true;upload.onchange=async()=>{try{const file=upload.files?.[0];if(!file)return;const data=JSON.parse(await file.text());design=validateDesign(data);outfit=readOutfit(data.outfit);apply();status.textContent='Вариант загружен. Для сохранения после входа нажмите «Сохранить здесь».';}catch(e){status.textContent=e instanceof Error?e.message:'Ошибка JSON';}upload.value='';};panel.appendChild(upload);button(panel,'Загрузить JSON',()=>upload.click());button(panel,'Сброс образца',()=>{design={...defaultDesign};outfit=readOutfit(null);apply();status.textContent='Сброшен только образец. Сохранение не перезаписано.';});
  status=document.createElement('div');status.className='skin-status';status.setAttribute('role','status');panel.appendChild(status);
  button(toolbar,'↶ 30°',()=>{angle-=Math.PI/6;});button(toolbar,'↷ 30°',()=>{angle+=Math.PI/6;});
- button(toolbar,'Спереди / ¾',()=>{angle=angle===0?.55:0;});button(toolbar,'Свет / тень',()=>{shadow=!shadow;hemi.intensity=shadow?.65:1.65;sun.position.z=shadow?-7:7;});button(toolbar,'Качение',()=>{rolling=!rolling;});button(toolbar,'Моргание',()=>{closed=!closed;});
+ button(toolbar,'Спереди / ¾',()=>{angle=angle===0?.55:0;});button(toolbar,'Свет / тень',()=>{shadow=!shadow;hemi.intensity=shadow?.65:1.65;sun.position.z=shadow?-7:7;});button(toolbar,'Качение',()=>{rolling=!rolling;});button(toolbar,'Моргание',()=>{closed=!closed;halfBlink=false;});
  const faceSelect=document.createElement('select');faceSelect.setAttribute('aria-label','Выражение лица');faceSelect.style.cssText='padding:7px;border-radius:8px';for(const [value,text] of [['sly','Хитрый'],['happy','Довольный'],['grumpy','Хмурый']]){const o=document.createElement('option');o.value=value;o.textContent=text;faceSelect.appendChild(o);}faceSelect.onchange=()=>{expression=faceSelect.value as StudyExpression;rebuildFaces();};toolbar.appendChild(faceSelect);
  if(v2){
   faceSelect.replaceChildren();for(const [key,name] of [['base','Базовое'],['sly','Хитрый'],['scared','Испуганный']])faceSelect.add(new Option(name,key));
   faceSelect.onchange=()=>{pose=faceSelect.value as FacePose;reactionUntil=0;};
+  button(panel,'Полуморгание',()=>{halfBlink=!halfBlink;closed=false;});
   button(toolbar,'Профиль',()=>{angle=Math.PI/2;});
   button(toolbar,'Короткие брови',()=>{short=!short;});
   button(toolbar,'Испуг → обратно',()=>{reactionUntil=performance.now()+1300;});
  }else button(panel,'Открыть мимику v2',()=>location.assign('?skin-study&face-v2'));
  const caption=document.createElement('div');caption.className='skin-caption';caption.textContent='Слева внизу — игровой размер (~68 px). Узор и наросты катятся с корпусом; лицо не переворачивается.\nЭто художественный образец, без изменения основного геймплея.';caption.style.whiteSpace='pre-line';hud.appendChild(caption);
  function resize(){const f=fit16by9(innerWidth,innerHeight);stage.style.width=f.width+'px';stage.style.height=f.height+'px';hud.style.transform=`scale(${f.scale})`;renderer.setSize(f.width,f.height,false);}addEventListener('resize',resize);resize();refresh();
- let last=performance.now();function frame(now:number){const dt=Math.min(.05,(now-last)/1000);last=now;elapsed+=dt;for(const s of [sample,mini]){s.rotation.y=angle;s.update(dt,rolling);const phase=(elapsed+1)%4,blink=closed?1:phase<.15?phase/.15:phase<.25?1:phase<.4?1-(phase-.25)/.15:0;s.face.update(dt,blink);modules.get(s)?.updatePose(dt,now<reactionUntil?'scared':pose,blink,short,design.base);}renderer.render(scene,camera);bootReady();requestAnimationFrame(frame);}requestAnimationFrame(frame);
+ let last=performance.now();function frame(now:number){const dt=Math.min(.05,(now-last)/1000);last=now;elapsed+=dt;for(const s of [sample,mini]){s.rotation.y=angle;s.update(dt,rolling);const phase=(elapsed+1)%4,blink=closed?1:halfBlink?.5:phase<.15?phase/.15:phase<.25?1:phase<.4?1-(phase-.25)/.15:0;s.face.update(dt,blink);modules.get(s)?.updatePose(dt,now<reactionUntil?'scared':pose,blink,short,design.base);}renderer.render(scene,camera);bootReady();requestAnimationFrame(frame);}requestAnimationFrame(frame);
  Object.defineProperty(window,'__SKIN_STUDY__',{get:()=>({design:{...design},outfit:{...outfit},expression,rolling,shadow,angle,faceScale:SKIN_STUDY_FACE_SCALE,bodyAngle:sample.rotationAngle,faceQuaternion:sample.face.quaternion.toArray(),growthInstances:sample.growthInstances,surfaceCells:sample.cellCount,furInstances:sample.furInstances,drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles,storageKey})});
 }

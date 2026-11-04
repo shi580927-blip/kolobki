@@ -53,16 +53,16 @@ export class ModularFace extends T.Group{
  private lidMaterial=paint(0x316de0);
  private eyes=[-1,1].map((side,i)=>{
   const socket=new T.Group();socket.position.set(side*.378,.025,.811);socket.rotation.y=side*.39;this.add(socket);
-  oval(socket,white,0,0,.012,.375,.336,.192);
+  oval(socket,white,0,0,.012,.375,.336,.192).receiveShadow=true;
   // Rotate the markings on nested ellipsoids so the eyeball cannot cut their rims.
   const eyeFrame=new T.Group();eyeFrame.position.z=.012;eyeFrame.scale.set(.375,.336,.192);socket.add(eyeFrame);
   const gaze=new T.Group();eyeFrame.add(gaze);
   for(const [geometry,material,radius] of [[irisPatch,amber,1.012],[pupilPatch,pupil,1.019],[glintPatch,sparkle,1.026]] as const){
-   const patch=new T.Mesh(geometry,material);patch.scale.setScalar(radius);gaze.add(patch);
+   const patch=new T.Mesh(geometry,material);patch.receiveShadow=true;patch.scale.setScalar(radius);gaze.add(patch);
   }
-  const lids=new T.Group();lids.position.z=.013;lids.scale.set(.38,.342,.218);socket.add(lids);
-  const upper=new T.Mesh(cap,this.lidMaterial),lower=new T.Mesh(cap,this.lidMaterial);lower.rotation.z=Math.PI;lids.add(upper,lower);
-  const brow=new T.Mesh(brows[i],ink);socket.add(brow);
+  const lids=new T.Group();lids.position.z=.012;lids.scale.set(.392,.352,.219);socket.add(lids);
+  const upper=new T.Mesh(cap,this.lidMaterial),lower=new T.Mesh(cap,this.lidMaterial);upper.receiveShadow=lower.receiveShadow=true;lower.rotation.z=Math.PI;lids.add(upper,lower);
+  const brow=new T.Mesh(brows[i],ink);brow.castShadow=true;socket.add(brow);
   return {side,socket,upper,lower,brow,gaze};
  });
  private line=new T.Mesh(smile,ink);
@@ -81,8 +81,8 @@ export class ModularFace extends T.Group{
    const rest=.26+.29*this.sly-.20*this.fear;
    const closure=rest+(1-rest)*blink;
    upper.rotation.order="ZXY";upper.rotation.z=side*(.34-.24*this.fear)*(1-blink);upper.rotation.x=-(1-closure)*1.12;lower.rotation.x=(1-blink)*1.5;
-   gaze.visible=blink<.995;gaze.rotation.set(.12-this.fear*.19,-side*.35+this.sly*.11,0);
-   brow.position.set(-side*.047,.202+.15*this.fear+side*.045*this.sly,.212);
+   gaze.rotation.set(.12-this.fear*.19,-side*.35+this.sly*.11,0);
+   brow.position.set(-side*.047,.202+.15*this.fear+side*.045*this.sly,.257);
    brow.rotation.z=side*(.30-.65*this.fear+side*.13*this.sly);brow.scale.x=short?.79:1;
    brow.morphTargetInfluences![0]=this.fear+.72*side*this.sly;
   }
