@@ -4,7 +4,7 @@ import type {FacePose} from './ModularFace';
 type Vertex = (u:number, v:number) => [number, number, number];
 
 // x and y are frontal coordinates in body radii. Relief is measured above the globe.
-function patch(parent:T.Group, name:string, color:string, columns=32, rows=10) {
+export function patch(parent:T.Group, name:string, color:string, columns=32, rows=10) {
   const geometry=new T.PlaneGeometry(1,1,columns,rows);
   const material=new T.MeshStandardMaterial({color,side:T.DoubleSide,roughness:.55});
   const mesh=new T.Mesh(geometry,material);

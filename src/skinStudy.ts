@@ -1,3 +1,4 @@
+import {NeutralStudyFace} from './face/NeutralStudyFace';
 import {ControlFace} from './face/ControlFace';
 import {ModularFace,type FacePose} from './face/ModularFace';
 import {HeadDecor} from './game/HeadDecor';
@@ -28,13 +29,15 @@ export async function startSkinStudy(){
  let design={...defaultDesign};try{const saved=localStorage.getItem(storageKey);if(saved){const data=JSON.parse(saved);design=validateDesign(data);outfit=readOutfit(data.outfit);}}catch{/* Author storage is optional. */}
  if(design.surface!=='smooth')design.pattern='none';
  let sample:SkinSample,mini:SkinSample,expression:StudyExpression='sly',angle=0,rolling=false,shadow=false,closed=false,elapsed=0;
- const v4=new URLSearchParams(location.search).has('face-v4');
+ const neutral=new URLSearchParams(location.search).has('neutral-study');
+ const v4=neutral||new URLSearchParams(location.search).has('face-v4');
  const v2=v4||new URLSearchParams(location.search).has('face-v2');
  let halfBlink=false,boost=false;
  let pose:FacePose='base',short=false,reactionUntil=0;
  if(v2){design={...defaultDesign,base:'#202331',pattern:'none',growthCount:0,gloss:.24};outfit=readOutfit(null);}
  if(v4){design={...defaultDesign,base:'#ac4569',accent:'#52cacb',pattern:'none',growthCount:0,gloss:.32};title.textContent+=' · V4';}
- const modules=new Map<SkinSample,ModularFace|ControlFace>();
+ if(neutral){hemi.intensity=1.10;sun.intensity=2.1;renderer.toneMappingExposure=.88;design.base='#ad373e';design.gloss=.16;title.textContent='ШАРОБЕСЫ · БАЗОВЫЙ ПОРТРЕТ';}
+ const modules=new Map<SkinSample,ModularFace|ControlFace|NeutralStudyFace>();
  const selectors=new Map<'head'|'mark',HTMLSelectElement>();
  function updateDecor(){
   for(const model of [sample,mini]){
@@ -45,7 +48,7 @@ export async function startSkinStudy(){
   for(const [slot,select] of selectors)select.value=outfit[slot];
  }
  function serialize(){return {...design,outfit:{...outfit}};}
- function rebuildFaces(){if(sample){scene.remove(sample,mini);for(const model of [sample,mini]){const old=model.getObjectByName('head-decor');if(old instanceof HeadDecor)old.dispose();modules.get(model)?.dispose();modules.delete(model);model.dispose();}}sample=new SkinSample(texture,expression,glossEnvironment);sample.position.set(-1.72,.21,0);sample.scale.setScalar(1.8);scene.add(sample);mini=new SkinSample(texture,expression,glossEnvironment);mini.position.set(-4.8,-2.4,0);mini.scale.setScalar(.31);scene.add(mini);sample.apply(design);mini.apply(design);if(v2)for(const m of [sample,mini]){m.face.visible=false;const rig=v4?new ControlFace(glossEnvironment):new ModularFace();m.add(rig);modules.set(m,rig);}updateDecor();}
+ function rebuildFaces(){if(sample){scene.remove(sample,mini);for(const model of [sample,mini]){const old=model.getObjectByName('head-decor');if(old instanceof HeadDecor)old.dispose();modules.get(model)?.dispose();modules.delete(model);model.dispose();}}sample=new SkinSample(texture,expression,glossEnvironment);sample.position.set(-1.72,.21,0);sample.scale.setScalar(1.8);scene.add(sample);mini=new SkinSample(texture,expression,glossEnvironment);mini.position.set(-4.8,-2.4,0);mini.scale.setScalar(.31);scene.add(mini);sample.apply(design);mini.apply(design);if(v2)for(const m of [sample,mini]){m.face.visible=false;const rig=neutral?new NeutralStudyFace(glossEnvironment):v4?new ControlFace(glossEnvironment):new ModularFace();m.add(rig);modules.set(m,rig);}updateDecor();}
  rebuildFaces();
  const fitting=document.createElement('fieldset');fitting.className='fitting';
  const legend=document.createElement('legend');legend.textContent='Примерочная';fitting.append(legend);
@@ -103,10 +106,11 @@ export async function startSkinStudy(){
  const faceSelect=document.createElement('select');faceSelect.setAttribute('aria-label','Выражение лица');faceSelect.style.cssText='padding:7px;border-radius:8px';for(const [value,text] of [['sly','Хитрый'],['happy','Довольный'],['grumpy','Хмурый']]){const o=document.createElement('option');o.value=value;o.textContent=text;faceSelect.appendChild(o);}faceSelect.onchange=()=>{expression=faceSelect.value as StudyExpression;rebuildFaces();};toolbar.appendChild(faceSelect);
  if(v2){
   faceSelect.replaceChildren();for(const [key,name] of [['base','Базовое'],['sly','Хитрый'],['scared','Испуг'],['surprised','Удивление'],['happy','Радость'],['angry','Сердитый'],['sleepy','Сонный']])if(!v4||['base','surprised','happy','angry'].includes(key))faceSelect.add(new Option(name,key));
+  if(neutral){faceSelect.hidden=true;}
   faceSelect.onchange=()=>{pose=faceSelect.value as FacePose;reactionUntil=0;};
   button(panel,'Полуморгание',()=>{halfBlink=!halfBlink;closed=false;});
   button(toolbar,'Профиль',()=>{angle=Math.PI/2;});
-  if(v4){const toggle=button(toolbar,'Усиление',()=>{boost=!boost;reviewFrames=0;toggle.setAttribute('aria-pressed',String(boost));toggle.style.background=boost?'#81516a':'';});toggle.setAttribute('aria-pressed','false');}
+  if(v4&&!neutral){const toggle=button(toolbar,'Усиление',()=>{boost=!boost;reviewFrames=0;toggle.setAttribute('aria-pressed',String(boost));toggle.style.background=boost?'#81516a':'';});toggle.setAttribute('aria-pressed','false');}
   if(!v4)button(toolbar,'Короткие брови',()=>{short=!short;});
   if(!v4)button(toolbar,'Испуг → обратно',()=>{reactionUntil=performance.now()+1300;});
  }else button(panel,'Открыть мимику v2',()=>location.assign('?skin-study&face-v2'));
