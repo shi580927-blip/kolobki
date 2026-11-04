@@ -8,6 +8,16 @@ export const GOODS = [
 ] as const;
 type Item=typeof GOODS[number];
 export type Outfit={head:'none'|'helmet'|'crown'|'horns';mark:'none'|'stripes'|'star'|'bolt'};
+export function readOutfit(value:unknown):Outfit {
+ const outfit:Outfit={head:'none',mark:'none'};
+ if(!value||typeof value!=='object')return outfit;
+ const saved=value as Partial<Outfit>;
+ for(const item of GOODS){
+  if(item.slot==='head'&&saved.head===item.id)outfit.head=item.id;
+  if(item.slot==='mark'&&saved.mark===item.id)outfit.mark=item.id;
+ }
+ return outfit;
+}
 export class Wardrobe {
  coins=0;owned=new Set<string>();outfit:Outfit={head:'none',mark:'none'};
  constructor(){try{const data=JSON.parse(localStorage.getItem('sharobesy.wardrobe.v1')??'{}');

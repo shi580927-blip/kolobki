@@ -1,4 +1,4 @@
-import {Wardrobe} from './game/Wardrobe';
+import {Wardrobe,readOutfit} from './game/Wardrobe';
 import "./style.css";
 import {version as buildVersion} from "../package.json";
 import {RoomEnvironment} from "three/addons/environments/RoomEnvironment.js";
@@ -111,7 +111,8 @@ async function start() {
     () => crypto.getRandomValues(new Uint32Array(1))[0],
   );
   let design=designForGame(skin);
-  if(appearanceTest){try{const saved=storage.getItem('sharobesy.author.skin-study.v1');if(saved)design=validateDesign(JSON.parse(saved));}catch{/* Invalid author config does not change the player. */}}
+  let authorOutfit=readOutfit(null);
+  if(appearanceTest){try{const saved=storage.getItem('sharobesy.author.skin-study.v1');if(saved){const data=JSON.parse(saved);design=validateDesign(data);authorOutfit=readOutfit(data.outfit);}}catch{/* Invalid author config does not change the player. */}}
   function environmentFor(r:T.WebGLRenderer,force=false){if(!force&&(design.gloss<=0||design.surface!=='smooth'||design.growthCount>0))return undefined;const room=new RoomEnvironment(),pmrem=new T.PMREMGenerator(r),texture=pmrem.fromScene(room,.04).texture;room.dispose();pmrem.dispose();return texture;}
   const worldEnvironment=environmentFor(renderer,true);
   const inventory=new AbilityInventory();
@@ -156,7 +157,7 @@ async function start() {
   portraitScene.add(portraitLight);
   const wardrobe=new Wardrobe();
   const portraitVisual=new RuntimeVisual({...design,furCount:Math.min(design.furCount,24)},atlas,resources.textures,skin.mood,environmentFor(portraitRenderer));
-  function wear(){visual.setOutfit(wardrobe.outfit);portraitVisual.setOutfit(wardrobe.outfit);}
+  function wear(){const outfit=appearanceTest?authorOutfit:wardrobe.outfit;visual.setOutfit(outfit);portraitVisual.setOutfit(outfit);}
   wear();
   portraitScene.add(portraitVisual);
   const portraitCamera = new T.PerspectiveCamera(38, 1, 0.1, 10);
