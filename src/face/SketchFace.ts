@@ -100,7 +100,10 @@ function eye(parent:T.Group, side:number) {
       part.mesh.visible=blink<.985&&!stunned&&!rage;
       part.draw((u,v)=>{
         const angle=u*Math.PI*2,r=[.129,.115,.081,.024][i]*p.irisScale;
-        const x=side*.40+(p.irisX<0?side*p.irisX:p.irisX)+gaze+(i===3?-.030:0)+r*v*Math.cos(angle);
+        // Both eyes start slightly toward the bridge; expression offsets add
+        // convergence or a shared sideways glance without moving them apart.
+        const focusOffset=p.irisX<0?side*p.irisX*.55:p.irisX*.45;
+        const x=side*.35+focusOffset+gaze+(i===3?-.030:0)+r*v*Math.cos(angle);
         const fraction=T.MathUtils.clamp((side*x-inner)/(eyeOuter-inner),0,1);
         const ex=Math.acos(1-2*fraction)/Math.PI;
         const [lo,hi]=bounds(ex);
