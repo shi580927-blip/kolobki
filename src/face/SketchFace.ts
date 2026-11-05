@@ -28,9 +28,9 @@ function eye(parent:T.Group, side:number) {
   let lastShape='';
   upper.mesh.receiveShadow=true;
   return (p:Pose,blink:number,color:string,detail:boolean,gaze:number,poseKey:string,stunned:boolean,rage:boolean)=>{
-    // Angry eyes end beneath the brow, before its outer tip. The brow keeps its
-    // own width; shortening only the eye gives the outer corner a round arc.
-    const eyeOuter=mix(outer,.605,p.tension);
+    // The underlying angry eyeball is a circle, not a compressed eye shape.
+    // Its upper arc is hidden by the brow; the outer tip of the brow overhangs.
+    const eyeOuter=mix(outer,.675,p.tension);
     const bounds=(u:number)=>{
       const shift=side*p.browLift*Math.sin(Math.PI*u)*.90;
       const x=mix(inner,eyeOuter,(1-Math.cos(Math.PI*u))*.5);
@@ -40,11 +40,15 @@ function eye(parent:T.Group, side:number) {
       const openTop=cubic(p.upper,u)+shift+rounded;
       const originalBottom=cubic(p.lower,u)-rounded;
       // A rounded lower eye follows the end heights and curves smoothly around the globe.
-      const start=Math.min(p.upper[0],p.browBottom[0]-.012);
-      const end=Math.min(p.upper[3],cubic(p.browBottom,T.MathUtils.clamp((eyeOuter-.032)/(.75-.032),0,1))-.012);
-      const roundBottom=mix(start,end,u)-.39*Math.sin(Math.PI*u)**.90;
-      const bottom=mix(originalBottom,roundBottom,p.tension);
-      const top=Math.max(bottom,mix(openTop,Math.min(openTop,browEdge-.012),p.tension));
+      const eyeCentre=(inner+eyeOuter)*.5;
+      const eyeRadius=(eyeOuter-inner)*.5;
+      const circleArc=Math.sqrt(Math.max(0,eyeRadius**2-(x-eyeCentre)**2));
+      const roundBottom=.035-circleArc;
+      const circleWeight=Math.max(p.tension,p.roundOpen);
+      const bottom=mix(originalBottom,roundBottom,circleWeight);
+      const roundTop=Math.min(.035+circleArc,browEdge-.012);
+      const circularTop=mix(.035+circleArc,roundTop,p.tension);
+      const top=Math.max(bottom,mix(openTop,circularTop,circleWeight));
       const line=mix(bottom,top,.42);
       return [mix(bottom,line,blink),mix(top,line,blink)];
     };
