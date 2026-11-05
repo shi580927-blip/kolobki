@@ -8,7 +8,7 @@ export interface Pose {
 }
 export const contours:Record<string,Pose>={
   neutral:{browTop:[.32,.33,.34,.31],browBottom:[.17,.18,.19,.16],upper:[.03,.11,.13,.08],lower:[.03,-.28,-.28,.08],lipTop:[-.37,-.40,-.38,-.35],lipBottom:[-.37,-.44,-.42,-.35],mouthWidth:.28,irisX:0,irisY:.01,browLift:.008,cheek:.25,tension:0,teeth:0,tongue:0},
-  frightened:{browTop:[.54,.72,.73,.43],browBottom:[.39,.57,.58,.28],upper:[.04,.65,.62,.04],lower:[.04,-.48,-.48,.04],lipTop:[-.43,-.19,-.19,-.43],lipBottom:[-.43,-.70,-.70,-.43],mouthWidth:.33,irisX:0,irisY:.025,browLift:.06,cheek:0,tension:0,teeth:.22,tongue:.45},
+  frightened:{browTop:[.54,.72,.73,.43],browBottom:[.39,.57,.58,.28],upper:[.04,.65,.62,.04],lower:[.04,-.48,-.48,.04],lipTop:[-.49,-.33,-.33,-.49],lipBottom:[-.49,-.78,-.78,-.49],mouthWidth:.31,irisX:0,irisY:.025,browLift:.06,cheek:0,tension:0,teeth:.22,tongue:.45},
   dreamy:{browTop:[.37,.51,.48,.32],browBottom:[.22,.35,.32,.17],upper:[.03,.12,.13,.06],lower:[.03,-.26,-.24,.06],lipTop:[-.35,-.40,-.40,-.31],lipBottom:[-.35,-.44,-.44,-.31],mouthWidth:.27,irisX:-.015,irisY:.105,browLift:.025,cheek:.3,tension:0,teeth:0,tongue:0},
   curious:{browTop:[.49,.67,.60,.38],browBottom:[.34,.52,.45,.23],upper:[.04,.51,.52,.07],lower:[.04,-.39,-.40,.07],lipTop:[-.40,-.28,-.28,-.40],lipBottom:[-.40,-.57,-.57,-.40],mouthWidth:.11,irisX:-.045,irisY:.04,browLift:.07,cheek:0,tension:0,teeth:0,tongue:.18},
   confident:{browTop:[.25,.32,.40,.43],browBottom:[.10,.17,.25,.28],upper:[.02,.12,.18,.09],lower:[.02,-.30,-.30,.09],lipTop:[-.35,-.38,-.38,-.33],lipBottom:[-.35,-.42,-.42,-.33],mouthWidth:.29,irisX:-.025,irisY:.01,browLift:.012,cheek:.1,tension:.24,teeth:0,tongue:0},
