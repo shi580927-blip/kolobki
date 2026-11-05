@@ -69,7 +69,8 @@ function eye(parent:T.Group, side:number) {
     if(changed)eyeOutline.draw((u,v)=>{
       const a=2*Math.PI*u,t=(1-Math.cos(a))*.5;
       const [lo,hi]=bounds(t),top=Math.sin(a)>=0;
-      const width=top?mix(.018,0,p.tension):.012;
+      // Keep the upper eyelash/outline continuous even under a lowered brow.
+      const width=top?mix(.018,.010,p.tension):.012;
       const x=xAt(t)+side*(2*t-1)*width*v;
       const y=(top?hi:lo)+Math.sin(a)*width*v;
       return [x,y,eyeRelief(t,top?1:0)+.010-.004*v];
@@ -205,7 +206,13 @@ export class SketchFace extends T.Group {
     for(const draw of this.eyes)draw(p,blink,color,detail,gaze,poseKey,name==='stunned',name==='rage');
     if(this.lastMouth===poseKey+color)return;
     this.lastMouth=poseKey+color;
-    const mouthY=(u:number,v:number)=>mix(cubic(p.lipBottom,u),cubic(p.lipTop,u),v);
+    const mouthEdge=(curve:Curve,u:number)=>{
+      const centre=cubic(curve,.5),ends=mix(curve[0],curve[3],u);
+      const arc=Math.sqrt(Math.max(0,1-(2*u-1)**2));
+      const round=ends+(centre-(curve[0]+curve[3])*.5)*arc;
+      return mix(cubic(curve,u),round,p.mouthRound);
+    };
+    const mouthY=(u:number,v:number)=>mix(mouthEdge(p.lipBottom,u),mouthEdge(p.lipTop,u),v);
     this.mouth.draw((u,v)=>[(2*u-1)*p.mouthWidth,mouthY(u,v),.014+.009*(2*v-1)**2]);
     this.lip.mesh.material.color.set('#171419');
     this.lip.draw((u,v)=>{
@@ -225,7 +232,7 @@ export class SketchFace extends T.Group {
         const depth=p.teeth*(edge?.58:.70);
         const y=mouthY(t,1-depth*(1-v)*round);
         const bulge=Math.pow(Math.sin(Math.PI*u)*Math.sin(Math.PI*v),.55);
-        return [(2*t-1)*p.mouthWidth,y,.024+.013*bulge];
+        return [(2*t-1)*p.mouthWidth,y,.042+.013*bulge];
       });
     });
     this.lowerTeeth.forEach((tooth,index)=>{
@@ -236,14 +243,15 @@ export class SketchFace extends T.Group {
         const t=mix(start,end,.035+.93*u),round=.86+.14*Math.sin(Math.PI*u);
         const depth=p.lowerTeeth*.38*round;
         const y=mouthY(t,depth*v);
-        return [(2*t-1)*p.mouthWidth,y,.030+.012*Math.sin(Math.PI*u)*Math.sin(Math.PI*v)];
+        return [(2*t-1)*p.mouthWidth,y,.043+.012*Math.sin(Math.PI*u)*Math.sin(Math.PI*v)];
       });
     });
     this.tongue.mesh.visible=p.tongue>.006;
     this.tongue.draw((u,v)=>{
       const t=.16+.68*u;
       const dome=Math.sin(u*Math.PI)**.65;
-      return [(2*t-1)*p.mouthWidth,mouthY(t,p.tongue*dome*(.12+.88*v)),.035+.018*dome*Math.sin(v*Math.PI)];
+      // Layer inside the cavity, behind both rows of teeth.
+      return [(2*t-1)*p.mouthWidth,mouthY(t,p.tongue*dome*(.12+.88*v)),.026+.004*dome*Math.sin(v*Math.PI)];
     });
   }
   dispose(){this.traverse(o=>{if(o instanceof T.Mesh||o instanceof T.Line){o.geometry.dispose();o.material.dispose();}});}
