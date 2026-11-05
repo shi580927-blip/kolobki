@@ -35,7 +35,7 @@ export async function startSkinStudy(){
  const v4=v5||neutral||new URLSearchParams(location.search).has('face-v4');
  const v2=v4||new URLSearchParams(location.search).has('face-v2');
  let halfBlink=false,boost=false,details=true;
- let pose:FacePose='base',short=false,reactionUntil=0;
+ let pose:string='base',short=false,reactionUntil=0;
  if(v2){design={...defaultDesign,base:'#202331',pattern:'none',growthCount:0,gloss:.24};outfit=readOutfit(null);}
  if(v4){design={...defaultDesign,base:'#ac4569',accent:'#52cacb',pattern:'none',growthCount:0,gloss:.32};title.textContent+=' · V4';}
  if(neutral){hemi.intensity=1.10;sun.intensity=2.1;renderer.toneMappingExposure=.88;design.base='#ad373e';design.gloss=.16;title.textContent='ШАРОБЕСЫ · БАЗОВЫЙ ПОРТРЕТ';}
@@ -109,9 +109,9 @@ export async function startSkinStudy(){
  const faceSelect=document.createElement('select');faceSelect.setAttribute('aria-label','Выражение лица');faceSelect.style.cssText='padding:7px;border-radius:8px';for(const [value,text] of [['sly','Хитрый'],['happy','Довольный'],['grumpy','Хмурый']]){const o=document.createElement('option');o.value=value;o.textContent=text;faceSelect.appendChild(o);}faceSelect.onchange=()=>{expression=faceSelect.value as StudyExpression;rebuildFaces();};toolbar.appendChild(faceSelect);
  if(v2){
   faceSelect.replaceChildren();for(const [key,name] of [['base','Базовое'],['sly','Хитрый'],['scared','Испуг'],['surprised','Удивление'],['happy','Радость'],['angry','Сердитый'],['sleepy','Сонный']])if(!v4||['base','surprised','happy','angry'].includes(key))faceSelect.add(new Option(name,key));
-  if(v5){faceSelect.replaceChildren();for(const [key,label] of [['sly','Хитрый'],['content','Довольный'],['smile','Широкая улыбка'],['surprised','Удивлённый'],['angry','Злой'],['attack','Атака']])faceSelect.add(new Option(label,key));button(toolbar,'Тени и складки',()=>{details=!details;reviewFrames=0;});button(panel,'Толчок',()=>{for(const rig of modules.values())if(rig instanceof SketchFace)rig.impact();});}
+  if(v5){faceSelect.replaceChildren();for(const [key,label] of [['neutral','Нейтральный'],['frightened','Испуганный'],['surprised','Удивлённый'],['sly','Хитрый'],['dreamy','Мечтательный'],['curious','Любопытный'],['content','Довольный'],['smile','Радостный'],['angry','Злой — хмурится'],['angry_clenched','Злой — сжатые зубы'],['attack','Злой — атака'],['rage','В ярости'],['confident','Уверенный'],['focused','Сосредоточенный'],['tired','Усталый'],['sleeping','Спящий'],['stunned','Оглушённый']])faceSelect.add(new Option(label,key));button(toolbar,'Тени и складки',()=>{details=!details;reviewFrames=0;});button(panel,'Толчок',()=>{for(const rig of modules.values())if(rig instanceof SketchFace)rig.impact();});}
   if(neutral){faceSelect.hidden=true;}
-  faceSelect.onchange=()=>{pose=faceSelect.value as FacePose;reactionUntil=0;};
+  faceSelect.onchange=()=>{pose=faceSelect.value;reactionUntil=0;};
   button(panel,'Полуморгание',()=>{halfBlink=!halfBlink;closed=false;});
   button(toolbar,'Профиль',()=>{angle=Math.PI/2;});
   if(v4&&!neutral&&!v5){const toggle=button(toolbar,'Усиление',()=>{boost=!boost;reviewFrames=0;toggle.setAttribute('aria-pressed',String(boost));toggle.style.background=boost?'#81516a':'';});toggle.setAttribute('aria-pressed','false');}
@@ -120,8 +120,8 @@ export async function startSkinStudy(){
  }else button(panel,'Открыть мимику v2',()=>location.assign('?skin-study&face-v2'));
  const caption=document.createElement('div');caption.className='skin-caption';caption.textContent='Слева внизу — игровой размер (~68 px). Узор и наросты катятся с корпусом; лицо не переворачивается.\nЭто художественный образец, без изменения основного геймплея.';caption.style.whiteSpace='pre-line';hud.appendChild(caption);
  function resize(){const f=fit16by9(innerWidth,innerHeight);stage.style.width=f.width+'px';stage.style.height=f.height+'px';hud.style.transform=`scale(${f.scale})`;renderer.setSize(f.width,f.height,false);}addEventListener('resize',resize);resize();refresh();
- let reviewFrames=0,previousPose:FacePose=pose,previousAngle=angle,lastBlink=0;
+ let reviewFrames=0,previousPose:string=pose,previousAngle=angle,lastBlink=0;
  if(v4)Object.defineProperty(window,"__FACE_REVIEW__",{get:()=>({ready:previousPose===pose && previousAngle===angle && reviewFrames>=25 && lastBlink===0,closed:closed && lastBlink===1})});
- let last=performance.now();function frame(now:number){const dt=Math.min(.05,(now-last)/1000);last=now;elapsed+=dt;reviewFrames=pose===previousPose && angle===previousAngle?reviewFrames+1:0;previousPose=pose;previousAngle=angle;for(const s of [sample,mini]){s.rotation.y=angle;s.update(dt,rolling);const phase=(elapsed+1)%4,blink=closed?1:halfBlink?.5:phase<.15?phase/.15:phase<.25?1:phase<.4?1-(phase-.25)/.15:0;lastBlink=blink;s.face.update(dt,blink);modules.get(s)?.updatePose(dt,now<reactionUntil?'scared':pose,blink,short,design.base,v5?details:boost);}renderer.render(scene,camera);bootReady();requestAnimationFrame(frame);}requestAnimationFrame(frame);
+ let last=performance.now();function frame(now:number){const dt=Math.min(.05,(now-last)/1000);last=now;elapsed+=dt;reviewFrames=pose===previousPose && angle===previousAngle?reviewFrames+1:0;previousPose=pose;previousAngle=angle;for(const s of [sample,mini]){s.rotation.y=angle;s.update(dt,rolling);const phase=(elapsed+1)%4,blink=closed?1:halfBlink?.5:phase<.15?phase/.15:phase<.25?1:phase<.4?1-(phase-.25)/.15:0;lastBlink=blink;const effectiveBlink=v5&&pose==='stunned'?0:v5&&pose==='sleeping'?1:blink;s.face.update(dt,effectiveBlink);const rig=modules.get(s);if(rig instanceof SketchFace)rig.updatePose(dt,now<reactionUntil?'frightened':pose,effectiveBlink,short,design.base,details);else rig?.updatePose(dt,now<reactionUntil?'scared':pose as FacePose,effectiveBlink,short,design.base,boost);}renderer.render(scene,camera);bootReady();requestAnimationFrame(frame);}requestAnimationFrame(frame);
  Object.defineProperty(window,'__SKIN_STUDY__',{get:()=>({design:{...design},outfit:{...outfit},expression,rolling,shadow,angle,faceScale:SKIN_STUDY_FACE_SCALE,bodyAngle:sample.rotationAngle,faceQuaternion:sample.face.quaternion.toArray(),growthInstances:sample.growthInstances,surfaceCells:sample.cellCount,furInstances:sample.furInstances,drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles,storageKey})});
 }

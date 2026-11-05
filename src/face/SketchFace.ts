@@ -10,6 +10,8 @@ function eyeRelief(u:number,v:number) {
 function eye(parent:T.Group, side:number) {
   const white=patch(parent,'sclera','#fff5f1',36,16);
   const rings=[patch(parent,'iris-edge','#321522'),patch(parent,'iris','#70251e'),patch(parent,'pupil','#080609'),patch(parent,'glint','#ffffff')];
+  const spiral=new T.Line(new T.BufferGeometry(),new T.LineBasicMaterial({color:0x291625}));
+  spiral.name='stun-spiral';parent.add(spiral);
   const upper=patch(parent,'upper-lid','#cc5552'),lower=patch(parent,'lower-lid','#bb413a');
   const brow=patch(parent,'sculpted-brow','#302436',36,16);
   const eyeOutline=patch(parent,'eye-outline','#191316',72,6);
@@ -25,7 +27,7 @@ function eye(parent:T.Group, side:number) {
   let shadowKey='';
   let lastShape='';
   upper.mesh.receiveShadow=true;
-  return (p:Pose,blink:number,color:string,detail:boolean,gaze:number,poseKey:string)=>{
+  return (p:Pose,blink:number,color:string,detail:boolean,gaze:number,poseKey:string,stunned:boolean,rage:boolean)=>{
     const bounds=(u:number)=>{
       const shift=side*p.browLift*Math.sin(Math.PI*u)*.90;
       const x=mix(inner,outer,(1-Math.cos(Math.PI*u))*.5);
@@ -69,8 +71,24 @@ function eye(parent:T.Group, side:number) {
       const [lo,hi]=bounds(u);
       return [xAt(u),mix(lo,hi,v),eyeRelief(u,v)];
     });
+    white.mesh.material.emissive.set(rage?'#ff9c20':'#000000');
+    white.mesh.material.emissiveIntensity=rage?.8:0;
+    spiral.visible=stunned;
+    if(stunned){
+      const points:T.Vector3[]=[];
+      for(let i=0;i<=96;i++){
+        const t=i/96,a=t*5*Math.PI,r=.15*t;
+        const x=side*.39+r*Math.cos(a),y=.02+r*Math.sin(a);
+        const fraction=T.MathUtils.clamp((side*x-inner)/(outer-inner),0,1);
+        const ex=Math.acos(1-2*fraction)/Math.PI,[lo,hi]=bounds(ex);
+        const clipped=T.MathUtils.clamp(y,lo,hi);
+        const relief=eyeRelief(ex,(clipped-lo)/Math.max(.00001,hi-lo))+.018;
+        points.push(new T.Vector3(x,clipped,Math.sqrt(Math.max(.001,(1+relief)**2-x*x-clipped*clipped))));
+      }
+      spiral.geometry.setFromPoints(points);
+    }
     rings.forEach((part,i)=>{
-      part.mesh.visible=blink<.985;
+      part.mesh.visible=blink<.985&&!stunned&&!rage;
       part.draw((u,v)=>{
         const angle=u*Math.PI*2,r=[.129,.115,.081,.024][i];
         const x=side*.40+(p.irisX<0?side*p.irisX:p.irisX)+gaze+(i===3?-.030:0)+r*v*Math.cos(angle);
@@ -175,7 +193,7 @@ export class SketchFace extends T.Group {
     const drawKey=[poseKey,Math.round(blink*240),Math.round(gaze*250),color,detail].join(':');
     if(drawKey===this.lastDraw)return;
     this.lastDraw=drawKey;
-    for(const draw of this.eyes)draw(p,blink,color,detail,gaze,poseKey);
+    for(const draw of this.eyes)draw(p,blink,color,detail,gaze,poseKey,name==='stunned',name==='rage');
     if(this.lastMouth===poseKey+color)return;
     this.lastMouth=poseKey+color;
     const mouthY=(u:number,v:number)=>mix(cubic(p.lipBottom,u),cubic(p.lipTop,u),v);
@@ -208,5 +226,5 @@ export class SketchFace extends T.Group {
       return [(2*t-1)*p.mouthWidth,mouthY(t,p.tongue*dome*(.12+.88*v)),.035+.018*dome*Math.sin(v*Math.PI)];
     });
   }
-  dispose(){this.traverse(o=>{if(o instanceof T.Mesh){o.geometry.dispose();o.material.dispose();}});}
+  dispose(){this.traverse(o=>{if(o instanceof T.Mesh||o instanceof T.Line){o.geometry.dispose();o.material.dispose();}});}
 }
