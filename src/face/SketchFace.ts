@@ -165,6 +165,7 @@ export class SketchFace extends T.Group {
   private eyes=[eye(this,-1),eye(this,1)];
   private lip=patch(this,'lip-rim','#9d373a',48,8);
   private mouth=patch(this,'mouth','#391825',40,12);
+  private upperMouthShadow=patch(this,'mouth-upper-shadow','#160810',40,6);
   private teeth=Array.from({length:4},(_,i)=>patch(this,'upper-tooth-'+i,'#fff1df',18,12));
   private tongue=patch(this,'tongue','#e57976');
   private lowerTeeth=Array.from({length:4},(_,i)=>patch(this,'lower-tooth-'+i,'#fff1df',18,12));
@@ -177,6 +178,15 @@ export class SketchFace extends T.Group {
   constructor(env:T.Texture) {
     super();
     this.traverse(o=>{if(o instanceof T.Mesh){o.material.envMap=env;o.material.envMapIntensity=o.name==='sculpted-brow'?.30:.70;}});
+    const geom=this.mouth.mesh.geometry, uv=geom.attributes.uv;
+    const shades=new Float32Array(uv.count*3);
+    for(let i=0;i<uv.count;i++){
+      const u=uv.getX(i),v=uv.getY(i);
+      const shade=.48+.38*Math.sin(Math.PI*u)*Math.sin(Math.PI*v)+.12*(1-v);
+      shades[i*3]=shade;shades[i*3+1]=shade;shades[i*3+2]=shade;
+    }
+    geom.setAttribute('color',new T.BufferAttribute(shades,3));
+    this.mouth.mesh.material.vertexColors=true;
   }
   impact(){this.recoil=1;}
   updatePose(dt:number,name:string,blink:number,_short:boolean,color:string,detail=true){
@@ -213,7 +223,14 @@ export class SketchFace extends T.Group {
       return mix(cubic(curve,u),round,p.mouthRound);
     };
     const mouthY=(u:number,v:number)=>mix(mouthEdge(p.lipBottom,u),mouthEdge(p.lipTop,u),v);
-    this.mouth.draw((u,v)=>[(2*u-1)*p.mouthWidth,mouthY(u,v),.014+.009*(2*v-1)**2]);
+    this.mouth.draw((u,v)=>[(2*u-1)*p.mouthWidth,mouthY(u,v),.008+.010*(2*v-1)**2]);
+    // A thin recessed, curved shadow below the upper edge and upper teeth.
+    this.upperMouthShadow.mesh.visible=p.teeth>.006;
+    if(this.upperMouthShadow.mesh.visible)this.upperMouthShadow.draw((u,v)=>{
+      const t=.10+.80*u,fade=Math.sin(Math.PI*u)**.7;
+      const edge=Math.min(.52,p.teeth*.70+.10)*fade;
+      return [(2*t-1)*p.mouthWidth,mouthY(t,1-edge*v),.021];
+    });
     this.lip.mesh.material.color.set('#171419');
     this.lip.draw((u,v)=>{
       const a=2*Math.PI*u,t=(1+Math.cos(a))/2;
