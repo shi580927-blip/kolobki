@@ -86,10 +86,10 @@ function eye(parent:T.Group, side:number) {
       const points:T.Vector3[]=[];
       for(let i=0;i<=96;i++){
         const t=i/96,angle=t*5.6*Math.PI,radius=.31*t;
-        const x=side*.39+radius*Math.cos(angle);
+        const x=side*(inner+eyeOuter)*.5+radius*Math.cos(angle);
         const fraction=T.MathUtils.clamp((side*x-inner)/(eyeOuter-inner),.001,.999);
         const ex=Math.acos(1-2*fraction)/Math.PI,[lo,hi]=bounds(ex);
-        const y=T.MathUtils.clamp(.015+radius*.82*Math.sin(angle),lo+.014,hi-.014);
+        const y=.035+radius*Math.sin(angle);
         const relief=eyeRelief(ex,(y-lo)/Math.max(.00001,hi-lo))+.035;
         points.push(new T.Vector3(x,y,Math.sqrt(Math.max(.001,1-x*x-y*y))+relief));
       }
