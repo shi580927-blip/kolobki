@@ -63,7 +63,7 @@ function eye(parent:T.Group, side:number) {
     for(const [lid,isTop] of [[upper,true],[lower,false]] as const){
       const tone=new T.Color(color);
       const luminance=.2126*tone.r+.7152*tone.g+.0722*tone.b;
-      lid.mesh.material.color.copy(tone).multiplyScalar(isTop ? mix(.78,.55,luminance) : mix(.92,.68,luminance));
+      lid.mesh.material.color.copy(tone).multiplyScalar(isTop ? mix(.78,.36,luminance) : mix(.92,.40,luminance));
       lid.draw((u,v)=>{
         const [lo,hi]=bounds(u),s=isTop?v:1-v;
         const span=Math.sin(Math.PI*u)**.64;
@@ -143,7 +143,7 @@ export class SketchFace extends T.Group {
     this.mouth.draw((u,v)=>[(2*u-1)*p.mouthWidth,mouthY(u,v),.014+.009*(2*v-1)**2]);
     const lipColor=new T.Color(color);
     const luminance=.2126*lipColor.r+.7152*lipColor.g+.0722*lipColor.b;
-    this.lip.mesh.material.color.copy(lipColor).multiplyScalar(mix(.78,.52,luminance));
+    this.lip.mesh.material.color.copy(lipColor).multiplyScalar(mix(.78,.38,luminance));
     this.lip.draw((u,v)=>{
       const a=2*Math.PI*u,t=(1+Math.cos(a))/2;
       return [(2*t-1)*(p.mouthWidth+.019*v),mouthY(t,Math.sin(a)>=0?1:0)+Math.sin(a)*.027*v,
