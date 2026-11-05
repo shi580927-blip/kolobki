@@ -5,14 +5,15 @@ import {contours,cubic,type Pose,type Curve} from './V5Contours';
 const mix=T.MathUtils.lerp;
 const inner=.045,outer=.73;
 function eyeRelief(u:number,v:number) {
-  return .013+.107*Math.pow(Math.max(0,Math.sin(Math.PI*u)),.58)*(1-.75*(2*v-1)**2);
+  return .009+.052*Math.pow(Math.max(0,Math.sin(Math.PI*u)),.58)*(1-.75*(2*v-1)**2);
 }
 function eye(parent:T.Group, side:number) {
   const white=patch(parent,'sclera','#fff5f1',36,16);
   const rings=[patch(parent,'iris-edge','#321522'),patch(parent,'iris','#70251e'),patch(parent,'pupil','#080609'),patch(parent,'glint','#ffffff')];
   const upper=patch(parent,'upper-lid','#cc5552'),lower=patch(parent,'lower-lid','#bb413a');
   const brow=patch(parent,'sculpted-brow','#302436',36,16);
-  const socket=patch(parent,'socket-edge','#6e3338',36,8);
+  const eyeliner=patch(parent,'upper-eyeliner','#121014',36,6);
+  const browCaps=[patch(parent,'brow-inner-cap','#302436',12,8),patch(parent,'brow-outer-cap','#302436',12,8)];
   const corner=patch(parent,'smile-dimple','#763036',20,8);
   const furrow=patch(parent,'forehead-fold','#bb3c41',16,6);
   brow.mesh.material.roughness=.82;
@@ -43,14 +44,11 @@ function eye(parent:T.Group, side:number) {
     }
     const shapeKey=poseKey+':'+Math.round(blink*240)+color+detail;
     const changed=shapeKey!==lastShape;
-    if(changed){
-      socket.mesh.material.color.set('#171419');
-      socket.draw((u,v)=>{
-      const [lo,hi]=bounds(u),edge=v<.5?lo:hi;
-      const ring=Math.abs(2*v-1),taper=Math.sin(Math.PI*u)**.5;
-      return [xAt(u),edge+(v<.5?-1:1)*taper*ring*.12,eyeRelief(u,v<.5?0:1)+.002-.006*ring];
-      });
-    }
+    if(changed)eyeliner.draw((u,v)=>{
+      const [,hi]=bounds(u);
+      const width=.014*Math.sin(Math.PI*u)**.35;
+      return [xAt(u),hi+width*(v-.5),eyeRelief(u,1)+.011];
+    });
     if(changed)white.draw((u,v)=>{
       const [lo,hi]=bounds(u);
       return [xAt(u),mix(lo,hi,v),eyeRelief(u,v)];
@@ -77,7 +75,7 @@ function eye(parent:T.Group, side:number) {
         const [lo,hi]=bounds(u),s=isTop?v:1-v;
         const span=Math.sin(Math.PI*u)**.64;
         const y=(isTop?hi:lo)+(isTop?1:-1)*span*s*(isTop?.061:.034);
-        return [xAt(u),y,mix(eyeRelief(u,isTop?1:0)+.004,.003,s)+.012*Math.sin(s*Math.PI)*span];
+        return [xAt(u),y,mix(eyeRelief(u,isTop?1:0)+.004,.003,s)+.008*Math.sin(s*Math.PI)*span];
       });
     }
     // Loft the drawn upper/lower silhouettes into a bevelled solid with softly rounded ends.
@@ -90,6 +88,19 @@ function eye(parent:T.Group, side:number) {
       const bevel=.018*Math.abs(c)**4*(1-2*u);
       return [side*mix(.032,.85,u+bevel),mid+height*round*Math.sign(c)*Math.abs(c)**.52,
         .079+round*.060*Math.sign(s)*Math.abs(s)**.56];
+    });
+    browCaps.forEach((cap,index)=>{
+      const endpoint=index===0?0:1;
+      const mid=(cubic(p.browTop,endpoint)+cubic(p.browBottom,endpoint))/2+side*p.browLift;
+      const height=(cubic(p.browTop,endpoint)-cubic(p.browBottom,endpoint))/2*.91;
+      cap.mesh.material.roughness=.82;
+      cap.draw((u,v)=>{
+        const angle=2*Math.PI*u,r=v;
+        const c=Math.cos(angle),z=Math.sin(angle);
+        const bevel=.018*Math.abs(c)**4*(1-2*endpoint);
+        return [side*mix(.032,.85,endpoint+bevel),mid+height*r*Math.sign(c)*Math.abs(c)**.52,
+          .079+.91*.060*r*Math.sign(z)*Math.abs(z)**.56];
+      });
     });
     corner.mesh.visible=detail&&p.cheek>.03;
     const tint=new T.Color(color), light=.2126*tint.r+.7152*tint.g+.0722*tint.b;
@@ -156,7 +167,7 @@ export class SketchFace extends T.Group {
     this.lip.mesh.material.color.set('#171419');
     this.lip.draw((u,v)=>{
       const a=2*Math.PI*u,t=(1+Math.cos(a))/2;
-      return [(2*t-1)*(p.mouthWidth+.08*v),mouthY(t,Math.sin(a)>=0?1:0)+Math.sin(a)*.12*v,
+      return [(2*t-1)*(p.mouthWidth+.008*v),mouthY(t,Math.sin(a)>=0?1:0)+Math.sin(a)*.012*v,
         .023+.020*Math.sin(Math.PI*v)-.022*v];
     });
     this.teeth.forEach((tooth,index)=>{
