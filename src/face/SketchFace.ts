@@ -33,7 +33,12 @@ function eye(parent:T.Group, side:number) {
       const browEdge=cubic(p.browBottom,browU)+side*p.browLift;
       const rounded=.065*Math.sin(Math.PI*u)**.7*T.MathUtils.smoothstep(u,.35,.9);
       const openTop=cubic(p.upper,u)+shift+rounded;
-      const bottom=cubic(p.lower,u)-rounded;
+      const originalBottom=cubic(p.lower,u)-rounded;
+      // A rounded lower eye follows the end heights and curves smoothly around the globe.
+      const start=Math.min(p.upper[0],p.browBottom[0]-.012);
+      const end=Math.min(p.upper[3],p.browBottom[3]-.012);
+      const roundBottom=mix(start,end,u)-.32*Math.sin(Math.PI*u)**.82;
+      const bottom=mix(originalBottom,roundBottom,p.tension);
       const top=Math.max(bottom,mix(openTop,Math.min(openTop,browEdge-.012),p.tension));
       const line=mix(bottom,top,.42);
       return [mix(bottom,line,blink),mix(top,line,blink)];
@@ -199,7 +204,8 @@ export class SketchFace extends T.Group {
     this.tongue.mesh.visible=p.tongue>.006;
     this.tongue.draw((u,v)=>{
       const t=.16+.68*u;
-      return [(2*t-1)*p.mouthWidth,mouthY(t,p.tongue*Math.sin(u*Math.PI)*v),.026+.014*Math.sin(v*Math.PI)];
+      const dome=Math.sin(u*Math.PI)**.65;
+      return [(2*t-1)*p.mouthWidth,mouthY(t,p.tongue*dome*(.12+.88*v)),.035+.018*dome*Math.sin(v*Math.PI)];
     });
   }
   dispose(){this.traverse(o=>{if(o instanceof T.Mesh){o.geometry.dispose();o.material.dispose();}});}
