@@ -3,7 +3,7 @@ import {patch} from './ControlFace';
 import {contours,cubic,type Pose,type Curve} from './V5Contours';
 
 const mix=T.MathUtils.lerp;
-const inner=.045,outer=.815;
+const inner=.045,outer=.73;
 function eyeRelief(u:number,v:number) {
   return .013+.107*Math.pow(Math.max(0,Math.sin(Math.PI*u)),.58)*(1-.75*(2*v-1)**2);
 }
@@ -61,7 +61,9 @@ function eye(parent:T.Group, side:number) {
     if(!changed)return;
     lastShape=shapeKey;
     for(const [lid,isTop] of [[upper,true],[lower,false]] as const){
-      lid.mesh.material.color.set(color).multiplyScalar(isTop?.78:.92);
+      const tone=new T.Color(color);
+      const luminance=.2126*tone.r+.7152*tone.g+.0722*tone.b;
+      lid.mesh.material.color.copy(tone).multiplyScalar(isTop ? mix(.78,.55,luminance) : mix(.92,.68,luminance));
       lid.draw((u,v)=>{
         const [lo,hi]=bounds(u),s=isTop?v:1-v;
         const span=Math.sin(Math.PI*u)**.64;
@@ -84,7 +86,7 @@ function eye(parent:T.Group, side:number) {
     cheek.draw((u,v)=>{
       const a=u*Math.PI*2,r=v;
       return [side*(p.mouthWidth+.018+.145*r*Math.cos(a)),-.275+.075*r*Math.sin(a),
-        -.005+.048*p.cheek*(1-r*r)**2];
+        -.004+.013*p.cheek*(1-r*r)**2];
     });
     furrow.mesh.visible=detail&&p.tension>.30;
     furrow.mesh.material.color.set(color);
@@ -97,7 +99,7 @@ export class SketchFace extends T.Group {
   private eyes=[eye(this,-1),eye(this,1)];
   private lip=patch(this,'lip-rim','#9d373a',48,8);
   private mouth=patch(this,'mouth','#391825',40,12);
-  private teeth=patch(this,'upper-teeth','#fff2da');
+  private teeth=Array.from({length:6},(_,i)=>patch(this,'upper-tooth-'+i,'#fff2da',12,6));
   private tongue=patch(this,'tongue','#e57976');
   private pose=structuredClone(contours.sly);
   private time=0;
@@ -139,16 +141,23 @@ export class SketchFace extends T.Group {
     this.lastMouth=poseKey+color;
     const mouthY=(u:number,v:number)=>mix(cubic(p.lipBottom,u),cubic(p.lipTop,u),v);
     this.mouth.draw((u,v)=>[(2*u-1)*p.mouthWidth,mouthY(u,v),.014+.009*(2*v-1)**2]);
-    this.lip.mesh.material.color.set(color).multiplyScalar(.78);
+    const lipColor=new T.Color(color);
+    const luminance=.2126*lipColor.r+.7152*lipColor.g+.0722*lipColor.b;
+    this.lip.mesh.material.color.copy(lipColor).multiplyScalar(mix(.78,.52,luminance));
     this.lip.draw((u,v)=>{
       const a=2*Math.PI*u,t=(1+Math.cos(a))/2;
       return [(2*t-1)*(p.mouthWidth+.019*v),mouthY(t,Math.sin(a)>=0?1:0)+Math.sin(a)*.027*v,
         .023+.020*Math.sin(Math.PI*v)-.022*v];
     });
-    this.teeth.mesh.visible=p.teeth>.006;
-    this.teeth.draw((u,v)=>{
-      const t=.10+.8*u,depth=p.teeth*(.83+.17*Math.sin(u*Math.PI*4)**2);
-      return [(2*t-1)*p.mouthWidth,mouthY(t,1-depth*(1-v)),.029+.019*Math.sin(Math.PI*v)];
+    this.teeth.forEach((tooth,index)=>{
+      tooth.mesh.visible=p.teeth>.006;
+      if(!tooth.mesh.visible)return;
+      tooth.draw((u,v)=>{
+        const t=.16+.68*(index+(u*.86+.07))/this.teeth.length;
+        const round=Math.sin(Math.PI*u)**.45;
+        const depth=p.teeth*(.72+.24*round);
+        return [(2*t-1)*p.mouthWidth,mouthY(t,1-depth*(1-v)*round),.031+.013*round*Math.sin(Math.PI*v)];
+      });
     });
     this.tongue.mesh.visible=p.tongue>.006;
     this.tongue.draw((u,v)=>{
