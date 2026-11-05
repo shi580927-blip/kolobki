@@ -10,7 +10,7 @@ function eyeRelief(u:number,v:number) {
 function eye(parent:T.Group, side:number) {
   const white=patch(parent,'sclera','#fff5f1',36,16);
   const rings=[patch(parent,'iris-edge','#321522'),patch(parent,'iris','#70251e'),patch(parent,'pupil','#080609'),patch(parent,'glint','#ffffff')];
-  const spiral=new T.Line(new T.BufferGeometry(),new T.LineBasicMaterial({color:0x291625}));
+  const spiral=new T.Mesh(new T.BufferGeometry(),new T.MeshBasicMaterial({color:0x26121d}));
   spiral.name='stun-spiral';parent.add(spiral);
   const upper=patch(parent,'upper-lid','#cc5552'),lower=patch(parent,'lower-lid','#bb413a');
   const brow=patch(parent,'sculpted-brow','#302436',36,16);
@@ -39,7 +39,7 @@ function eye(parent:T.Group, side:number) {
       // A rounded lower eye follows the end heights and curves smoothly around the globe.
       const start=Math.min(p.upper[0],p.browBottom[0]-.012);
       const end=Math.min(p.upper[3],p.browBottom[3]-.012);
-      const roundBottom=mix(start,end,u)-.32*Math.sin(Math.PI*u)**.82;
+      const roundBottom=mix(start,end,u)-.39*Math.sin(Math.PI*u)**.90;
       const bottom=mix(originalBottom,roundBottom,p.tension);
       const top=Math.max(bottom,mix(openTop,Math.min(openTop,browEdge-.012),p.tension));
       const line=mix(bottom,top,.42);
@@ -74,23 +74,24 @@ function eye(parent:T.Group, side:number) {
     white.mesh.material.emissive.set(rage?'#ff9c20':'#000000');
     white.mesh.material.emissiveIntensity=rage?.8:0;
     spiral.visible=stunned;
-    if(stunned){
+    if(stunned&&changed){
       const points:T.Vector3[]=[];
       for(let i=0;i<=96;i++){
-        const t=i/96,a=t*5*Math.PI,r=.15*t;
-        const x=side*.39+r*Math.cos(a),y=.02+r*Math.sin(a);
-        const fraction=T.MathUtils.clamp((side*x-inner)/(outer-inner),0,1);
+        const t=i/96,angle=t*5.6*Math.PI,radius=.31*t;
+        const x=side*.39+radius*Math.cos(angle);
+        const fraction=T.MathUtils.clamp((side*x-inner)/(outer-inner),.001,.999);
         const ex=Math.acos(1-2*fraction)/Math.PI,[lo,hi]=bounds(ex);
-        const clipped=T.MathUtils.clamp(y,lo,hi);
-        const relief=eyeRelief(ex,(clipped-lo)/Math.max(.00001,hi-lo))+.018;
-        points.push(new T.Vector3(x,clipped,Math.sqrt(Math.max(.001,(1+relief)**2-x*x-clipped*clipped))));
+        const y=T.MathUtils.clamp(.015+radius*.82*Math.sin(angle),lo+.014,hi-.014);
+        const relief=eyeRelief(ex,(y-lo)/Math.max(.00001,hi-lo))+.035;
+        points.push(new T.Vector3(x,y,Math.sqrt(Math.max(.001,1-x*x-y*y))+relief));
       }
-      spiral.geometry.setFromPoints(points);
+      const geometry=new T.TubeGeometry(new T.CatmullRomCurve3(points),120,.014,6,false);
+      spiral.geometry.dispose();spiral.geometry=geometry;
     }
     rings.forEach((part,i)=>{
       part.mesh.visible=blink<.985&&!stunned&&!rage;
       part.draw((u,v)=>{
-        const angle=u*Math.PI*2,r=[.129,.115,.081,.024][i];
+        const angle=u*Math.PI*2,r=[.129,.115,.081,.024][i]*p.irisScale;
         const x=side*.40+(p.irisX<0?side*p.irisX:p.irisX)+gaze+(i===3?-.030:0)+r*v*Math.cos(angle);
         const fraction=T.MathUtils.clamp((side*x-inner)/(outer-inner),0,1);
         const ex=Math.acos(1-2*fraction)/Math.PI;
@@ -158,6 +159,7 @@ export class SketchFace extends T.Group {
   private mouth=patch(this,'mouth','#391825',40,12);
   private teeth=Array.from({length:4},(_,i)=>patch(this,'upper-tooth-'+i,'#fff1df',18,12));
   private tongue=patch(this,'tongue','#e57976');
+  private lowerTeeth=Array.from({length:4},(_,i)=>patch(this,'lower-tooth-'+i,'#fff1df',18,12));
   private pose=structuredClone(contours.sly);
   private time=0;
   private recoil=0;
@@ -217,6 +219,17 @@ export class SketchFace extends T.Group {
         const y=mouthY(t,1-depth*(1-v)*round);
         const bulge=Math.pow(Math.sin(Math.PI*u)*Math.sin(Math.PI*v),.55);
         return [(2*t-1)*p.mouthWidth,y,.024+.013*bulge];
+      });
+    });
+    this.lowerTeeth.forEach((tooth,index)=>{
+      tooth.mesh.visible=p.lowerTeeth>.006;
+      if(!tooth.mesh.visible)return;
+      tooth.draw((u,v)=>{
+        const start=[.19,.34,.50,.66][index],end=[.34,.50,.66,.81][index];
+        const t=mix(start,end,.035+.93*u),round=.86+.14*Math.sin(Math.PI*u);
+        const depth=p.lowerTeeth*.38*round;
+        const y=mouthY(t,depth*v);
+        return [(2*t-1)*p.mouthWidth,y,.030+.012*Math.sin(Math.PI*u)*Math.sin(Math.PI*v)];
       });
     });
     this.tongue.mesh.visible=p.tongue>.006;
