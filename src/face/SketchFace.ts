@@ -102,7 +102,7 @@ function eye(parent:T.Group, side:number) {
         const angle=u*Math.PI*2,r=[.129,.115,.081,.024][i]*p.irisScale;
         // Keep both irises focused toward the bridge in every expression.
         const focusOffset=side*Math.min(p.irisX,0)*.2;
-        const x=side*.30+focusOffset+gaze*.35+(i===3?-.030:0)+r*v*Math.cos(angle);
+        const x=side*.25+focusOffset+gaze*.35+(i===3?-.030:0)+r*v*Math.cos(angle);
         const fraction=T.MathUtils.clamp((side*x-inner)/(eyeOuter-inner),0,1);
         const ex=Math.acos(1-2*fraction)/Math.PI;
         const [lo,hi]=bounds(ex);
