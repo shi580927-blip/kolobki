@@ -22,22 +22,30 @@ function eye(parent:T.Group, side:number) {
   const ambient=new T.BufferAttribute(new Float32Array(positions.count*3).fill(1),3);
   white.mesh.geometry.setAttribute('color',ambient);
   white.mesh.material.vertexColors=true;
-  let shaded:boolean|undefined;
+  let shadowKey='';
   let lastShape='';
   upper.mesh.receiveShadow=true;
   return (p:Pose,blink:number,color:string,detail:boolean,gaze:number,poseKey:string)=>{
     const bounds=(u:number)=>{
       const shift=side*p.browLift*Math.sin(Math.PI*u)*.90;
-      const top=cubic(p.upper,u)+shift,bot=cubic(p.lower,u),line=mix(bot,top,.42);
-      return [mix(bot,line,blink),mix(top,line,blink)];
+      const x=mix(inner,outer,(1-Math.cos(Math.PI*u))*.5);
+      const browU=T.MathUtils.clamp((x-.032)/(.75-.032),0,1);
+      const browEdge=cubic(p.browBottom,browU)+side*p.browLift;
+      const rounded=.065*Math.sin(Math.PI*u)**.7*T.MathUtils.smoothstep(u,.35,.9);
+      const openTop=cubic(p.upper,u)+shift+rounded;
+      const bottom=cubic(p.lower,u)-rounded;
+      const top=Math.max(bottom,mix(openTop,Math.min(openTop,browEdge-.012),p.tension));
+      const line=mix(bottom,top,.42);
+      return [mix(bottom,line,blink),mix(top,line,blink)];
     };
     // Vertical tangents soften the two corners of the eye opening.
     const xAt=(u:number)=>side*mix(inner,outer,(1-Math.cos(Math.PI*u))*.5);
-    if(shaded!==detail){
-      shaded=detail;
+    const nextShadowKey=String(detail)+Math.round(p.tension*15);
+    if(shadowKey!==nextShadowKey){
+      shadowKey=nextShadowKey;
       for(let i=0;i<ambient.count;i++){
         const v=white.mesh.geometry.attributes.uv.getY(i);
-        const shade=detail?.21*v**4:0;
+        const shade=detail?mix(.21,.40,p.tension)*v**3:0;
         ambient.setXYZ(i,1-shade,1-1.25*shade,1-1.1*shade);
       }
       ambient.needsUpdate=true;
@@ -47,7 +55,7 @@ function eye(parent:T.Group, side:number) {
     if(changed)eyeOutline.draw((u,v)=>{
       const a=2*Math.PI*u,t=(1-Math.cos(a))*.5;
       const [lo,hi]=bounds(t),top=Math.sin(a)>=0;
-      const width=top?.018:.012;
+      const width=top?mix(.018,0,p.tension):.012;
       const x=xAt(t)+side*(2*t-1)*width*v;
       const y=(top?hi:lo)+Math.sin(a)*width*v;
       return [x,y,eyeRelief(t,top?1:0)+.010-.004*v];
@@ -77,7 +85,7 @@ function eye(parent:T.Group, side:number) {
       lid.draw((u,v)=>{
         const [lo,hi]=bounds(u),s=isTop?v:1-v;
         const span=Math.sin(Math.PI*u)**.64;
-        const y=(isTop?hi:lo)+(isTop?1:-1)*span*s*(isTop?.061:.034);
+        const y=(isTop?hi:lo)+(isTop?1:-1)*span*s*(isTop?mix(.061,.002,p.tension):.034);
         return [xAt(u),y,mix(eyeRelief(u,isTop?1:0)+.004,.003,s)+.008*Math.sin(s*Math.PI)*span];
       });
     }
