@@ -154,7 +154,7 @@ export class SketchFace extends T.Group {
       if(!tooth.mesh.visible)return;
       tooth.draw((u,v)=>{
         const t=.16+.68*(index+(u*.86+.07))/this.teeth.length;
-        const round=Math.sin(Math.PI*u)**.45;
+        const round=Math.sin(Math.PI*u)**.16;
         const depth=p.teeth*(.72+.24*round);
         return [(2*t-1)*p.mouthWidth,mouthY(t,1-depth*(1-v)*round),.031+.013*round*Math.sin(Math.PI*v)];
       });
