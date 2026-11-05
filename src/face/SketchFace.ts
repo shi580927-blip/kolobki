@@ -12,7 +12,8 @@ function eye(parent:T.Group, side:number) {
   const rings=[patch(parent,'iris-edge','#582132'),patch(parent,'iris','#be5334'),patch(parent,'pupil','#201222'),patch(parent,'glint','#ffffff')];
   const upper=patch(parent,'upper-lid','#cc5552'),lower=patch(parent,'lower-lid','#bb413a');
   const brow=patch(parent,'sculpted-brow','#302436',36,16);
-  const cheek=patch(parent,'raised-cheek','#bb3c41',24,8);
+  const socket=patch(parent,'socket-edge','#6e3338',36,8);
+  const corner=patch(parent,'smile-dimple','#763036',20,8);
   const furrow=patch(parent,'forehead-fold','#bb3c41',16,6);
   brow.mesh.material.roughness=.82;
   white.mesh.receiveShadow=true;
@@ -42,6 +43,15 @@ function eye(parent:T.Group, side:number) {
     }
     const shapeKey=poseKey+':'+Math.round(blink*240)+color+detail;
     const changed=shapeKey!==lastShape;
+    if(changed){
+      const tone=new T.Color(color), light=.2126*tone.r+.7152*tone.g+.0722*tone.b;
+      socket.mesh.material.color.copy(tone).multiplyScalar(mix(.48,.30,light));
+      socket.draw((u,v)=>{
+      const [lo,hi]=bounds(u),edge=v<.5?lo:hi;
+      const ring=Math.abs(2*v-1),taper=Math.sin(Math.PI*u)**.5;
+      return [xAt(u),edge+(v<.5?-1:1)*taper*ring*.025,eyeRelief(u,v<.5?0:1)+.002-.006*ring];
+      });
+    }
     if(changed)white.draw((u,v)=>{
       const [lo,hi]=bounds(u);
       return [xAt(u),mix(lo,hi,v),eyeRelief(u,v)];
@@ -75,18 +85,21 @@ function eye(parent:T.Group, side:number) {
     brow.mesh.castShadow=detail;
     brow.draw((u,v)=>{
       const a=v*Math.PI*2,c=Math.cos(a),s=Math.sin(a);
-      const round=Math.pow(Math.min(1,u/.055,(1-u)/.065),.34);
+      const round=.91+.09*Math.min(1,u/.045,(1-u)/.045);
       const mid=(cubic(p.browTop,u)+cubic(p.browBottom,u))/2+side*p.browLift;
       const height=(cubic(p.browTop,u)-cubic(p.browBottom,u))/2;
-      return [side*mix(.032,.85,u),mid+height*round*Math.sign(c)*Math.abs(c)**.52,
+      const bevel=.018*Math.abs(c)**4*(1-2*u);
+      return [side*mix(.032,.85,u+bevel),mid+height*round*Math.sign(c)*Math.abs(c)**.52,
         .079+round*.060*Math.sign(s)*Math.abs(s)**.56];
     });
-    cheek.mesh.visible=detail&&p.cheek>.03;
-    cheek.mesh.material.color.set(color);
-    cheek.draw((u,v)=>{
+    corner.mesh.visible=detail&&p.cheek>.03;
+    const tint=new T.Color(color), light=.2126*tint.r+.7152*tint.g+.0722*tint.b;
+    corner.mesh.material.color.copy(tint).multiplyScalar(mix(.48,.28,light));
+    corner.draw((u,v)=>{
       const a=u*Math.PI*2,r=v;
-      return [side*(p.mouthWidth+.018+.145*r*Math.cos(a)),-.275+.075*r*Math.sin(a),
-        -.004+.013*p.cheek*(1-r*r)**2];
+      const x=side*(p.mouthWidth-.012+.038*r*Math.cos(a));
+      const y=cubic(p.lipTop,side<0?.04:.96)+.015*r*Math.sin(a);
+      return [x,y,.004+.008*(1-r*r)];
     });
     furrow.mesh.visible=detail&&p.tension>.30;
     furrow.mesh.material.color.set(color);
@@ -99,7 +112,7 @@ export class SketchFace extends T.Group {
   private eyes=[eye(this,-1),eye(this,1)];
   private lip=patch(this,'lip-rim','#9d373a',48,8);
   private mouth=patch(this,'mouth','#391825',40,12);
-  private teeth=Array.from({length:6},(_,i)=>patch(this,'upper-tooth-'+i,'#fff2da',12,6));
+  private teeth=Array.from({length:4},(_,i)=>patch(this,'upper-tooth-'+i,'#fff1df',18,12));
   private tongue=patch(this,'tongue','#e57976');
   private pose=structuredClone(contours.sly);
   private time=0;
@@ -153,10 +166,15 @@ export class SketchFace extends T.Group {
       tooth.mesh.visible=p.teeth>.006;
       if(!tooth.mesh.visible)return;
       tooth.draw((u,v)=>{
-        const t=.16+.68*(index+(u*.86+.07))/this.teeth.length;
-        const round=Math.sin(Math.PI*u)**.16;
-        const depth=p.teeth*(.72+.24*round);
-        return [(2*t-1)*p.mouthWidth,mouthY(t,1-depth*(1-v)*round),.031+.013*round*Math.sin(Math.PI*v)];
+        // The row shares the mouth curve. Four crowns have rounded corners and a convex face.
+        const edge=index===0||index===3;
+        const start=[.14,.30,.50,.70][index],end=[.30,.50,.70,.86][index];
+        const t=mix(start,end,.045+.91*u);
+        const round=Math.pow(Math.max(0,Math.sin(Math.PI*u)),.24);
+        const depth=p.teeth*(edge?.80:1.08);
+        const y=mouthY(t,1-depth*(1-v)*round);
+        const bulge=Math.pow(Math.sin(Math.PI*u)*Math.sin(Math.PI*v),.55);
+        return [(2*t-1)*p.mouthWidth,y,.024+.028*bulge];
       });
     });
     this.tongue.mesh.visible=p.tongue>.006;
