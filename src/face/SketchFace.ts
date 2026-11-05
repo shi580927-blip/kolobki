@@ -28,9 +28,12 @@ function eye(parent:T.Group, side:number) {
   let lastShape='';
   upper.mesh.receiveShadow=true;
   return (p:Pose,blink:number,color:string,detail:boolean,gaze:number,poseKey:string,stunned:boolean,rage:boolean)=>{
+    // Angry eyes end beneath the brow, before its outer tip. The brow keeps its
+    // own width; shortening only the eye gives the outer corner a round arc.
+    const eyeOuter=mix(outer,.605,p.tension);
     const bounds=(u:number)=>{
       const shift=side*p.browLift*Math.sin(Math.PI*u)*.90;
-      const x=mix(inner,outer,(1-Math.cos(Math.PI*u))*.5);
+      const x=mix(inner,eyeOuter,(1-Math.cos(Math.PI*u))*.5);
       const browU=T.MathUtils.clamp((x-.032)/(.75-.032),0,1);
       const browEdge=cubic(p.browBottom,browU)+side*p.browLift;
       const rounded=.065*Math.sin(Math.PI*u)**.7*T.MathUtils.smoothstep(u,.35,.9);
@@ -38,7 +41,7 @@ function eye(parent:T.Group, side:number) {
       const originalBottom=cubic(p.lower,u)-rounded;
       // A rounded lower eye follows the end heights and curves smoothly around the globe.
       const start=Math.min(p.upper[0],p.browBottom[0]-.012);
-      const end=Math.min(p.upper[3],p.browBottom[3]-.012);
+      const end=Math.min(p.upper[3],cubic(p.browBottom,T.MathUtils.clamp((eyeOuter-.032)/(.75-.032),0,1))-.012);
       const roundBottom=mix(start,end,u)-.39*Math.sin(Math.PI*u)**.90;
       const bottom=mix(originalBottom,roundBottom,p.tension);
       const top=Math.max(bottom,mix(openTop,Math.min(openTop,browEdge-.012),p.tension));
@@ -46,7 +49,7 @@ function eye(parent:T.Group, side:number) {
       return [mix(bottom,line,blink),mix(top,line,blink)];
     };
     // Vertical tangents soften the two corners of the eye opening.
-    const xAt=(u:number)=>side*mix(inner,outer,(1-Math.cos(Math.PI*u))*.5);
+    const xAt=(u:number)=>side*mix(inner,eyeOuter,(1-Math.cos(Math.PI*u))*.5);
     const nextShadowKey=String(detail)+Math.round(p.tension*15);
     if(shadowKey!==nextShadowKey){
       shadowKey=nextShadowKey;
@@ -79,7 +82,7 @@ function eye(parent:T.Group, side:number) {
       for(let i=0;i<=96;i++){
         const t=i/96,angle=t*5.6*Math.PI,radius=.31*t;
         const x=side*.39+radius*Math.cos(angle);
-        const fraction=T.MathUtils.clamp((side*x-inner)/(outer-inner),.001,.999);
+        const fraction=T.MathUtils.clamp((side*x-inner)/(eyeOuter-inner),.001,.999);
         const ex=Math.acos(1-2*fraction)/Math.PI,[lo,hi]=bounds(ex);
         const y=T.MathUtils.clamp(.015+radius*.82*Math.sin(angle),lo+.014,hi-.014);
         const relief=eyeRelief(ex,(y-lo)/Math.max(.00001,hi-lo))+.035;
@@ -93,7 +96,7 @@ function eye(parent:T.Group, side:number) {
       part.draw((u,v)=>{
         const angle=u*Math.PI*2,r=[.129,.115,.081,.024][i]*p.irisScale;
         const x=side*.40+(p.irisX<0?side*p.irisX:p.irisX)+gaze+(i===3?-.030:0)+r*v*Math.cos(angle);
-        const fraction=T.MathUtils.clamp((side*x-inner)/(outer-inner),0,1);
+        const fraction=T.MathUtils.clamp((side*x-inner)/(eyeOuter-inner),0,1);
         const ex=Math.acos(1-2*fraction)/Math.PI;
         const [lo,hi]=bounds(ex);
         const y=T.MathUtils.clamp(p.irisY+(i===3?.046:0)+r*v*Math.sin(angle),lo,hi);
