@@ -48,7 +48,7 @@ function eye(parent:T.Group, side:number) {
       socket.draw((u,v)=>{
       const [lo,hi]=bounds(u),edge=v<.5?lo:hi;
       const ring=Math.abs(2*v-1),taper=Math.sin(Math.PI*u)**.5;
-      return [xAt(u),edge+(v<.5?-1:1)*taper*ring*.012,eyeRelief(u,v<.5?0:1)+.002-.006*ring];
+      return [xAt(u),edge+(v<.5?-1:1)*taper*ring*.12,eyeRelief(u,v<.5?0:1)+.002-.006*ring];
       });
     }
     if(changed)white.draw((u,v)=>{
@@ -156,7 +156,7 @@ export class SketchFace extends T.Group {
     this.lip.mesh.material.color.set('#171419');
     this.lip.draw((u,v)=>{
       const a=2*Math.PI*u,t=(1+Math.cos(a))/2;
-      return [(2*t-1)*(p.mouthWidth+.008*v),mouthY(t,Math.sin(a)>=0?1:0)+Math.sin(a)*.012*v,
+      return [(2*t-1)*(p.mouthWidth+.08*v),mouthY(t,Math.sin(a)>=0?1:0)+Math.sin(a)*.12*v,
         .023+.020*Math.sin(Math.PI*v)-.022*v];
     });
     this.teeth.forEach((tooth,index)=>{
