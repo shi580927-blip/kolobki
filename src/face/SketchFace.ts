@@ -44,12 +44,11 @@ function eye(parent:T.Group, side:number) {
     const shapeKey=poseKey+':'+Math.round(blink*240)+color+detail;
     const changed=shapeKey!==lastShape;
     if(changed){
-      const tone=new T.Color(color), light=.2126*tone.r+.7152*tone.g+.0722*tone.b;
-      socket.mesh.material.color.copy(tone).multiplyScalar(mix(.27,.16,light));
+      socket.mesh.material.color.set('#171419');
       socket.draw((u,v)=>{
       const [lo,hi]=bounds(u),edge=v<.5?lo:hi;
       const ring=Math.abs(2*v-1),taper=Math.sin(Math.PI*u)**.5;
-      return [xAt(u),edge+(v<.5?-1:1)*taper*ring*.034,eyeRelief(u,v<.5?0:1)+.002-.006*ring];
+      return [xAt(u),edge+(v<.5?-1:1)*taper*ring*.012,eyeRelief(u,v<.5?0:1)+.002-.006*ring];
       });
     }
     if(changed)white.draw((u,v)=>{
@@ -73,7 +72,7 @@ function eye(parent:T.Group, side:number) {
     for(const [lid,isTop] of [[upper,true],[lower,false]] as const){
       const tone=new T.Color(color);
       const luminance=.2126*tone.r+.7152*tone.g+.0722*tone.b;
-      lid.mesh.material.color.copy(tone).multiplyScalar(isTop ? mix(.49,.24,luminance) : mix(.62,.27,luminance));
+      lid.mesh.material.color.copy(tone).multiplyScalar(isTop ? mix(.75,.49,luminance) : mix(.82,.52,luminance));
       lid.draw((u,v)=>{
         const [lo,hi]=bounds(u),s=isTop?v:1-v;
         const span=Math.sin(Math.PI*u)**.64;
@@ -154,12 +153,10 @@ export class SketchFace extends T.Group {
     this.lastMouth=poseKey+color;
     const mouthY=(u:number,v:number)=>mix(cubic(p.lipBottom,u),cubic(p.lipTop,u),v);
     this.mouth.draw((u,v)=>[(2*u-1)*p.mouthWidth,mouthY(u,v),.014+.009*(2*v-1)**2]);
-    const lipColor=new T.Color(color);
-    const luminance=.2126*lipColor.r+.7152*lipColor.g+.0722*lipColor.b;
-    this.lip.mesh.material.color.copy(lipColor).multiplyScalar(mix(.38,.19,luminance));
+    this.lip.mesh.material.color.set('#171419');
     this.lip.draw((u,v)=>{
       const a=2*Math.PI*u,t=(1+Math.cos(a))/2;
-      return [(2*t-1)*(p.mouthWidth+.019*v),mouthY(t,Math.sin(a)>=0?1:0)+Math.sin(a)*.033*v,
+      return [(2*t-1)*(p.mouthWidth+.008*v),mouthY(t,Math.sin(a)>=0?1:0)+Math.sin(a)*.012*v,
         .023+.020*Math.sin(Math.PI*v)-.022*v];
     });
     this.teeth.forEach((tooth,index)=>{
