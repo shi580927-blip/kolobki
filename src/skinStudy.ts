@@ -1,4 +1,6 @@
 import {SketchFace} from './face/SketchFace';
+import {BodyDecoration} from './cosmetics/BodyDecoration';
+import type {TattooId,TattooPlacement} from './cosmetics/CosmeticCatalog';
 import {NeutralStudyFace} from './face/NeutralStudyFace';
 import {ControlFace} from './face/ControlFace';
 import {ModularFace,type FacePose} from './face/ModularFace';
@@ -30,7 +32,8 @@ export async function startSkinStudy(){
  let design={...defaultDesign};try{const saved=localStorage.getItem(storageKey);if(saved){const data=JSON.parse(saved);design=validateDesign(data);outfit=readOutfit(data.outfit);}}catch{/* Author storage is optional. */}
  if(design.surface!=='smooth')design.pattern='none';
  let sample:SkinSample,mini:SkinSample,expression:StudyExpression='sly',angle=0,rolling=false,shadow=false,closed=false,elapsed=0;
- const v5=new URLSearchParams(location.search).has('face-v5');
+ const cosmetics=new URLSearchParams(location.search).has('cosmetics-study');
+ const v5=cosmetics||new URLSearchParams(location.search).has('face-v5');
  const neutral=new URLSearchParams(location.search).has('neutral-study');
  const v4=v5||neutral||new URLSearchParams(location.search).has('face-v4');
  const v2=v4||new URLSearchParams(location.search).has('face-v2');
@@ -41,6 +44,8 @@ export async function startSkinStudy(){
  if(neutral){hemi.intensity=1.10;sun.intensity=2.1;renderer.toneMappingExposure=.88;design.base='#ad373e';design.gloss=.16;title.textContent='ШАРОБЕСЫ · БАЗОВЫЙ ПОРТРЕТ';}
  if(v5){design.base='#ad3239';design.gloss=.22;hemi.intensity=1.0;sun.intensity=2.5;sun.shadow.camera.left=-5;sun.shadow.camera.right=3;sun.shadow.camera.top=4;sun.shadow.camera.bottom=-4;sun.shadow.camera.updateProjectionMatrix();renderer.toneMappingExposure=.91;title.textContent='ШАРОБЕСЫ · ЭСКИЗЫ V5';pose='sly';}
  const modules=new Map<SkinSample,ModularFace|ControlFace|NeutralStudyFace|SketchFace>();
+ const bodyDecorations=new Map<SkinSample,BodyDecoration>();
+ let tattoo:TattooPlacement|null=null;
  const selectors=new Map<'head'|'mark',HTMLSelectElement>();
  function updateDecor(){
   for(const model of [sample,mini]){
@@ -51,8 +56,9 @@ export async function startSkinStudy(){
   for(const [slot,select] of selectors)select.value=outfit[slot];
  }
  function serialize(){return {...design,outfit:{...outfit}};}
- function rebuildFaces(){if(sample){scene.remove(sample,mini);for(const model of [sample,mini]){const old=model.getObjectByName('head-decor');if(old instanceof HeadDecor)old.dispose();modules.get(model)?.dispose();modules.delete(model);model.dispose();}}sample=new SkinSample(texture,expression,glossEnvironment);sample.position.set(-1.72,.21,0);sample.scale.setScalar(1.8);scene.add(sample);mini=new SkinSample(texture,expression,glossEnvironment);mini.position.set(-4.8,-2.4,0);mini.scale.setScalar(.31);scene.add(mini);sample.apply(design);mini.apply(design);if(v2)for(const m of [sample,mini]){m.face.visible=false;const rig=v5?new SketchFace(glossEnvironment):neutral?new NeutralStudyFace(glossEnvironment):v4?new ControlFace(glossEnvironment):new ModularFace();m.add(rig);modules.set(m,rig);}updateDecor();}
+ function rebuildFaces(){if(sample){scene.remove(sample,mini);for(const model of [sample,mini]){const old=model.getObjectByName('head-decor');if(old instanceof HeadDecor)old.dispose();bodyDecorations.get(model)?.dispose();bodyDecorations.delete(model);modules.get(model)?.dispose();modules.delete(model);model.dispose();}}sample=new SkinSample(texture,expression,glossEnvironment);sample.position.set(-1.72,.21,0);sample.scale.setScalar(1.8);scene.add(sample);mini=new SkinSample(texture,expression,glossEnvironment);mini.position.set(-4.8,-2.4,0);mini.scale.setScalar(.31);scene.add(mini);sample.apply(design);mini.apply(design);if(v2)for(const m of [sample,mini]){m.face.visible=false;const rig=v5?new SketchFace(glossEnvironment):neutral?new NeutralStudyFace(glossEnvironment):v4?new ControlFace(glossEnvironment):new ModularFace();m.add(rig);modules.set(m,rig);}if(cosmetics)for(const m of [sample,mini]){const layer=new BodyDecoration();m.rollingBody.add(layer);layer.setTattoo(tattoo);bodyDecorations.set(m,layer);}updateDecor();}
  rebuildFaces();
+ if(cosmetics){title.textContent='ШАРОБЕСЫ · ПРИМЕРОЧНАЯ · ЧЕРНОВИК';const h=document.createElement('h3');h.textContent='Тест татуировок';panel.append(h);const select=document.createElement('select');for(const [id,label] of [['','Без тату'],['lightning','Молния'],['claw','Когти'],['tribal','Племенной узор'],['star','Звезда'],['crown','Корона'],['hearts','Сердечки']])select.add(new Option(label,id));const color=document.createElement('input');color.type='color';color.value='#ffd600';const u=document.createElement('input');u.type='range';u.min='0';u.max='1';u.step='.01';u.value='.25';const size=document.createElement('input');size.type='range';size.min='.08';size.max='.7';size.step='.01';size.value='.4';const update=()=>{tattoo=select.value?{id:select.value as TattooId,color:color.value,u:Number(u.value),v:.55,scale:Number(size.value),excludeFace:false}:null;for(const layer of bodyDecorations.values())layer.setTattoo(tattoo);};for(const [label,input] of [['Рисунок',select],['Цвет',color],['Положение по долготе',u],['Масштаб',size]] as const){const row=document.createElement('label');row.append(label,input);panel.append(row);input.addEventListener('input',update);}const note=document.createElement('p');note.className='hint';note.textContent='Черновик: маска исключения лица и остальные категории ещё не готовы.';panel.append(note);const exportButton=document.createElement('button');exportButton.textContent='Скачать JSON';exportButton.onclick=()=>{const data=JSON.stringify({version:1,makeup:[],tattoo,accessories:[]},null,2);const url=URL.createObjectURL(new Blob([data],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='sharobesy-cosmetics.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};panel.append(exportButton);}
  const fitting=document.createElement('fieldset');fitting.className='fitting';
  const legend=document.createElement('legend');legend.textContent='Примерочная';fitting.append(legend);
  for(const [slot,title] of [['head','Головное украшение'],['mark','Раскраска']] as const){
