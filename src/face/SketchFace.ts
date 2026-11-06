@@ -165,6 +165,8 @@ function eye(parent:T.Group, side:number) {
 
 export class SketchFace extends T.Group {
   private eyes=[eye(this,-1),eye(this,1)];
+  private scars=Array.from({length:3},(_,i)=>patch(this,'closed-eye-scar-'+i,'#5a1522',20,4));
+  closedScarEye=false;
   private lip=patch(this,'lip-rim','#9d373a',48,8);
   private mouth=patch(this,'mouth','#391825',40,12);
   private upperMouthShadow=patch(this,'mouth-upper-shadow','#160810',40,6);
@@ -179,6 +181,7 @@ export class SketchFace extends T.Group {
   private lastDraw='';
   constructor(env?:T.Texture) {
     super();
+    this.scars.forEach(s=>{s.mesh.visible=false;});
     this.traverse(o=>{if(o instanceof T.Mesh){o.material.envMap=env??null;o.material.envMapIntensity=o.name==='sculpted-brow'?.30:.70;}});
     const geom=this.mouth.mesh.geometry, uv=geom.attributes.uv;
     const shades=new Float32Array(uv.count*3);
@@ -212,10 +215,11 @@ export class SketchFace extends T.Group {
     else if(distance>=.0005)this.settled='';
     const poseKey=this.settled||String(this.time);
     const gaze=.012*Math.sin(this.time*1.7+Math.sin(this.time*.81));
-    const drawKey=[poseKey,Math.round(blink*240),Math.round(gaze*250),color,detail].join(':');
+    const drawKey=[poseKey,Math.round(blink*240),Math.round(gaze*250),color,detail,this.closedScarEye].join(':');
     if(drawKey===this.lastDraw)return;
     this.lastDraw=drawKey;
-    for(const draw of this.eyes)draw(p,blink,color,detail,gaze,poseKey,name==='stunned',name==='rage');
+    this.eyes.forEach((draw,index)=>draw(p,this.closedScarEye&&index===1?1:blink,color,detail,gaze,poseKey,name==='stunned',name==='rage'));
+    this.scars.forEach((scar,index)=>{scar.mesh.visible=this.closedScarEye;if(!scar.mesh.visible)return;scar.draw((u,v)=>{const x=.20+index*.12+u*.17,y=.30-u*.52+(v-.5)*.025;return [x,y,.075];});});
     if(this.lastMouth===poseKey+color)return;
     this.lastMouth=poseKey+color;
     const mouthEdge=(curve:Curve,u:number)=>{
