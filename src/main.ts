@@ -123,7 +123,7 @@ async function start() {
   const casting=valleyStudy?addValleyStudy(scene,atlas,resources.textures,worldEnvironment):undefined;
   const contactPositions=[visual.position,...(casting?.actors.map(a=>a.position)??[])];
   if(casting){const label=document.createElement("div");label.textContent="ПРОБА ДОЛИНЫ · 10 образцов без поведения и столкновений";label.style.cssText="position:absolute;left:24px;bottom:76px;font-size:15px;color:#24463c;background:#fff6dfdf;padding:8px 12px;border-radius:12px;text-shadow:none";hud.appendChild(label);const detailButton=document.createElement('button');detailButton.textContent='Ягоды крупно / общий вид';detailButton.onclick=()=>{berryDetail=!berryDetail;};document.querySelector('#tools')!.appendChild(detailButton);}
-  const npcs=!appearanceTest&&!valleyStudy&&!duoMode?new NpcSystem(scene,world,bus,atlas,resources.textures,worldEnvironment,crypto.getRandomValues(new Uint32Array(1))[0]):undefined;
+  const npcs=!appearanceTest&&!valleyStudy&&!duoMode?new NpcSystem(scene,world,bus,atlas,resources.textures,worldEnvironment,crypto.getRandomValues(new Uint32Array(1))[0],experimentalFace):undefined;
   const trainOptions:TrainOptions={};
   const train=npcs?new TrainSystem(world,player,npcs.actors.map(a=>({id:a.entry.id,physics:a.physics})),bus,trainOptions):undefined;
   let match:MatchSession|undefined;

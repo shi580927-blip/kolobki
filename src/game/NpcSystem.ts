@@ -11,11 +11,11 @@ export class NpcSystem {
  readonly actors:ReturnType<NpcSystem['createActor']>[]=[];
  collisionsWithPlayer=0;private playerHandle=-1;
  private worldForward=new T.Vector3(0,0,1);private byCollider=new Map<number,number>();
- constructor(private scene:T.Scene,private world:R.World,private events:EventBus,private atlas:AnimationAtlas,private textures:T.Texture[],private environment:T.Texture|undefined,readonly seed:number){
+ constructor(private scene:T.Scene,private world:R.World,private events:EventBus,private atlas:AnimationAtlas,private textures:T.Texture[],private environment:T.Texture|undefined,readonly seed:number,private experimentalFace=false){
   for(const entry of npcRoster(seed)){const actor=this.createActor(entry);this.byCollider.set(actor.physics.collider.handle,entry.id);this.actors.push(actor);}
  }
  private createActor(entry:ReturnType<typeof npcRoster>[number]){
-  const bus=new EventBus(),physics=new PhysicsPlayer(this.world,bus,{x:entry.x,z:entry.z}),brain=new NpcBrain(entry.kind,entry.behaviorSeed),skin=skinFrom(entry.appearanceSeed),visual=new RuntimeVisual(designForGame(skin),this.atlas,this.textures,skin.mood,this.environment),input:DriveInput={x:0,z:0,jump:false,dash:false};
+  const bus=new EventBus(),physics=new PhysicsPlayer(this.world,bus,{x:entry.x,z:entry.z}),brain=new NpcBrain(entry.kind,entry.behaviorSeed),skin=skinFrom(entry.appearanceSeed),visual=new RuntimeVisual(designForGame(skin),this.atlas,this.textures,skin.mood,this.environment,this.experimentalFace),input:DriveInput={x:0,z:0,jump:false,dash:false};
   visual.position.copy(physics.current);visual.name='npc-'+entry.id;this.scene.add(visual);
   let lastState=brain.state;
   bus.on('player_jump',()=>visual.face.play('happy'));bus.on('player_dash',()=>visual.face.play('fury'));
