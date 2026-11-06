@@ -8,6 +8,12 @@ import {EventBus} from '../src/core/events';
 import {heightAt} from '../src/core/terrain';
 const context:NpcContext={x:0,z:0,vx:0,vz:0,playerX:8,playerZ:0,neighbors:[],blocked:false};
 
+test('a stuck NPC near the player tries to move away instead of pursuing forever',()=>{
+ const brain=new NpcBrain('bully',9,0);let intent={x:0,z:0,jump:false,dash:false};
+ for(let i=0;i<125;i++)intent=brain.step(1/60,{...context,playerX:1,playerZ:0});
+ assert.equal(brain.state,'escape');assert.ok(intent.x<0,'moves away from nearby player');
+});
+
 test('NPC archetypes choose pursuit, escape, flanking and slow travel without reading appearance',()=>{
  const bully=new NpcBrain('bully',12,0),coward=new NpcBrain('coward',12,0),sly=new NpcBrain('sly',12,0),sleepy=new NpcBrain('sleepy',12,0);
  assert.ok(bully.step(.1,context).x>0);assert.equal(bully.state,'chase');

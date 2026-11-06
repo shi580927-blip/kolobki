@@ -20,6 +20,7 @@ export class TrainSystem {
  private cooldown=new Map<number,number>();
  private velocities=new Map<number,Vector3>();
  private joining:{actor:TrainActor;time:number;side:number}|undefined;
+ private clearanceShape=new R.Ball(.94);
  attachedTotal=0;breakTotal=0;
  constructor(private world:R.World,readonly leader:PhysicsPlayer,private actors:TrainActor[],private bus:EventBus,private options:TrainOptions={}){
   this.reset();
@@ -103,6 +104,10 @@ export class TrainSystem {
  }
  private moveHorizontal(p:PhysicsPlayer,dx:number,dz:number){
   if(!p.body.isDynamic())return;
+  // Do not teleport a train member through a static wall or into rising ground.
+  const hit=this.world.castShape(p.body.translation(),{x:0,y:0,z:0,w:1},{x:dx,y:0,z:dz},this.clearanceShape,0,1,true,R.QueryFilterFlags.EXCLUDE_DYNAMIC|R.QueryFilterFlags.EXCLUDE_KINEMATIC|R.QueryFilterFlags.EXCLUDE_SENSORS,undefined,p.collider,p.body);
+  const allowed=hit?Math.max(0,hit.time_of_impact-.01):1;
+  dx*=allowed;dz*=allowed;
   p.body.setTranslation({x:p.current.x+dx,y:p.current.y,z:p.current.z+dz},true);
   p.current.copy(p.body.translation());
  }

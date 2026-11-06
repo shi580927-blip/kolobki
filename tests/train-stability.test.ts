@@ -21,6 +21,13 @@ async function fixture(dryX=0,levelFloor=false){
  function atHead(id:number){const p=leader.current;actors[id].physics.body.setTranslation({x:p.x+1.95,y:p.y,z:p.z},true);actors[id].physics.body.setLinvel({x:0,y:0,z:0},true);actors[id].physics.sync();}
  return {world,leader,actors,train,tick,atHead,groundAt:(x:number,z:number)=>levelFloor?floorY:heightAt(x,z)};
 }
+test('train separation cannot move the player through a static wall',async()=>{
+ const s=await fixture(65,true);const p=s.leader.current.clone();
+ s.world.createCollider(R.ColliderDesc.cuboid(.2,3,5).setTranslation(p.x+2,p.y,p.z));
+ s.world.step();s.leader.sync();
+ (s.train as unknown as {moveHorizontal(p:PhysicsPlayer,x:number,z:number):void}).moveHorizontal(s.leader,3,0);
+ assert.ok(s.leader.current.x-p.x<1.1,'wall limits horizontal correction');s.world.free();
+});
 test('a newcomer touching the head of a long train cannot instantly tether to a distant tail',async()=>{
  // Isolate joining impulses from a free train drifting off a valley slope.
  // Full real-terrain crossings are exercised in valley-route and bridge tests.

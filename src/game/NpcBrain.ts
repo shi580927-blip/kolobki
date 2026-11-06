@@ -1,12 +1,12 @@
 import {randomFrom} from '../core/skin';
 export type Temperament='bully'|'coward'|'sly'|'sleepy'|'chaotic';
-export type NpcState='wander'|'chase'|'flee'|'flank'|'rest'|'recover'|'return';
+export type NpcState='wander'|'chase'|'flee'|'flank'|'rest'|'recover'|'return'|'escape';
 export interface NpcContext {x:number;z:number;vx:number;vz:number;playerX:number;playerZ:number;neighbors:readonly {x:number;z:number}[];blocked:boolean}
 export class NpcBrain {
- private random:()=>number;private target={x:0,z:15};private think=0;private time=0;private dashTime=0;private jumpTime=0;private recovering=0;private resting=0;private stuck=0;private side:number;
+ private random:()=>number;private target={x:0,z:15};private think=0;private time=0;private dashTime=0;private jumpTime=0;private recovering=0;private resting=0;private stuck=0;private escape=0;private side:number;
  state:NpcState='wander';
  constructor(readonly kind:Temperament,private seed:number,private grace=4){this.random=randomFrom(seed);this.side=this.random()<.5?-1:1;}
- reset(){this.random=randomFrom(this.seed);this.side=this.random()<.5?-1:1;this.think=this.time=this.dashTime=this.jumpTime=this.recovering=this.resting=this.stuck=0;this.state='wander';}
+ reset(){this.random=randomFrom(this.seed);this.side=this.random()<.5?-1:1;this.think=this.time=this.dashTime=this.jumpTime=this.recovering=this.resting=this.stuck=this.escape=0;this.state='wander';}
  hit(){this.recovering=.65;}
  step(dt:number,c:NpcContext){
   this.time+=dt;this.think-=dt;this.dashTime-=dt;this.jumpTime-=dt;this.recovering=Math.max(0,this.recovering-dt);this.resting=Math.max(0,this.resting-dt);
@@ -24,8 +24,9 @@ export class NpcBrain {
   const length=Math.hypot(dx,dz)||1;dx/=length;dz/=length;
   for(const other of c.neighbors){const nx=c.x-other.x,nz=c.z-other.z,d=Math.hypot(nx,nz);if(d>0&&d<3.2){const push=(3.2-d)*.7;dx+=nx/d*push;dz+=nz/d*push;}}
   if(c.blocked&&this.kind!=='chaotic'){const old=dx;dx=dx*.25-dz*this.side;dz=dz*.25+old*this.side;dash=false;}
-  if(speed>0&&Math.hypot(c.vx,c.vz)<.2){this.stuck+=dt;if(this.stuck>2){this.think=0;this.stuck=0;}}else this.stuck=0;
+  if(speed>0&&this.recovering<=0&&Math.hypot(c.vx,c.vz)<.2){this.stuck+=dt;if(this.stuck>2){this.escape=1.1;this.stuck=0;this.side*=-1;}}else this.stuck=0;
   if(this.recovering>0){this.state='recover';return{x:0,z:0,jump:false,dash:false};}
+  if(this.escape>0){this.escape=Math.max(0,this.escape-dt);this.state='escape';const away=Math.hypot(pdx,pdz);dx=away>.01?-pdx/away:this.side;dz=away>.01?-pdz/away:0;const x=dx-dz*this.side*.55;dz=dz+dx*this.side*.55;dx=x;speed=4;dash=false;}
   const n=Math.hypot(dx,dz)||1,ax=(dx/n*speed-c.vx)*.24,az=(dz/n*speed-c.vz)*.24,throttle=Math.max(1,Math.hypot(ax,az));
   return {x:ax/throttle,z:az/throttle,jump,dash};
  }
