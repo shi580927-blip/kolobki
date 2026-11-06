@@ -14,6 +14,17 @@ test('runtime appearance preserves saved identity and is deterministic with boun
 test('ordinary berries collect once across a dash, reset and ignore high passes',()=>{const scene=new Scene(),bus=new EventBus(),berries=new BerryCollectibles(scene,bus),events:number[]=[];bus.on('berry_pickup',e=>events.push(e.count));const position=berries.items[0].mesh.position;berries.checkSegment(position.clone().add(new Vector3(-5,0,0)),position.clone().add(new Vector3(5,0,0)));assert.equal(berries.count,1);berries.checkSegment(position,position);assert.equal(berries.count,1);assert.deepEqual(events,[1]);assert.equal(berries.items[0].mesh.visible,false);berries.reset();berries.checkSegment(position.clone().add(new Vector3(0,8,0)),position.clone().add(new Vector3(1,8,0)));assert.equal(berries.count,0);assert.equal(berries.items[0].mesh.visible,true);});
 test('runtime face uses compact current art, conscious impact and vertical combo then restores its character',()=>{const atlas=gameplayAtlas(source),face=new RuntimeFace(atlas,[new Texture(),new Texture(),new Texture()],'worried');assert.equal(face.expression(),'scared');assert.equal(atlas.poses.sly.parts[0].layout.width/source.poses.sly.parts[0].layout.width,.9);face.impact();face.update(.3,.7);assert.equal(face.expression(),'dazed');face.combo();face.update(.3,.7);assert.equal(face.expression(),'unhinged');assert.equal(face.rig.poses.unhinged.rotation.y,0);face.update(.5,.7);assert.equal(face.immobilized,true);assert.equal(face.expression(),'dizzy');face.update(3,.7);assert.equal(face.immobilized,false);assert.equal(face.expression(),'scared');assert.equal(face.rotation.y,.7);});
 
+test('experimental V5 follows heading and gameplay reactions while keeping the original atlas available',()=>{
+ const face=new RuntimeFace(gameplayAtlas(source),[new Texture(),new Texture(),new Texture()],'sly','#eeeeee',undefined,true);
+ assert.ok(face.experimentalFace);assert.equal(face.rig.visible,false);
+ for(let i=0;i<30;i++)face.update(.033,1.1);
+ assert.equal(face.rotation.y,1.1);assert.equal(face.expression(),'sly');
+ face.impact();face.update(.2,1.1);assert.equal(face.expression(),'dazed');
+ face.combo();face.update(.3,1.1);assert.equal(face.expression(),'unhinged');
+ face.update(.5,1.1);assert.equal(face.expression(),'dizzy');
+ face.update(3,1.1);assert.equal(face.expression(),'sly');assert.equal(face.immobilized,false);
+});
+
 test('fur shell clearance tracks actual FaceRig heading and vertical combo instead of old +Z',()=>{
  for(const surface of ['fuzz','shaggy'] as const){
   const visual=new RuntimeVisual({...defaultDesign,surface,furCount:160,furLength:.3},gameplayAtlas(source),[new Texture(),new Texture(),new Texture()],'sly');let fur:FurTufts|undefined;visual.traverse(o=>{if(o instanceof FurTufts)fur=o;});assert.ok(fur);

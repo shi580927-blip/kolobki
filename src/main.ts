@@ -44,6 +44,7 @@ async function start() {
   bootProgress("Загружаем персонажа…");
   const resources=await loadAnimationAtlas(),atlas=gameplayAtlas(resources.data);
   const appearanceTest=new URLSearchParams(location.search).has("skin-test");
+  const experimentalFace=new URLSearchParams(location.search).has("face-v5-game");
   const valleyStudy=new URLSearchParams(location.search).has("valley-study");
   const duoInvite=readDuoInvite(location.hash),hadDuoLink=new URLSearchParams(location.search).has('duo')||!!duoInvite;
   // Network trial is parked while the local gameplay is being completed.
@@ -117,7 +118,7 @@ async function start() {
   const worldEnvironment=environmentFor(renderer,true);
   const inventory=new AbilityInventory();
   const berries = new BerryCollectibles(scene, bus,worldEnvironment,!duoMode,standardMode?kind=>inventory.add(kind):undefined);
-  const visual=new RuntimeVisual(design,atlas,resources.textures,skin.mood,worldEnvironment);
+  const visual=new RuntimeVisual(design,atlas,resources.textures,skin.mood,worldEnvironment,experimentalFace);
   scene.add(visual);
   const casting=valleyStudy?addValleyStudy(scene,atlas,resources.textures,worldEnvironment):undefined;
   const contactPositions=[visual.position,...(casting?.actors.map(a=>a.position)??[])];
@@ -156,7 +157,7 @@ async function start() {
   portraitLight.position.set(-3, 4, 5);
   portraitScene.add(portraitLight);
   const wardrobe=new Wardrobe();
-  const portraitVisual=new RuntimeVisual({...design,furCount:Math.min(design.furCount,24)},atlas,resources.textures,skin.mood,environmentFor(portraitRenderer));
+  const portraitVisual=new RuntimeVisual({...design,furCount:Math.min(design.furCount,24)},atlas,resources.textures,skin.mood,environmentFor(portraitRenderer),experimentalFace);
   function wear(){const outfit=appearanceTest?authorOutfit:wardrobe.outfit;visual.setOutfit(outfit);portraitVisual.setOutfit(outfit);}
   wear();
   portraitScene.add(portraitVisual);

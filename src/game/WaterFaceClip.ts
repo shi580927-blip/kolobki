@@ -14,7 +14,7 @@ export function clipFaceToWater(root:T.Object3D){
    Object.assign(m.uniforms,uniforms);
    m.vertexShader='varying vec3 waterWorld;\n'+m.vertexShader.replace(/void main\s*\(\)\s*\{/,'void main(){waterWorld=(modelMatrix*vec4(position,1.)).xyz;');
    m.fragmentShader=declaration+m.fragmentShader.replace(/void main\s*\(\)\s*\{/,'void main(){'+clip);
-  }else if(m instanceof T.MeshBasicMaterial){
+  }else if(m instanceof T.MeshBasicMaterial || m instanceof T.MeshStandardMaterial){
    const previous=m.onBeforeCompile;
    m.onBeforeCompile=(shader,renderer)=>{previous.call(m,shader,renderer);Object.assign(shader.uniforms,uniforms);
     shader.vertexShader=shader.vertexShader.replace('#include <common>','#include <common>\nvarying vec3 waterWorld;').replace('#include <begin_vertex>','#include <begin_vertex>\nwaterWorld=(modelMatrix*vec4(transformed,1.)).xyz;');

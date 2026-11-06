@@ -177,9 +177,9 @@ export class SketchFace extends T.Group {
   private settled='';
   private lastMouth='';
   private lastDraw='';
-  constructor(env:T.Texture) {
+  constructor(env?:T.Texture) {
     super();
-    this.traverse(o=>{if(o instanceof T.Mesh){o.material.envMap=env;o.material.envMapIntensity=o.name==='sculpted-brow'?.30:.70;}});
+    this.traverse(o=>{if(o instanceof T.Mesh){o.material.envMap=env??null;o.material.envMapIntensity=o.name==='sculpted-brow'?.30:.70;}});
     const geom=this.mouth.mesh.geometry, uv=geom.attributes.uv;
     const shades=new Float32Array(uv.count*3);
     for(let i=0;i<uv.count;i++){
