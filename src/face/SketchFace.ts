@@ -180,7 +180,7 @@ export class SketchFace extends T.Group {
   private scars=Array.from({length:3},(_,i)=>({
     rim:patch(this,'closed-eye-scar-'+i,'#421822',28,6),
     wound:patch(this,'closed-eye-wound-'+i,'#e53243',28,6),
-    highlight:patch(this,'closed-eye-scar-ridge-'+i,'#f8a19a',28,3),
+    highlight:patch(this,'closed-eye-scar-ridge-'+i,'#ff796e',28,3),
   }));
   closedScarEye=false;
   browStyle:'classic'|'elegant'|'rounded'|'bold_short'='classic';
@@ -242,9 +242,9 @@ export class SketchFace extends T.Group {
     this.eyes.forEach((draw,index)=>{const scarred=this.closedScarEye&&index===1;draw(p,scarred?1:blink,color,detail,gaze,poseKey,name==='stunned',name==='rage',scarred,this.browStyle);});
     this.scarLid.mesh.visible=this.closedScarEye;this.scarCrease.mesh.visible=this.closedScarEye;
     if(this.closedScarEye){this.scarLid.mesh.material.color.set(color).lerp(new T.Color('#28151b'),.46);this.scarLid.draw((u,v)=>{const x=.10+.55*u,curve=-.025-.075*Math.sin(Math.PI*u),width=.055*Math.sin(Math.PI*u)**.55;return [x,curve+(v-.5)*width,.020+.010*Math.sin(Math.PI*u)*Math.sin(Math.PI*v)];});this.scarCrease.draw((u,v)=>{const x=.11+.53*u,curve=-.028-.075*Math.sin(Math.PI*u),width=.010*Math.sin(Math.PI*u)**.5;return [x,curve+(v-.5)*width,.034];});}
-    this.scars.forEach((scar,index)=>{for(const layer of Object.values(scar))layer.mesh.visible=this.closedScarEye;if(!this.closedScarEye)return;scar.wound.mesh.material.color.set(this.scarInk);const vertex=(u:number,v:number,layer:'rim'|'wound'|'highlight')=>{const taper=Math.sin(Math.PI*u)**.68;
+    this.scars.forEach((scar,index)=>{for(const layer of Object.values(scar))layer.mesh.visible=this.closedScarEye;if(!this.closedScarEye)return;scar.wound.mesh.material.color.set(this.scarInk).lerp(new T.Color('#4b0715'),.52);const vertex=(u:number,v:number,layer:'rim'|'wound'|'highlight')=>{const taper=Math.sin(Math.PI*u)**.68;
       const notch=Math.max(0,1-Math.abs(u-(.28+index*.047))/.045)+Math.max(0,1-Math.abs(u-.72)/.035);
-      const center=.20+index*.155+.25*u+.025*Math.sin(5*u+index);
+      const center=.12+index*.105+.45*u+.020*Math.sin(5*u+index);
       const width=(.17-index*.009)*taper*(1-.40*notch);
       const inset=layer==='rim'?v-.5:layer==='wound'?(v-.5)*.70:.30+(v-.5)*.13;
       const x=center+inset*width, y=.78-index*.075-u*(1.25-index*.10);

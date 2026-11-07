@@ -16,6 +16,7 @@ export class NpcSystem {
  }
  private createActor(entry:ReturnType<typeof npcRoster>[number]){
   const bus=new EventBus(),physics=new PhysicsPlayer(this.world,bus,{x:entry.x,z:entry.z}),brain=new NpcBrain(entry.kind,entry.behaviorSeed),skin=skinFrom(entry.appearanceSeed),visual=new RuntimeVisual(designForGame(skin),this.atlas,this.textures,skin.mood,this.environment,this.experimentalFace),input:DriveInput={x:0,z:0,jump:false,dash:false};
+  if(visual.face.experimentalFace){const styles=['classic','elegant','rounded','bold_short'] as const;visual.face.experimentalFace.browStyle=styles[(entry.behaviorSeed>>>4)%styles.length];}
   visual.position.copy(physics.current);visual.name='npc-'+entry.id;this.scene.add(visual);
   let lastState=brain.state;
   bus.on('player_jump',()=>visual.face.play('happy'));bus.on('player_dash',()=>visual.face.play('fury'));
