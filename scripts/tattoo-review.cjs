@@ -29,7 +29,7 @@ async function review() {
     const brows=page.getByLabel('Брови',{exact:true});
     const expression=page.getByLabel('Выражение лица');
     await fs.mkdir('dist/brow-review',{recursive:true});
-    for(const pose of ['neutral','angry','smile']) {
+    for(const pose of ['neutral','angry','smile','curious']) {
       await expression.selectOption(pose);
       await page.waitForFunction(()=>window.__FACE_REVIEW__?.ready,null,{timeout:10000});
       for(const style of ['classic','elegant','rounded','bold_short']) {
