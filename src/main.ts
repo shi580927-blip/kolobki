@@ -158,6 +158,13 @@ async function start() {
   portraitScene.add(portraitLight);
   const wardrobe=new Wardrobe();
   const portraitVisual=new RuntimeVisual({...design,furCount:Math.min(design.furCount,24)},atlas,resources.textures,skin.mood,environmentFor(portraitRenderer),experimentalFace);
+  try {
+    const browStyle=localStorage.getItem('sharobesy.browStyle');
+    if(browStyle==='elegant'||browStyle==='rounded'||browStyle==='bold_short'){
+      if(visual.face.experimentalFace)visual.face.experimentalFace.browStyle=browStyle;
+      if(portraitVisual.face.experimentalFace)portraitVisual.face.experimentalFace.browStyle=browStyle;
+    }
+  } catch { /* Appearance settings may be unavailable. */ }
   function wear(){const outfit=appearanceTest?authorOutfit:wardrobe.outfit;visual.setOutfit(outfit);portraitVisual.setOutfit(outfit);}
   wear();
   portraitScene.add(portraitVisual);
