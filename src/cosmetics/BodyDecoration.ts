@@ -19,13 +19,13 @@ export class BodyDecoration extends T.Group {
  }
  private draw(c:CanvasRenderingContext2D,id:TattooId){
   const poly=(points:number[][])=>{c.beginPath();points.forEach(([x,y],i)=>i?c.lineTo(x,y):c.moveTo(x,y));c.closePath();c.fill();};
-  if(id==='lightning')poly([[.24,-.50],[-.26,.05],[-.015,.02],[-.24,.50],[.35,-.13],[.09,-.08]]);
-  if(id==='battle')for(let i=0;i<3;i++){const y=(i-1)*.27;poly([[-.50,y+.08],[-.31,y-.04],[-.18,y-.02],[-.06,y-.10],[.09,y-.08],[.32,y-.12],[.5,y-.06],[.24,y+.02],[.16,y+.06],[.03,y+.03],[-.19,y+.11],[-.24,y+.09]]);}
+  if(id==='lightning')poly([[.31,-.74],[-.37,.09],[-.04,.035],[-.32,.70],[.40,-.15],[.085,-.095]]);
+  if(id==='battle')for(let i=0;i<3;i++){c.save();c.translate([-.06,.05,-.015][i],(i-1)*.27);c.rotate([-.30,-.14,-.44][i]);c.scale([.85,1.13,.93][i],1);const y=0;poly([[-.50,y+.08],[-.31,y-.04],[-.18,y-.02],[-.06,y-.10],[.09,y-.08],[.32,y-.12],[.5,y-.06],[.24,y+.02],[.16,y+.06],[.03,y+.03],[-.19,y+.11],[-.24,y+.09]]);c.restore();}
   if(id==='claw')for(let i=-1;i<=1;i++)poly([[-.43+i*.2,-.38],[-.31+i*.2,-.40],[.16+i*.2,.38],[.10+i*.2,.42]]);
   if(id==='star'){const p:number[][]=[];for(let i=0;i<10;i++){const a=-Math.PI/2+i*Math.PI/5,r=i%2?.19:.46;p.push([Math.cos(a)*r,Math.sin(a)*r]);}poly(p);}
   if(id==='crown')poly([[-.46,-.28],[-.30,.31],[.30,.31],[.46,-.28],[.20,-.08],[0,-.43],[-.20,-.08]]);
   if(id==='hearts')for(const x of [-.27,0,.27]){c.save();c.translate(x,0);c.scale(.55,.55);c.beginPath();c.moveTo(0,.40);c.bezierCurveTo(-.8,-.05,-.45,-.58,0,-.23);c.bezierCurveTo(.45,-.58,.8,-.05,0,.40);c.fill();c.restore();}
-  if(id==='tribal'){const curl=(x:number,y:number,r:number)=>{c.beginPath();for(let i=0;i<=64;i++){const t=i/64,a=t*2.05*Math.PI,rad=r*(1-t*.91);const px=x+rad*Math.cos(a),py=y+rad*Math.sin(a);if(i)c.lineTo(px,py);else c.moveTo(px,py);}c.lineWidth=r*.30;c.stroke();};curl(-.12,-.18,.30);curl(.13,.19,.27);c.beginPath();c.moveTo(-.43,.44);c.bezierCurveTo(-.47,.06,.22,.01,.46,-.44);c.bezierCurveTo(.36,.03,-.24,.14,-.43,.44);c.fill();}
+  if(id==='tribal'){const curl=(x:number,y:number,r:number)=>{c.beginPath();for(let i=0;i<=64;i++){const t=i/64,a=t*2.05*Math.PI,rad=r*(1-t*.91);const px=x+rad*Math.cos(a),py=y+rad*Math.sin(a);if(i)c.lineTo(px,py);else c.moveTo(px,py);}c.lineWidth=r*.42;c.stroke();};curl(-.12,-.22,.34);curl(.13,.22,.30);curl(.34,-.41,.15);c.beginPath();c.moveTo(-.43,.44);c.bezierCurveTo(-.47,.06,.22,.01,.46,-.44);c.bezierCurveTo(.36,.03,-.24,.14,-.43,.44);c.fill();}
  }
  dispose(){this.mesh.geometry.dispose();this.mesh.material.dispose();this.texture.dispose();}
 }

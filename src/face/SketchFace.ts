@@ -223,7 +223,12 @@ export class SketchFace extends T.Group {
     this.eyes.forEach((draw,index)=>{const scarred=this.closedScarEye&&index===1;draw(p,scarred?1:blink,color,detail,gaze,poseKey,name==='stunned',name==='rage',scarred);});
     this.scarLid.mesh.visible=this.closedScarEye;
     if(this.closedScarEye){this.scarLid.mesh.material.color.set(color).lerp(new T.Color('#28151b'),.68);this.scarLid.draw((u,v)=>{const x=.12+.49*u,curve=.015-.07*Math.sin(Math.PI*u),width=.014*Math.sin(Math.PI*u)**.5;return [x,curve+(v-.5)*width,.015];});}
-    this.scars.forEach((scar,index)=>{scar.mesh.visible=this.closedScarEye;if(!scar.mesh.visible)return;scar.mesh.material.color.set(color).lerp(new T.Color('#ff452c'),.92);scar.draw((u,v)=>{const taper=Math.sin(Math.PI*u)**.45,x=.19+index*.13+u*.26+(v-.5)*(.085+.018*Math.sin(16*u+index))*taper,y=.57-index*.035-u*(.87-index*.045)+(v-.5)*.026*taper;return [x,y,.018+.004*taper];});});
+    this.scars.forEach((scar,index)=>{scar.mesh.visible=this.closedScarEye;if(!scar.mesh.visible)return;scar.mesh.material.color.set('#df192c');scar.draw((u,v)=>{const taper=Math.sin(Math.PI*u)**.68;
+      const notch=Math.max(0,1-Math.abs(u-(.28+index*.047))/.045)+Math.max(0,1-Math.abs(u-.72)/.035);
+      const center=.20+index*.155+.25*u+.025*Math.sin(5*u+index);
+      const width=(.14-index*.009)*taper*(1-.40*notch);
+      const x=center+(v-.5)*width, y=.78-index*.075-u*(1.25-index*.10);
+      return [x,y,.017+.018*taper*(1-Math.abs(v*2-1))];});});
     if(this.lastMouth===poseKey+color)return;
     this.lastMouth=poseKey+color;
     const mouthEdge=(curve:Curve,u:number)=>{
