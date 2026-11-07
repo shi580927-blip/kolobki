@@ -1,0 +1,40 @@
+{
+  "version": "0.1.0-dev.73",
+  "cameraPresets": true,
+  "movementVector": [
+    -6.344064604490995e-05,
+    -0.0012195110321044922,
+    -1.7991338968276978
+  ],
+  "jumpDelta": 0.592360258102417,
+  "touchInput": {
+    "x": 0,
+    "z": -0.8409089175137606,
+    "touchDrive": true
+  },
+  "releasedInput": {
+    "x": 0,
+    "z": 0,
+    "touchDrive": true
+  },
+  "wide": {
+    "x": 240,
+    "y": 0,
+    "width": 1920,
+    "height": 1080
+  },
+  "portrait": {
+    "x": 0,
+    "y": 312.3125,
+    "width": 390,
+    "height": 219.375
+  },
+  "skinSeedPreserved": true,
+  "snapshotDownload": true,
+  "errors": [],
+  "externalRequests": [],
+  "buildAssets": {
+    "assets/index-Byos9epU.js": "36085b643cc3cb9c456ddf48e921f8fc1902786dc655f00cb73e429340ce5a49",
+    "assets/index-C8ANsEKr.css": "dabe9152c05e6d05657ca36995d65894db1b45b3597932c1981b057beff38393"
+  }
+}

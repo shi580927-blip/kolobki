@@ -1,0 +1,55 @@
+{
+  "report": [
+    {
+      "phase": "sandbox",
+      "visual": {
+        "visible": false,
+        "trackId": "meadow",
+        "visibleTracks": []
+      },
+      "features": {
+        "boostPads": 2,
+        "hurdles": 1,
+        "activations": 0
+      }
+    },
+    {
+      "phase": "running",
+      "track": "meadow",
+      "width": 20,
+      "gates": 10,
+      "progress": [
+        0,
+        1
+      ],
+      "visual": {
+        "visible": true,
+        "trackId": "meadow",
+        "visibleTracks": [
+          "meadow"
+        ]
+      }
+    },
+    {
+      "phase": "running",
+      "track": "hills",
+      "width": 12,
+      "gates": 6,
+      "progress": [
+        0,
+        1
+      ],
+      "visual": {
+        "visible": true,
+        "trackId": "hills",
+        "visibleTracks": [
+          "hills"
+        ]
+      }
+    }
+  ],
+  "reset": true,
+  "seed": 4321,
+  "errors": [],
+  "mode": "production game; normal route buttons, reset and keyboard; read-only diagnostics"
+}
