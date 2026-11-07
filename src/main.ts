@@ -4,6 +4,7 @@ import {version as buildVersion} from "../package.json";
 import {RoomEnvironment} from "three/addons/environments/RoomEnvironment.js";
 import {loadAnimationAtlas} from "./face/AnimatedAtlas";
 import {RuntimeVisual} from "./game/RuntimeVisual";
+import type {SketchFace} from './face/SketchFace';
 import {designForGame,gameplayAtlas} from "./game/RuntimeAppearance";
 import {validateDesign} from "./skin/SkinDesign";
 import {BerryCollectibles} from "./game/BerryCollectibles";
@@ -158,13 +159,12 @@ async function start() {
   portraitScene.add(portraitLight);
   const wardrobe=new Wardrobe();
   const portraitVisual=new RuntimeVisual({...design,furCount:Math.min(design.furCount,24)},atlas,resources.textures,skin.mood,environmentFor(portraitRenderer),experimentalFace);
-  try {
-    const browStyle=localStorage.getItem('sharobesy.browStyle');
-    if(browStyle==='elegant'||browStyle==='rounded'||browStyle==='bold_short'){
-      if(visual.face.experimentalFace)visual.face.experimentalFace.browStyle=browStyle;
-      if(portraitVisual.face.experimentalFace)portraitVisual.face.experimentalFace.browStyle=browStyle;
-    }
-  } catch { /* Appearance settings may be unavailable. */ }
+  type BrowStyle=SketchFace['browStyle'];
+  const browStyles=['classic','elegant','rounded','bold_short'] as const;
+  let currentBrow:BrowStyle='classic';
+  const applyBrows=(style:BrowStyle)=>{currentBrow=style;for(const face of [visual.face.experimentalFace,portraitVisual.face.experimentalFace])if(face)face.browStyle=style;};
+  const savedBrow=storage.getItem('sharobesy.browStyle');
+  if(browStyles.some(style=>style===savedBrow))applyBrows(savedBrow as BrowStyle);
   function wear(){const outfit=appearanceTest?authorOutfit:wardrobe.outfit;visual.setOutfit(outfit);portraitVisual.setOutfit(outfit);}
   wear();
   portraitScene.add(portraitVisual);
@@ -245,7 +245,7 @@ async function start() {
   };
   document.querySelector<HTMLButtonElement>("#reset")!.onclick=()=>{match?.exit();match?.hideChoice();resetGame();};
   if(npcs&&train)match=new MatchSession(world,scene,player,npcs,train,trainOptions,resetGame,bus);
-  if(standardMode){document.querySelector<HTMLElement>('#help')!.hidden=true;match?.hideChoice();if(hadDuoLink)tell('Сетевой тест отложен. Сейчас доступна одиночная долина.');menu=new GameMenu(()=>match?.showChoice(),()=>{match?.exit();match?.hideChoice();},()=>{powerPanel?.takeRequest();},wardrobe,wear);}
+  if(standardMode){document.querySelector<HTMLElement>('#help')!.hidden=true;match?.hideChoice();if(hadDuoLink)tell('Сетевой тест отложен. Сейчас доступна одиночная долина.');menu=new GameMenu(()=>match?.showChoice(),()=>{match?.exit();match?.hideChoice();},()=>{powerPanel?.takeRequest();},wardrobe,wear,experimentalFace?{current:()=>currentBrow,select:(style:string)=>{if(!browStyles.some(x=>x===style))return;applyBrows(style as BrowStyle);storage.setItem('sharobesy.browStyle',style);}}:undefined);}
   if(appearanceTest){const button=document.createElement('button');button.textContent='Проба комбо';button.onclick=()=>bus.emit('combo',{count:3});document.querySelector('#tools')!.appendChild(button);}
   if(npcs)contactPositions.push(...npcs.actors.map(a=>a.visual.position));
   const resize = () => {

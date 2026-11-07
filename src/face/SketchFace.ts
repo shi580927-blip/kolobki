@@ -65,7 +65,7 @@ function eye(parent:T.Group, side:number) {
       }
       ambient.needsUpdate=true;
     }
-    const shapeKey=poseKey+':'+Math.round(blink*240)+color+detail;
+    const shapeKey=poseKey+':'+Math.round(blink*240)+color+detail+':'+browStyle;
     const changed=shapeKey!==lastShape;
     if(changed)eyeOutline.draw((u,v)=>{
       const a=2*Math.PI*u,t=(1-Math.cos(a))*.5;
@@ -213,7 +213,8 @@ export class SketchFace extends T.Group {
     this.time+=dt;
     this.recoil=Math.max(0,this.recoil-3*dt);
     this.rotation.z=.11*this.recoil*Math.sin((1-this.recoil)*9);
-    const target=contours[name]??contours.sly,p=this.pose,k=1-Math.exp(-16*dt);
+    const target=contours[name]??contours.sly,k=1-Math.exp(-16*dt);
+    let p=this.pose;
     let distance=0;
     if(this.settled!==name)for(const key of Object.keys(target) as (keyof Pose)[]){
       const value=target[key];
@@ -226,7 +227,7 @@ export class SketchFace extends T.Group {
         value.forEach((n,i)=>{distance=Math.max(distance,Math.abs(n-curve[i]));curve[i]=mix(curve[i],n,k);});
       }
     }
-    if(this.settled!==name && distance<.0005){this.pose=structuredClone(target);this.settled=name;}
+    if(this.settled!==name && distance<.0005){this.pose=structuredClone(target);p=this.pose;this.settled=name;}
     else if(distance>=.0005)this.settled='';
     const poseKey=this.settled||String(this.time);
     const gaze=.012*Math.sin(this.time*1.7+Math.sin(this.time*.81));
