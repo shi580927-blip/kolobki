@@ -245,8 +245,9 @@ export class SketchFace extends T.Group {
     if(this.closedScarEye){this.scarLid.mesh.material.color.set(color).lerp(new T.Color('#28151b'),.46);this.scarLid.draw((u,v)=>{const x=.10+.55*u,curve=-.025-.075*Math.sin(Math.PI*u),width=.055*Math.sin(Math.PI*u)**.55;return [x,curve+(v-.5)*width,.020+.010*Math.sin(Math.PI*u)*Math.sin(Math.PI*v)];});this.scarCrease.draw((u,v)=>{const x=.11+.53*u,curve=-.028-.075*Math.sin(Math.PI*u),width=.010*Math.sin(Math.PI*u)**.5;return [x,curve+(v-.5)*width,.034];});}
     this.scars.forEach((scar,index)=>{for(const layer of Object.values(scar))layer.mesh.visible=this.closedScarEye;if(!this.closedScarEye)return;scar.wound.mesh.material.color.set(this.scarInk).lerp(new T.Color('#4b0715'),.52);const vertex=(u:number,v:number,layer:'rim'|'wound'|'highlight')=>{const taper=Math.sin(Math.PI*u)**.68;
       const notch=Math.max(0,1-Math.abs(u-(.28+index*.047))/.045)+Math.max(0,1-Math.abs(u-.72)/.035);
-      const center=.12+index*.105+.45*u+.020*Math.sin(5*u+index);
-      const width=(.17-index*.009)*taper*(1-.40*notch);
+      const torn=(.012*Math.sin(47*u+index*7)+.007*Math.sin(83*u+index*3))*taper;
+      const center=.12+index*.105+.45*u+.020*Math.sin(5*u+index)+torn;
+      const width=(.17-index*.009)*taper*(1-.40*notch)*(.88+.15*Math.sin(35*u+index*5)+.07*Math.sin(73*u+index));
       const inset=layer==='rim'?v-.5:layer==='wound'?(v-.5)*.70:.30+(v-.5)*.13;
       const x=center+inset*width, y=.78-index*.075-u*(1.25-index*.10);
       const scale=.65+.85*this.scarScale;
