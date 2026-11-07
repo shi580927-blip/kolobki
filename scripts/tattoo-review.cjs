@@ -1,4 +1,5 @@
 const { chromium } = require('playwright');
+const assert = require('node:assert/strict');
 const fs = require('node:fs/promises');
 const path = require('node:path');
 
@@ -37,6 +38,13 @@ async function review() {
         await page.screenshot({path:`dist/brow-review/${pose}-${style}.png`});
       }
     }
+    await page.goto('http://study.local/?face-v5-game');
+    await page.getByRole('button',{name:'Настройки',exact:true}).click({timeout:60000});
+    await page.getByRole('button',{name:'Персонаж · настройки лица · брови'}).click();
+    await page.getByRole('button',{name:'Изящные'}).click();
+    assert.equal(await page.evaluate(()=>localStorage.getItem('sharobesy.browStyle')),'elegant');
+    assert.equal(await page.getByRole('button',{name:'Изящные'}).getAttribute('aria-pressed'),'true');
+    await page.screenshot({path:'dist/brow-review/game-settings.png'});
   } finally {
     await browser.close();
   }

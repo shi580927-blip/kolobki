@@ -130,7 +130,8 @@ function eye(parent:T.Group, side:number) {
       const a=v*Math.PI*2,c=Math.cos(a),s=Math.sin(a);
       const round=.96+.04*Math.min(1,u/.045,(1-u)/.045);
       const baseMid=(cubic(p.browTop,u)+cubic(p.browBottom,u))/2+side*p.browLift;
-      const mid=baseMid+(browStyle==='classic'?0:browStyle==='elegant'?.052*Math.sin(Math.PI*u):browStyle==='rounded'?.032*Math.sin(Math.PI*u):.012*Math.sin(Math.PI*u)-.025*u);
+      const kink=Math.max(0,1-Math.abs(u-.44)/.44);
+      const mid=baseMid+(browStyle==='classic'?0:browStyle==='elegant'?.052*Math.sin(Math.PI*u):browStyle==='rounded'?.032*Math.sin(Math.PI*u):.050*kink-.028*u);
       const baseHeight=Math.max(.073,(cubic(p.browTop,u)-cubic(p.browBottom,u))/2);
       const height=browStyle==='elegant'?baseHeight*(.13+.21*(1-u))*(1-u**4):browStyle==='rounded'?baseHeight*.59*(.75+.25*Math.sin(Math.PI*u)):browStyle==='bold_short'?baseHeight*(.70-.34*u)*Math.max(.10,1-u**8):baseHeight;
       const bevel=.018*Math.abs(c)**4*(1-2*u);
