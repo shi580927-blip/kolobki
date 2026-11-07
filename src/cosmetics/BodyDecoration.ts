@@ -12,7 +12,9 @@ export class BodyDecoration extends T.Group {
  setTattoo(placement:TattooPlacement|null){const ctx=this.canvas.getContext('2d')!;ctx.clearRect(0,0,1024,512);this.mesh.visible=!!placement;if(!placement){this.texture.needsUpdate=true;return;}
   this.maskEnabled.value=placement.excludeFace?1:0;
   const x=wrapU(placement.u)*1024,y=(1-placement.v)*512,size=placement.scale*512;
-  for(const offset of [-1024,0,1024]){ctx.save();ctx.translate(x+offset,y);ctx.scale(size,size);ctx.fillStyle=placement.color;ctx.strokeStyle=placement.color;ctx.lineCap='round';ctx.lineJoin='round';this.draw(ctx,placement.id);ctx.restore();}
+  const mirrored=['lightning','tribal','star','hearts'].includes(placement.id);
+  const copies=mirrored?[{offset:-.12,flip:1},{offset:.12,flip:-1}]:[{offset:0,flip:1}];
+  for(const copy of copies)for(const offset of [-1024,0,1024]){ctx.save();ctx.translate(x+copy.offset*1024+offset,y);ctx.scale(size*copy.flip*(mirrored?.8:1),size*(mirrored?.8:1));ctx.fillStyle=placement.color;ctx.strokeStyle=placement.color;ctx.lineCap='round';ctx.lineJoin='round';this.draw(ctx,placement.id);ctx.restore();}
   this.texture.needsUpdate=true;
  }
  private draw(c:CanvasRenderingContext2D,id:TattooId){
