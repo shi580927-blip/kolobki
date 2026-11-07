@@ -130,25 +130,30 @@ function eye(parent:T.Group, side:number) {
       const a=v*Math.PI*2,c=Math.cos(a),s=Math.sin(a);
       const round=.96+.04*Math.min(1,u/.045,(1-u)/.045);
       const baseMid=(cubic(p.browTop,u)+cubic(p.browBottom,u))/2+side*p.browLift;
-      const mid=baseMid+(browStyle==='classic'?0:.035*Math.sin(Math.PI*u));
+      const mid=baseMid+(browStyle==='classic'?0:browStyle==='elegant'?.052*Math.sin(Math.PI*u):browStyle==='rounded'?.032*Math.sin(Math.PI*u):.012*Math.sin(Math.PI*u)-.025*u);
       const baseHeight=Math.max(.073,(cubic(p.browTop,u)-cubic(p.browBottom,u))/2);
-      const height=browStyle==='elegant'?baseHeight*.32*Math.max(.06,1-u**2):browStyle==='rounded'?baseHeight*.64*Math.max(.12,Math.sin(Math.PI*u)**.35):browStyle==='bold_short'?baseHeight*.7*Math.max(.12,1-u**5):baseHeight;
+      const height=browStyle==='elegant'?baseHeight*(.13+.21*(1-u))*(1-u**4):browStyle==='rounded'?baseHeight*.59*(.75+.25*Math.sin(Math.PI*u)):browStyle==='bold_short'?baseHeight*(.70-.34*u)*Math.max(.10,1-u**8):baseHeight;
       const bevel=.018*Math.abs(c)**4*(1-2*u);
-      return [side*mix(.032,browStyle==='bold_short'?.61:.75,u+bevel),mid+height*round*Math.sign(c)*Math.abs(c)**.52,
+      const end=browStyle==='bold_short'?.59:browStyle==='rounded'?.69:.75;
+      return [side*mix(.032,end,u+bevel),mid+height*round*Math.sign(c)*Math.abs(c)**.52,
         .079+round*.060*Math.sign(s)*Math.abs(s)**.56];
     });
     browCaps.forEach((cap,index)=>{
-      cap.mesh.visible=browStyle==='classic';
+      cap.mesh.visible=browStyle==='classic'||browStyle==='rounded'||index===0;
       if(!cap.mesh.visible)return;
       const endpoint=index===0?0:1;
-      const mid=(cubic(p.browTop,endpoint)+cubic(p.browBottom,endpoint))/2+side*p.browLift;
-      const height=Math.max(.073,(cubic(p.browTop,endpoint)-cubic(p.browBottom,endpoint))/2)*.96;
+      const baseMid=(cubic(p.browTop,endpoint)+cubic(p.browBottom,endpoint))/2+side*p.browLift;
+      const mid=baseMid+(browStyle==='bold_short'?-.025*endpoint:0);
+      const baseHeight=Math.max(.073,(cubic(p.browTop,endpoint)-cubic(p.browBottom,endpoint))/2);
+      const height=baseHeight*(browStyle==='rounded'?.59*.75:browStyle==='elegant'?.34:browStyle==='bold_short'?.70:.96);
+      const end=browStyle==='bold_short'?.59:browStyle==='rounded'?.69:.75;
       cap.mesh.material.roughness=.82;
       cap.draw((u,v)=>{
         const angle=2*Math.PI*u,r=v;
         const c=Math.cos(angle),z=Math.sin(angle);
         const bevel=.018*Math.abs(c)**4*(1-2*endpoint);
-        return [side*mix(.032,.75,endpoint+bevel),mid+height*r*Math.sign(c)*Math.abs(c)**.52,
+        const dome=browStyle==='classic'?0:(endpoint===0?-1:1)*Math.sqrt(Math.max(0,1-r*r))*height*.50;
+        return [side*mix(.032,end,endpoint+bevel)+side*dome,mid+height*r*Math.sign(c)*Math.abs(c)**.52,
           .079+.96*.060*r*Math.sign(z)*Math.abs(z)**.56];
       });
     });
