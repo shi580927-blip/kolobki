@@ -17,6 +17,12 @@ async function review() {
       await select.selectOption(id);
       await page.evaluate(()=>new Promise(done=>requestAnimationFrame(()=>requestAnimationFrame(done))));
       await page.screenshot({path:'dist/tattoo-review/'+id+'.png'});
+      if(id!=='claw'){
+        await page.getByRole('button',{name:'↷ 30°'}).click({clickCount:2});
+        await page.evaluate(()=>new Promise(done=>requestAnimationFrame(()=>requestAnimationFrame(done))));
+        await page.screenshot({path:`dist/tattoo-review/${id}-three-quarter.png`});
+        await page.getByRole('button',{name:'↶ 30°'}).click({clickCount:2});
+      }
     }
     await select.selectOption('');
     const brows=page.getByLabel('Брови',{exact:true});

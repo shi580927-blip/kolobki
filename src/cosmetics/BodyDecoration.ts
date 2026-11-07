@@ -1,6 +1,6 @@
 import * as T from 'three';
 import {wrapU,type TattooId,type TattooPlacement} from './CosmeticCatalog';
-/** Experimental UV overlay belongs under rollingBody, never under FaceRig. */
+/** Experimental UV overlay follows the face heading, independently of the physical roll. */
 export class BodyDecoration extends T.Group {
  private readonly canvas=document.createElement('canvas');
  private readonly texture:T.CanvasTexture;
@@ -22,13 +22,17 @@ export class BodyDecoration extends T.Group {
   const poly=(points:number[][])=>{c.beginPath();points.forEach(([x,y],i)=>i?c.lineTo(x,y):c.moveTo(x,y));c.closePath();c.fill();};
   const ink=(path:string)=>c.fill(new Path2D(path));
   if(id==='lightning'){
-    ink('M .43,-.73 L -.13,-.24 -.095,-.23 -.42,.12 -.105,.055 -.36,.7 .39,-.17 .06,-.105 Z');
-    ink('M -.29,-.11 L -.49,.04 -.38,.015 Z');
+    const bolt=new Path2D('M .43,-.73 L -.13,-.24 -.095,-.23 -.42,.12 -.105,.055 -.36,.7 .39,-.17 .06,-.105 Z');
+    const paint=c.fillStyle;
+    c.save();c.shadowColor='#ff971c';c.shadowBlur=26;c.strokeStyle='#ef660d';c.lineWidth=.065;c.stroke(bolt);c.restore();
+    c.strokeStyle='#ffc942';c.lineWidth=.035;c.stroke(bolt);c.fillStyle=paint;c.fill(bolt);
+    c.beginPath();c.moveTo(-.10,-.24);c.lineTo(-.36,-.34);c.lineTo(-.47,-.22);c.moveTo(-.12,.12);c.lineTo(.13,.28);c.lineTo(.31,.18);c.moveTo(-.31,.47);c.lineTo(-.50,.55);c.lineTo(-.54,.69);c.strokeStyle='#ffbe38';c.lineWidth=.020;c.stroke();
   }
   if(id==='battle'){
     ink('M -.64,-.04 Q -.41,-.35 -.21,-.39 L -.24,-.32 Q .02,-.42 .22,-.37 L .16,-.33 Q .39,-.34 .55,-.24 Q .19,-.29 -.03,-.20 L .015,-.255 Q -.28,-.20 -.46,-.06 L -.41,-.15 Z');
     ink('M -.66,.22 Q -.4,-.08 -.23,-.11 L -.27,-.05 Q -.02,-.18 .18,-.15 L .12,-.10 Q .40,-.14 .62,-.02 Q .21,-.075 .015,.04 L .05,-.02 Q -.19,.03 -.34,.15 L -.31,.09 Z');
     ink('M -.56,.52 Q -.39,.27 -.24,.19 L -.26,.25 Q .01,.09 .22,.08 L .16,.135 Q .32,.10 .47,.13 Q .13,.22 -.04,.34 L -.02,.27 Q -.31,.37 -.56,.52 Z');
+    for(let i=0;i<21;i++){const x=-.59+(i*37%117)/100,y=-.38+(i*47%91)/100,r=.004+(i%4)*.003;c.beginPath();c.ellipse(x,y,r*(i%3+1),r,(-.2+i*.11),0,Math.PI*2);c.fill();}
   }
   if(id==='claw')for(let i=-1;i<=1;i++)poly([[-.43+i*.2,-.38],[-.31+i*.2,-.40],[.16+i*.2,.38],[.10+i*.2,.42]]);
   if(id==='star'){const p:number[][]=[];for(let i=0;i<10;i++){const a=-Math.PI/2+i*Math.PI/5,r=i%2?.19:.46;p.push([Math.cos(a)*r,Math.sin(a)*r]);}poly(p);}
