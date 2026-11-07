@@ -12,7 +12,7 @@ export const ACCESSORIES: readonly AccessoryDefinition[] = [
  {id:'reading-glasses',slot:'eyewear',conflicts:['mask']}, {id:'steampunk-goggles',slot:'eyewear',conflicts:['mask']},
  {id:'zorro-mask',slot:'mask',conflicts:['eyewear']},
 ];
-export interface TattooPlacement { id: TattooId; color: string; u: number; v: number; scale: number; excludeFace: boolean }
+export interface TattooPlacement { id: TattooId; rearOffset?: number; color: string; u: number; v: number; scale: number; excludeFace: boolean }
 export interface CosmeticSelection { version: 1; makeup: MakeupId[]; tattoo: TattooPlacement | null; accessories: AccessoryId[] }
 export const emptySelection = ():CosmeticSelection => ({version:1,makeup:[],tattoo:null,accessories:[]});
 /** Equirectangular longitude wraps at the UV seam; latitude does not. */
@@ -22,7 +22,7 @@ export function validateSelection(value:CosmeticSelection):string[] {
  if(value.version!==1)problems.push('Unsupported cosmetic version');
  const makeup=new Set<MakeupId>();
  for(const id of value.makeup){if(!MAKEUP.includes(id))problems.push('Unknown makeup: '+id);else if(makeup.has(id))problems.push('Duplicate makeup: '+id);makeup.add(id);}
- if(value.tattoo){const t=value.tattoo;if(!TATTOOS.includes(t.id))problems.push('Unknown tattoo');if(!/^#[0-9a-f]{6}$/i.test(t.color))problems.push('Invalid tattoo color');if(!Number.isFinite(t.u)||!Number.isFinite(t.v)||t.v<0||t.v>1||!Number.isFinite(t.scale)||t.scale<=0||t.scale>1)problems.push('Invalid tattoo placement');}
+ if(value.tattoo){const t=value.tattoo;if(t.rearOffset!==undefined&&(!Number.isFinite(t.rearOffset)||t.rearOffset<0||t.rearOffset>1))problems.push('Invalid rear offset');if(!TATTOOS.includes(t.id))problems.push('Unknown tattoo');if(!/^#[0-9a-f]{6}$/i.test(t.color))problems.push('Invalid tattoo color');if(!Number.isFinite(t.u)||!Number.isFinite(t.v)||t.v<0||t.v>1||!Number.isFinite(t.scale)||t.scale<=0||t.scale>1)problems.push('Invalid tattoo placement');}
  const occupied=new Set<Slot>();const selected:AccessoryDefinition[]=[];
  for(const id of value.accessories){const item=ACCESSORIES.find(x=>x.id===id);if(!item){problems.push('Unknown accessory: '+id);continue;}if(occupied.has(item.slot))problems.push('Slot occupied: '+item.slot);occupied.add(item.slot);selected.push(item);}
  for(const item of selected)for(const slot of item.conflicts)if(occupied.has(slot))problems.push(`${item.id} conflicts with ${slot}`);

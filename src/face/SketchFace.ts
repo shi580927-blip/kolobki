@@ -169,6 +169,9 @@ export class SketchFace extends T.Group {
   private scarLid=patch(this,'scar-closed-lid','#ae6a6b',32,12);
   private scars=Array.from({length:3},(_,i)=>patch(this,'closed-eye-scar-'+i,'#5a1522',20,4));
   closedScarEye=false;
+  scarScale=.4;
+  scarShift=0;
+  scarInk='#df192c';
   private lip=patch(this,'lip-rim','#9d373a',48,8);
   private mouth=patch(this,'mouth','#391825',40,12);
   private upperMouthShadow=patch(this,'mouth-upper-shadow','#160810',40,6);
@@ -217,18 +220,19 @@ export class SketchFace extends T.Group {
     else if(distance>=.0005)this.settled='';
     const poseKey=this.settled||String(this.time);
     const gaze=.012*Math.sin(this.time*1.7+Math.sin(this.time*.81));
-    const drawKey=[poseKey,Math.round(blink*240),Math.round(gaze*250),color,detail,this.closedScarEye].join(':');
+    const drawKey=[poseKey,Math.round(blink*240),Math.round(gaze*250),color,detail,this.closedScarEye,this.scarScale,this.scarShift,this.scarInk].join(':');
     if(drawKey===this.lastDraw)return;
     this.lastDraw=drawKey;
     this.eyes.forEach((draw,index)=>{const scarred=this.closedScarEye&&index===1;draw(p,scarred?1:blink,color,detail,gaze,poseKey,name==='stunned',name==='rage',scarred);});
     this.scarLid.mesh.visible=this.closedScarEye;
     if(this.closedScarEye){this.scarLid.mesh.material.color.set(color).lerp(new T.Color('#28151b'),.68);this.scarLid.draw((u,v)=>{const x=.12+.49*u,curve=.015-.07*Math.sin(Math.PI*u),width=.014*Math.sin(Math.PI*u)**.5;return [x,curve+(v-.5)*width,.015];});}
-    this.scars.forEach((scar,index)=>{scar.mesh.visible=this.closedScarEye;if(!scar.mesh.visible)return;scar.mesh.material.color.set('#df192c');scar.draw((u,v)=>{const taper=Math.sin(Math.PI*u)**.68;
+    this.scars.forEach((scar,index)=>{scar.mesh.visible=this.closedScarEye;if(!scar.mesh.visible)return;scar.mesh.material.color.set(this.scarInk);scar.draw((u,v)=>{const taper=Math.sin(Math.PI*u)**.68;
       const notch=Math.max(0,1-Math.abs(u-(.28+index*.047))/.045)+Math.max(0,1-Math.abs(u-.72)/.035);
       const center=.20+index*.155+.25*u+.025*Math.sin(5*u+index);
       const width=(.14-index*.009)*taper*(1-.40*notch);
       const x=center+(v-.5)*width, y=.78-index*.075-u*(1.25-index*.10);
-      return [x,y,.017+.018*taper*(1-Math.abs(v*2-1))];});});
+      const scale=.65+.85*this.scarScale;
+      return [.38+(x-.38)*scale+this.scarShift*2,y*scale,.017+.018*taper*(1-Math.abs(v*2-1))];});});
     if(this.lastMouth===poseKey+color)return;
     this.lastMouth=poseKey+color;
     const mouthEdge=(curve:Curve,u:number)=>{

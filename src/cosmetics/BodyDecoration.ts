@@ -11,21 +11,35 @@ export class BodyDecoration extends T.Group {
  setFaceFrame(face:T.Object3D){face.updateWorldMatrix(true,false);this.faceInverse.value.copy(face.matrixWorld).invert();}
  setTattoo(placement:TattooPlacement|null){const ctx=this.canvas.getContext('2d')!;ctx.clearRect(0,0,1024,512);this.mesh.visible=!!placement;if(!placement){this.texture.needsUpdate=true;return;}
   this.maskEnabled.value=placement.excludeFace?1:0;
-  const x=wrapU(placement.u)*1024,y=(1-placement.v)*512,size=placement.scale*512;
-  const mirrored=['battle','lightning','tribal','star','hearts'].includes(placement.id);
-  const copies=mirrored?[{offset:-.155,flip:1},{offset:.155,flip:-1}]:[{offset:0,flip:1}];
-  for(const copy of copies)for(const offset of [-1024,0,1024]){ctx.save();ctx.translate(x+copy.offset*1024+offset,y);ctx.scale(size*.63*copy.flip*(mirrored?.62:1),size*.63*(mirrored?.88:1));ctx.fillStyle=placement.color;ctx.strokeStyle=placement.color;ctx.lineCap='round';ctx.lineJoin='round';this.draw(ctx,placement.id);ctx.restore();}
+  const x=wrapU(.25)*1024,y=(1-placement.v)*512,size=placement.scale*512;
+  const mirrored=placement.id!=='claw';
+  const spread=.17+.20*(placement.rearOffset??.45);
+  const copies=mirrored?[{offset:-spread,flip:1},{offset:spread,flip:-1}]:[{offset:0,flip:1}];
+  for(const copy of copies)for(const offset of [-1024,0,1024]){ctx.save();ctx.translate(x+copy.offset*1024+offset,y);ctx.scale(size*.82*copy.flip,size*.97);ctx.fillStyle=placement.color;ctx.strokeStyle=placement.color;ctx.lineCap='round';ctx.lineJoin='round';this.draw(ctx,placement.id);ctx.restore();}
   this.texture.needsUpdate=true;
  }
  private draw(c:CanvasRenderingContext2D,id:TattooId){
   const poly=(points:number[][])=>{c.beginPath();points.forEach(([x,y],i)=>i?c.lineTo(x,y):c.moveTo(x,y));c.closePath();c.fill();};
-  if(id==='lightning')poly([[.31,-.74],[-.37,.09],[-.04,.035],[-.32,.70],[.40,-.15],[.085,-.095]]);
-  if(id==='battle')for(let i=0;i<3;i++){c.save();c.translate([-.06,.05,-.015][i],(i-1)*.27);c.rotate([-.30,-.14,-.44][i]);c.scale([.85,1.13,.93][i],1);const y=0;poly([[-.50,y+.08],[-.31,y-.04],[-.18,y-.02],[-.06,y-.10],[.09,y-.08],[.32,y-.12],[.5,y-.06],[.24,y+.02],[.16,y+.06],[.03,y+.03],[-.19,y+.11],[-.24,y+.09]]);c.restore();}
+  const ink=(path:string)=>c.fill(new Path2D(path));
+  if(id==='lightning'){
+    ink('M .43,-.73 L -.13,-.24 -.095,-.23 -.42,.12 -.105,.055 -.36,.7 .39,-.17 .06,-.105 Z');
+    ink('M -.29,-.11 L -.49,.04 -.38,.015 Z');
+  }
+  if(id==='battle'){
+    ink('M -.64,-.04 Q -.41,-.35 -.21,-.39 L -.24,-.32 Q .02,-.42 .22,-.37 L .16,-.33 Q .39,-.34 .55,-.24 Q .19,-.29 -.03,-.20 L .015,-.255 Q -.28,-.20 -.46,-.06 L -.41,-.15 Z');
+    ink('M -.66,.22 Q -.4,-.08 -.23,-.11 L -.27,-.05 Q -.02,-.18 .18,-.15 L .12,-.10 Q .40,-.14 .62,-.02 Q .21,-.075 .015,.04 L .05,-.02 Q -.19,.03 -.34,.15 L -.31,.09 Z');
+    ink('M -.56,.52 Q -.39,.27 -.24,.19 L -.26,.25 Q .01,.09 .22,.08 L .16,.135 Q .32,.10 .47,.13 Q .13,.22 -.04,.34 L -.02,.27 Q -.31,.37 -.56,.52 Z');
+  }
   if(id==='claw')for(let i=-1;i<=1;i++)poly([[-.43+i*.2,-.38],[-.31+i*.2,-.40],[.16+i*.2,.38],[.10+i*.2,.42]]);
   if(id==='star'){const p:number[][]=[];for(let i=0;i<10;i++){const a=-Math.PI/2+i*Math.PI/5,r=i%2?.19:.46;p.push([Math.cos(a)*r,Math.sin(a)*r]);}poly(p);}
   if(id==='crown')poly([[-.46,-.28],[-.30,.31],[.30,.31],[.46,-.28],[.20,-.08],[0,-.43],[-.20,-.08]]);
   if(id==='hearts')for(const x of [-.27,0,.27]){c.save();c.translate(x,0);c.scale(.55,.55);c.beginPath();c.moveTo(0,.40);c.bezierCurveTo(-.8,-.05,-.45,-.58,0,-.23);c.bezierCurveTo(.45,-.58,.8,-.05,0,.40);c.fill();c.restore();}
-  if(id==='tribal'){const curl=(x:number,y:number,r:number)=>{c.beginPath();for(let i=0;i<=64;i++){const t=i/64,a=t*2.05*Math.PI,rad=r*(1-t*.91);const px=x+rad*Math.cos(a),py=y+rad*Math.sin(a);if(i)c.lineTo(px,py);else c.moveTo(px,py);}c.lineWidth=r*.42;c.stroke();};curl(-.12,-.22,.34);curl(.13,.22,.30);curl(.34,-.41,.15);c.beginPath();c.moveTo(-.43,.44);c.bezierCurveTo(-.47,.06,.22,.01,.46,-.44);c.bezierCurveTo(.36,.03,-.24,.14,-.43,.44);c.fill();}
+  if(id==='tribal'){
+    ink('M -.60,.41 C -.40,.38 -.49,.00 -.22,-.08 C -.02,-.15 .14,-.01 .12,.16 C .09,.36 -.20,.37 -.20,.20 C -.20,.10 -.08,.06 -.04,.14 C -.12,.12 -.13,.22 -.055,.23 C .05,.24 .08,.07 -.05,.03 C -.26,-.05 -.37,.18 -.32,.36 Q -.44,.48 -.60,.41 Z');
+    ink('M -.61,-.11 C -.44,-.18 -.50,-.53 -.19,-.55 C .01,-.56 .13,-.39 .05,-.25 C -.04,-.10 -.25,-.16 -.23,-.29 C -.22,-.37 -.13,-.40 -.08,-.34 C -.16,-.35 -.17,-.26 -.105,-.25 C .02,-.23 .01,-.42 -.14,-.44 C -.36,-.46 -.32,-.12 -.61,-.11 Z');
+    ink('M -.28,.55 C -.16,.38 .16,.50 .29,.23 C .37,.05 .25,-.13 .12,-.18 C .38,-.15 .51,.06 .42,.29 C .30,.57 -.05,.47 -.28,.55 Z');
+    ink('M .05,-.57 C .28,-.55 .20,-.32 .44,-.34 Q .57,-.35 .62,-.47 C .59,-.20 .41,-.18 .31,-.22 C .16,-.27 .22,-.46 .05,-.57 Z');
+  }
  }
  dispose(){this.mesh.geometry.dispose();this.mesh.material.dispose();this.texture.dispose();}
 }
