@@ -14,7 +14,7 @@ export class BodyDecoration extends T.Group {
   const x=wrapU(placement.u)*1024,y=(1-placement.v)*512,size=placement.scale*512;
   const mirrored=['battle','lightning','tribal','star','hearts'].includes(placement.id);
   const copies=mirrored?[{offset:-.155,flip:1},{offset:.155,flip:-1}]:[{offset:0,flip:1}];
-  for(const copy of copies)for(const offset of [-1024,0,1024]){ctx.save();ctx.translate(x+copy.offset*1024+offset,y);ctx.scale(Math.min(size,205)*copy.flip*(mirrored?.62:1),Math.min(size,205)*(mirrored?.88:1));ctx.fillStyle=placement.color;ctx.strokeStyle=placement.color;ctx.lineCap='round';ctx.lineJoin='round';this.draw(ctx,placement.id);ctx.restore();}
+  for(const copy of copies)for(const offset of [-1024,0,1024]){ctx.save();ctx.translate(x+copy.offset*1024+offset,y);ctx.scale(size*.63*copy.flip*(mirrored?.62:1),size*.63*(mirrored?.88:1));ctx.fillStyle=placement.color;ctx.strokeStyle=placement.color;ctx.lineCap='round';ctx.lineJoin='round';this.draw(ctx,placement.id);ctx.restore();}
   this.texture.needsUpdate=true;
  }
  private draw(c:CanvasRenderingContext2D,id:TattooId){
