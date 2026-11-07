@@ -27,7 +27,7 @@ function eye(parent:T.Group, side:number) {
   let shadowKey='';
   let lastShape='';
   upper.mesh.receiveShadow=true;
-  return (p:Pose,blink:number,color:string,detail:boolean,gaze:number,poseKey:string,stunned:boolean,rage:boolean,scarred=false)=>{
+  return (p:Pose,blink:number,color:string,detail:boolean,gaze:number,poseKey:string,stunned:boolean,rage:boolean,scarred=false,browStyle='classic')=>{
     white.mesh.visible=!scarred;eyeOutline.mesh.visible=!scarred;upper.mesh.visible=!scarred;lower.mesh.visible=!scarred;
     // The underlying angry eyeball is a circle, not a compressed eye shape.
     // Its upper arc is hidden by the brow; the outer tip of the brow overhangs.
@@ -129,13 +129,17 @@ function eye(parent:T.Group, side:number) {
     brow.draw((u,v)=>{
       const a=v*Math.PI*2,c=Math.cos(a),s=Math.sin(a);
       const round=.96+.04*Math.min(1,u/.045,(1-u)/.045);
-      const mid=(cubic(p.browTop,u)+cubic(p.browBottom,u))/2+side*p.browLift;
-      const height=Math.max(.073,(cubic(p.browTop,u)-cubic(p.browBottom,u))/2);
+      const baseMid=(cubic(p.browTop,u)+cubic(p.browBottom,u))/2+side*p.browLift;
+      const mid=baseMid+(browStyle==='classic'?0:.035*Math.sin(Math.PI*u));
+      const baseHeight=Math.max(.073,(cubic(p.browTop,u)-cubic(p.browBottom,u))/2);
+      const height=browStyle==='elegant'?baseHeight*.32*Math.max(.06,1-u**2):browStyle==='rounded'?baseHeight*.64*Math.max(.12,Math.sin(Math.PI*u)**.35):browStyle==='bold_short'?baseHeight*.7*Math.max(.12,1-u**5):baseHeight;
       const bevel=.018*Math.abs(c)**4*(1-2*u);
-      return [side*mix(.032,.75,u+bevel),mid+height*round*Math.sign(c)*Math.abs(c)**.52,
+      return [side*mix(.032,browStyle==='bold_short'?.61:.75,u+bevel),mid+height*round*Math.sign(c)*Math.abs(c)**.52,
         .079+round*.060*Math.sign(s)*Math.abs(s)**.56];
     });
     browCaps.forEach((cap,index)=>{
+      cap.mesh.visible=browStyle==='classic';
+      if(!cap.mesh.visible)return;
       const endpoint=index===0?0:1;
       const mid=(cubic(p.browTop,endpoint)+cubic(p.browBottom,endpoint))/2+side*p.browLift;
       const height=Math.max(.073,(cubic(p.browTop,endpoint)-cubic(p.browBottom,endpoint))/2)*.96;
@@ -169,6 +173,7 @@ export class SketchFace extends T.Group {
   private scarLid=patch(this,'scar-closed-lid','#ae6a6b',32,12);
   private scars=Array.from({length:3},(_,i)=>patch(this,'closed-eye-scar-'+i,'#5a1522',20,4));
   closedScarEye=false;
+  browStyle:'classic'|'elegant'|'rounded'|'bold_short'='classic';
   scarScale=.4;
   scarShift=0;
   scarInk='#df192c';
@@ -220,10 +225,10 @@ export class SketchFace extends T.Group {
     else if(distance>=.0005)this.settled='';
     const poseKey=this.settled||String(this.time);
     const gaze=.012*Math.sin(this.time*1.7+Math.sin(this.time*.81));
-    const drawKey=[poseKey,Math.round(blink*240),Math.round(gaze*250),color,detail,this.closedScarEye,this.scarScale,this.scarShift,this.scarInk].join(':');
+    const drawKey=[poseKey,Math.round(blink*240),Math.round(gaze*250),color,detail,this.closedScarEye,this.scarScale,this.scarShift,this.scarInk,this.browStyle].join(':');
     if(drawKey===this.lastDraw)return;
     this.lastDraw=drawKey;
-    this.eyes.forEach((draw,index)=>{const scarred=this.closedScarEye&&index===1;draw(p,scarred?1:blink,color,detail,gaze,poseKey,name==='stunned',name==='rage',scarred);});
+    this.eyes.forEach((draw,index)=>{const scarred=this.closedScarEye&&index===1;draw(p,scarred?1:blink,color,detail,gaze,poseKey,name==='stunned',name==='rage',scarred,this.browStyle);});
     this.scarLid.mesh.visible=this.closedScarEye;
     if(this.closedScarEye){this.scarLid.mesh.material.color.set(color).lerp(new T.Color('#28151b'),.68);this.scarLid.draw((u,v)=>{const x=.12+.49*u,curve=.015-.07*Math.sin(Math.PI*u),width=.014*Math.sin(Math.PI*u)**.5;return [x,curve+(v-.5)*width,.015];});}
     this.scars.forEach((scar,index)=>{scar.mesh.visible=this.closedScarEye;if(!scar.mesh.visible)return;scar.mesh.material.color.set(this.scarInk);scar.draw((u,v)=>{const taper=Math.sin(Math.PI*u)**.68;
