@@ -27,7 +27,8 @@ function eye(parent:T.Group, side:number) {
   let shadowKey='';
   let lastShape='';
   upper.mesh.receiveShadow=true;
-  return (p:Pose,blink:number,color:string,detail:boolean,gaze:number,poseKey:string,stunned:boolean,rage:boolean)=>{
+  return (p:Pose,blink:number,color:string,detail:boolean,gaze:number,poseKey:string,stunned:boolean,rage:boolean,scarred=false)=>{
+    white.mesh.visible=!scarred;eyeOutline.mesh.visible=!scarred;upper.mesh.visible=!scarred;lower.mesh.visible=!scarred;
     // The underlying angry eyeball is a circle, not a compressed eye shape.
     // Its upper arc is hidden by the brow; the outer tip of the brow overhangs.
     const eyeOuter=mix(outer,.675,p.tension);
@@ -219,10 +220,10 @@ export class SketchFace extends T.Group {
     const drawKey=[poseKey,Math.round(blink*240),Math.round(gaze*250),color,detail,this.closedScarEye].join(':');
     if(drawKey===this.lastDraw)return;
     this.lastDraw=drawKey;
-    this.eyes.forEach((draw,index)=>draw(p,this.closedScarEye&&index===1?1:blink,color,detail,gaze,poseKey,name==='stunned',name==='rage'));
+    this.eyes.forEach((draw,index)=>{const scarred=this.closedScarEye&&index===1;draw(p,scarred?1:blink,color,detail,gaze,poseKey,name==='stunned',name==='rage',scarred);});
     this.scarLid.mesh.visible=this.closedScarEye;
-    if(this.closedScarEye){const tint=new T.Color(color);this.scarLid.mesh.material.color.copy(tint).multiplyScalar(.80);this.scarLid.draw((u,v)=>{const a=2*Math.PI*u,r=v;return [.36+.285*r*Math.cos(a),.035+.255*r*Math.sin(a),.033+.018*(1-r*r)];});}
-    this.scars.forEach((scar,index)=>{scar.mesh.visible=this.closedScarEye;if(!scar.mesh.visible)return;scar.mesh.material.color.set(color).lerp(new T.Color('#511c27'),.68);scar.draw((u,v)=>{const x=.20+index*.12+u*.14,y=.22-u*.38+(v-.5)*.022;return [x,y,.060];});});
+    if(this.closedScarEye){this.scarLid.mesh.material.color.set(color).lerp(new T.Color('#28151b'),.68);this.scarLid.draw((u,v)=>{const x=.12+.49*u,curve=.015-.07*Math.sin(Math.PI*u),width=.014*Math.sin(Math.PI*u)**.5;return [x,curve+(v-.5)*width,.015];});}
+    this.scars.forEach((scar,index)=>{scar.mesh.visible=this.closedScarEye;if(!scar.mesh.visible)return;scar.mesh.material.color.set(color).lerp(new T.Color('#461421'),.78);scar.draw((u,v)=>{const taper=Math.sin(Math.PI*u)**.45,x=.13+index*.13+u*.19,y=.29-u*.53+(v-.5)*.055*taper;return [x,y,.018+.004*taper];});});
     if(this.lastMouth===poseKey+color)return;
     this.lastMouth=poseKey+color;
     const mouthEdge=(curve:Curve,u:number)=>{

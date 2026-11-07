@@ -9,6 +9,8 @@ test('face-bound scar keeps one eye shut through expressions and ordinary blinks
  for(const pose of Object.keys(contours)){
   for(let i=0;i<25;i++)f.updatePose(.05,pose,0,false,'#e6b0a1');
   assert.equal(parts('pupil')[1].visible,false,pose+' must hide scarred pupil');
+  assert.equal(parts('sclera')[1].visible,false,pose+' must hide the closed sclera');
+  assert.equal(parts('eye-outline')[1].visible,false,pose+' must not show an open eye outline');
   assert.equal(parts('iris')[1].visible,false,pose+' must hide scarred iris');
   assert.equal(parts('stun-spiral')[1].visible,false,pose+' must not draw a spiral over the scar');
   assert.equal(parts('scar-closed-lid')[0].visible,true);
