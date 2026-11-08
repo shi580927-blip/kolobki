@@ -126,20 +126,21 @@ function eye(parent:T.Group, side:number) {
     }
     // Loft the drawn upper/lower silhouettes into a bevelled solid with softly rounded ends.
     brow.mesh.castShadow=detail;
-    // The curious pose lifts the short brows at the bridge. Keep their inner
-    // ends separate instead of letting the two caps hang over the eye sockets.
+    // The curious pose keeps the short brows apart at the bridge and lifts
+    // their pointed outer tails above the round eye sockets.
     const curiousShort=browStyle==='bold_short'&&curious;
     const browStart=curiousShort?.185:.032;
+    const curiousLift=(u:number)=>curiousShort?.06+.13*u:0;
     brow.draw((u,v)=>{
       const a=v*Math.PI*2,c=Math.cos(a),s=Math.sin(a);
       const round=.96+.04*Math.min(1,u/.045,(1-u)/.045);
       const baseMid=(cubic(p.browTop,u)+cubic(p.browBottom,u))/2+side*p.browLift;
       const kink=Math.max(0,1-Math.abs(u-.44)/.44);
-      const mid=baseMid+(browStyle==='classic'?0:browStyle==='elegant'?.052*Math.sin(Math.PI*u):browStyle==='rounded'?.032*Math.sin(Math.PI*u):.050*kink-.028*u)+(curiousShort?.035+.035*(1-u):0);
+      const mid=baseMid+(browStyle==='classic'?0:browStyle==='elegant'?.052*Math.sin(Math.PI*u):browStyle==='rounded'?.032*Math.sin(Math.PI*u):.050*kink-.028*u)+curiousLift(u);
       const baseHeight=Math.max(.073,(cubic(p.browTop,u)-cubic(p.browBottom,u))/2);
       const height=browStyle==='elegant'?baseHeight*(.13+.21*(1-u))*(1-u**4):browStyle==='rounded'?baseHeight*.59*(.75+.25*Math.sin(Math.PI*u)):browStyle==='bold_short'?baseHeight*(.70-.34*u)*Math.max(.10,1-u**8):baseHeight;
       const bevel=.018*Math.abs(c)**4*(1-2*u);
-      const end=browStyle==='bold_short'?.59:browStyle==='rounded'?.69:.75;
+      const end=curiousShort?.53:browStyle==='bold_short'?.59:browStyle==='rounded'?.69:.75;
       return [side*mix(browStart,end,u+bevel),mid+height*round*Math.sign(c)*Math.abs(c)**.52,
         .079+round*.060*Math.sign(s)*Math.abs(s)**.56];
     });
@@ -148,7 +149,7 @@ function eye(parent:T.Group, side:number) {
       if(!cap.mesh.visible)return;
       const endpoint=index===0?0:1;
       const baseMid=(cubic(p.browTop,endpoint)+cubic(p.browBottom,endpoint))/2+side*p.browLift;
-      const mid=baseMid+(browStyle==='bold_short'?-.025*endpoint:0)+(curiousShort?.035+.035*(1-endpoint):0);
+      const mid=baseMid+(browStyle==='bold_short'?-.025*endpoint:0)+curiousLift(endpoint);
       const baseHeight=Math.max(.073,(cubic(p.browTop,endpoint)-cubic(p.browBottom,endpoint))/2);
       const height=baseHeight*(browStyle==='rounded'?.59*.75:browStyle==='elegant'?.34:browStyle==='bold_short'?.70:.96);
       const end=browStyle==='bold_short'?.59:browStyle==='rounded'?.69:.75;
