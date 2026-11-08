@@ -38,7 +38,7 @@ test('curious short brows leave a clear gap at the bridge and return to their no
  const neutral=brows.map(innerEdge);
  settle('curious');
  const curious=brows.map(innerEdge);
- for(let side=0;side<2;side++)assert.ok(curious[side]>neutral[side]+.08,`curious brow ${side} should move away from bridge`);
+ for(let side=0;side<2;side++)assert.ok(curious[side]>neutral[side]+.13,`curious brow ${side} should move away from bridge`);
  settle('neutral');
  assert.deepEqual(brows.map(innerEdge),neutral);
  face.dispose();

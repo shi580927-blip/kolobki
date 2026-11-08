@@ -34,6 +34,12 @@ async function review() {
     assert.equal(await page.getByRole('button',{name:'Изящные'}).getAttribute('aria-pressed'),'true');
     await fs.mkdir('dist/brow-review',{recursive:true});
     await page.screenshot({path:'dist/brow-review/game-settings.png'});
+    await page.goto('http://study.local/?cosmetics-study');
+    await page.getByLabel('Рисунок',{exact:true}).selectOption('');
+    await page.getByLabel('Брови',{exact:true}).selectOption('bold_short');
+    await page.getByLabel('Выражение лица').selectOption('curious');
+    await page.waitForTimeout(5000);
+    await page.screenshot({path:'dist/brow-review/curious-bold_short.png'});
   } finally {
     await browser.close();
   }
