@@ -11,9 +11,9 @@ export class BodyDecoration extends T.Group {
  setFaceFrame(face:T.Object3D){face.updateWorldMatrix(true,false);this.faceInverse.value.copy(face.matrixWorld).invert();}
  setTattoo(placement:TattooPlacement|null){const ctx=this.canvas.getContext('2d')!;ctx.clearRect(0,0,1024,1024);this.mesh.visible=!!placement;if(!placement){this.texture.needsUpdate=true;return;}
   this.maskEnabled.value=placement.excludeFace?1:0;
-  const x=wrapU(.25)*1024,y=(1-placement.v)*1024,size=placement.scale*1024;
+  const x=wrapU(.25)*1024,y=(placement.id==='star'||placement.id==='blush'?.61:1-placement.v)*1024,size=placement.scale*1024;
   const mirrored=placement.id!=='claw'&&placement.id!=='rune';
-  const spread=placement.id==='star'||placement.id==='blush'?.105:.17+.20*(placement.rearOffset??.45);
+  const spread=placement.id==='star'||placement.id==='blush'?.095:.105+.08*(placement.rearOffset??.45);
   const copies=mirrored?[{offset:-spread,flip:1},{offset:spread,flip:-1}]:[{offset:placement.id==='rune'?-spread:0,flip:1}];
   for(const copy of copies)for(const offset of [-1024,0,1024]){ctx.save();ctx.translate(x+copy.offset*1024+offset,y);ctx.scale(size*.41*copy.flip,size*.97);ctx.fillStyle=placement.color;ctx.strokeStyle=placement.color;ctx.lineCap='round';ctx.lineJoin='round';this.draw(ctx,placement.id);ctx.restore();}
   this.texture.needsUpdate=true;

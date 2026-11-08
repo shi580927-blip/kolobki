@@ -185,7 +185,7 @@ export class SketchFace extends T.Group {
   private scars=Array.from({length:3},(_,i)=>({
     rim:patch(this,'closed-eye-scar-'+i,'#421822',28,6),
     wound:patch(this,'closed-eye-wound-'+i,'#e53243',28,6),
-    core:patch(this,'closed-eye-scar-core-'+i,'#ffbb91',28,6),
+    core:patch(this,'closed-eye-scar-core-'+i,'#df644f',28,6),
     highlight:patch(this,'closed-eye-scar-ridge-'+i,'#ffe0b6',28,3),
   }));
   closedScarEye=false;
