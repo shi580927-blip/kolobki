@@ -1,11 +1,11 @@
 /** Author-only cosmetic selections. No physics, inventory or skin persistence. */
 export type MakeupId = 'lashes' | 'blush' | 'lips' | 'eyeshadow';
-export type TattooId = 'battle' | 'lightning' | 'claw' | 'tribal' | 'star' | 'crown' | 'hearts';
+export type TattooId = 'battle' | 'lightning' | 'claw' | 'tribal' | 'rune' | 'flame' | 'star' | 'blush' | 'crown' | 'hearts';
 export type AccessoryId = 'cap-forward' | 'cap-backward' | 'reading-glasses' | 'steampunk-goggles' | 'cat-ears' | 'viking-helmet' | 'zorro-mask';
 export type Slot = 'headwear' | 'eyewear' | 'mask';
 export interface AccessoryDefinition { readonly id: AccessoryId; readonly slot: Slot; readonly conflicts: readonly Slot[] }
 export const MAKEUP: readonly MakeupId[] = ['lashes','blush','lips','eyeshadow'];
-export const TATTOOS: readonly TattooId[] = ['battle','lightning','claw','tribal','star','crown','hearts'];
+export const TATTOOS: readonly TattooId[] = ['claw','battle','lightning','tribal','rune','flame','star','blush','crown','hearts'];
 export const ACCESSORIES: readonly AccessoryDefinition[] = [
  {id:'cap-forward',slot:'headwear',conflicts:[]}, {id:'cap-backward',slot:'headwear',conflicts:[]},
  {id:'cat-ears',slot:'headwear',conflicts:[]}, {id:'viking-helmet',slot:'headwear',conflicts:[]},

@@ -185,7 +185,7 @@ export class SketchFace extends T.Group {
   private scars=Array.from({length:3},(_,i)=>({
     rim:patch(this,'closed-eye-scar-'+i,'#421822',28,6),
     wound:patch(this,'closed-eye-wound-'+i,'#e53243',28,6),
-    highlight:patch(this,'closed-eye-scar-ridge-'+i,'#ff796e',28,3),
+    highlight:patch(this,'closed-eye-scar-ridge-'+i,'#ffe0b6',28,3),
   }));
   closedScarEye=false;
   browStyle:'classic'|'elegant'|'rounded'|'bold_short'='classic';
@@ -251,8 +251,8 @@ export class SketchFace extends T.Group {
       const notch=Math.max(0,1-Math.abs(u-(.28+index*.047))/.045)+Math.max(0,1-Math.abs(u-.72)/.035);
       const torn=(.012*Math.sin(47*u+index*7)+.007*Math.sin(83*u+index*3))*taper;
       const center=.12+index*.105+.45*u+.020*Math.sin(5*u+index)+torn;
-      const width=(.17-index*.009)*taper*(1-.40*notch)*(.88+.15*Math.sin(35*u+index*5)+.07*Math.sin(73*u+index));
-      const inset=layer==='rim'?v-.5:layer==='wound'?(v-.5)*.70:.30+(v-.5)*.13;
+      const width=(.27-index*.012)*taper*(1-.40*notch)*(.88+.15*Math.sin(35*u+index*5)+.07*Math.sin(73*u+index));
+      const inset=layer==='rim'?v-.5:layer==='wound'?(v-.5)*.70:.28+(v-.5)*.19;
       const x=center+inset*width, y=.78-index*.075-u*(1.25-index*.10);
       const scale=.65+.85*this.scarScale;
       const relief=layer==='rim'?.021:layer==='wound'?.027:.038;

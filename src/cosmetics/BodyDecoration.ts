@@ -7,15 +7,15 @@ export class BodyDecoration extends T.Group {
  private readonly mesh:T.Mesh<T.SphereGeometry,T.MeshStandardMaterial>;
  private readonly faceInverse={value:new T.Matrix4()};
  private readonly maskEnabled={value:0};
- constructor(){super();this.name='body-decoration';this.canvas.width=1024;this.canvas.height=512;this.texture=new T.CanvasTexture(this.canvas);this.texture.colorSpace=T.SRGBColorSpace;this.texture.wrapS=T.RepeatWrapping;this.texture.anisotropy=4;this.mesh=new T.Mesh(new T.SphereGeometry(1.004,64,48),new T.MeshStandardMaterial({map:this.texture,transparent:true,depthWrite:false,roughness:.55,polygonOffset:true,polygonOffsetFactor:-1}));const mat=this.mesh.material;mat.onBeforeCompile=shader=>{shader.uniforms.cosmeticFaceInverse=this.faceInverse;shader.uniforms.cosmeticMaskEnabled=this.maskEnabled;shader.vertexShader=shader.vertexShader.replace('#include <common>','#include <common>\nvarying vec3 cosmeticWorld;').replace('#include <worldpos_vertex>','#include <worldpos_vertex>\ncosmeticWorld=(modelMatrix*vec4(transformed,1.0)).xyz;');shader.fragmentShader=shader.fragmentShader.replace('#include <common>','#include <common>\nvarying vec3 cosmeticWorld; uniform mat4 cosmeticFaceInverse; uniform float cosmeticMaskEnabled;').replace('#include <clipping_planes_fragment>','#include <clipping_planes_fragment>\nvec3 f=(cosmeticFaceInverse*vec4(cosmeticWorld,1.0)).xyz; vec2 e1=(f.xy-vec2(-.36,.035))/vec2(.33,.34); vec2 e2=(f.xy-vec2(.36,.035))/vec2(.33,.34); vec2 m=(f.xy-vec2(0.,-.43))/vec2(.44,.18); if(cosmeticMaskEnabled>.5 && f.z>0. && (dot(e1,e1)<1. || dot(e2,e2)<1. || dot(m,m)<1.)) discard;');};mat.customProgramCacheKey=()=> 'body-face-exclusion-v1';this.add(this.mesh);this.mesh.visible=false;}
+ constructor(){super();this.name='body-decoration';this.canvas.width=1024;this.canvas.height=1024;this.texture=new T.CanvasTexture(this.canvas);this.texture.colorSpace=T.SRGBColorSpace;this.texture.wrapS=T.RepeatWrapping;this.texture.anisotropy=4;this.mesh=new T.Mesh(new T.SphereGeometry(1.004,64,48),new T.MeshStandardMaterial({map:this.texture,transparent:true,depthWrite:false,roughness:.55,polygonOffset:true,polygonOffsetFactor:-1}));const mat=this.mesh.material;mat.onBeforeCompile=shader=>{shader.uniforms.cosmeticFaceInverse=this.faceInverse;shader.uniforms.cosmeticMaskEnabled=this.maskEnabled;shader.vertexShader=shader.vertexShader.replace('#include <common>','#include <common>\nvarying vec3 cosmeticWorld;').replace('#include <worldpos_vertex>','#include <worldpos_vertex>\ncosmeticWorld=(modelMatrix*vec4(transformed,1.0)).xyz;');shader.fragmentShader=shader.fragmentShader.replace('#include <common>','#include <common>\nvarying vec3 cosmeticWorld; uniform mat4 cosmeticFaceInverse; uniform float cosmeticMaskEnabled;').replace('#include <clipping_planes_fragment>','#include <clipping_planes_fragment>\nvec3 f=(cosmeticFaceInverse*vec4(cosmeticWorld,1.0)).xyz; vec2 e1=(f.xy-vec2(-.36,.035))/vec2(.33,.34); vec2 e2=(f.xy-vec2(.36,.035))/vec2(.33,.34); vec2 m=(f.xy-vec2(0.,-.43))/vec2(.44,.18); if(cosmeticMaskEnabled>.5 && f.z>0. && (dot(e1,e1)<1. || dot(e2,e2)<1. || dot(m,m)<1.)) discard;');};mat.customProgramCacheKey=()=> 'body-face-exclusion-v1';this.add(this.mesh);this.mesh.visible=false;}
  setFaceFrame(face:T.Object3D){face.updateWorldMatrix(true,false);this.faceInverse.value.copy(face.matrixWorld).invert();}
- setTattoo(placement:TattooPlacement|null){const ctx=this.canvas.getContext('2d')!;ctx.clearRect(0,0,1024,512);this.mesh.visible=!!placement;if(!placement){this.texture.needsUpdate=true;return;}
+ setTattoo(placement:TattooPlacement|null){const ctx=this.canvas.getContext('2d')!;ctx.clearRect(0,0,1024,1024);this.mesh.visible=!!placement;if(!placement){this.texture.needsUpdate=true;return;}
   this.maskEnabled.value=placement.excludeFace?1:0;
-  const x=wrapU(.25)*1024,y=(1-placement.v)*512,size=placement.scale*512;
-  const mirrored=placement.id!=='claw';
-  const spread=.17+.20*(placement.rearOffset??.45);
-  const copies=mirrored?[{offset:-spread,flip:1},{offset:spread,flip:-1}]:[{offset:0,flip:1}];
-  for(const copy of copies)for(const offset of [-1024,0,1024]){ctx.save();ctx.translate(x+copy.offset*1024+offset,y);ctx.scale(size*.82*copy.flip,size*.97);ctx.fillStyle=placement.color;ctx.strokeStyle=placement.color;ctx.lineCap='round';ctx.lineJoin='round';this.draw(ctx,placement.id);ctx.restore();}
+  const x=wrapU(.25)*1024,y=(1-placement.v)*1024,size=placement.scale*1024;
+  const mirrored=placement.id!=='claw'&&placement.id!=='rune';
+  const spread=placement.id==='star'||placement.id==='blush'?.105:.17+.20*(placement.rearOffset??.45);
+  const copies=mirrored?[{offset:-spread,flip:1},{offset:spread,flip:-1}]:[{offset:placement.id==='rune'?-spread:0,flip:1}];
+  for(const copy of copies)for(const offset of [-1024,0,1024]){ctx.save();ctx.translate(x+copy.offset*1024+offset,y);ctx.scale(size*.41*copy.flip,size*.97);ctx.fillStyle=placement.color;ctx.strokeStyle=placement.color;ctx.lineCap='round';ctx.lineJoin='round';this.draw(ctx,placement.id);ctx.restore();}
   this.texture.needsUpdate=true;
  }
  private draw(c:CanvasRenderingContext2D,id:TattooId){
@@ -29,13 +29,36 @@ export class BodyDecoration extends T.Group {
     c.beginPath();c.moveTo(-.10,-.24);c.lineTo(-.36,-.34);c.lineTo(-.47,-.22);c.moveTo(-.12,.12);c.lineTo(.13,.28);c.lineTo(.31,.18);c.moveTo(-.31,.47);c.lineTo(-.50,.55);c.lineTo(-.54,.69);c.strokeStyle='#ffbe38';c.lineWidth=.020;c.stroke();
   }
   if(id==='battle'){
+    c.save();c.translate(.018,.045);c.fillStyle='#9b2441';
+    c.fill(new Path2D('M -.66,-.04 Q -.38,-.39 -.19,-.39 L -.30,-.26 Q .19,-.43 .60,-.23 Q .16,-.25 -.27,-.06 Z M -.67,.22 Q -.34,-.13 -.18,-.13 L -.28,-.02 Q .23,-.20 .64,-.02 Q .14,.02 -.29,.19 Z M -.56,.52 Q -.27,.15 .13,.08 L .48,.13 Q .09,.23 -.27,.45 Z'));c.restore();
     ink('M -.64,-.04 Q -.41,-.35 -.21,-.39 L -.24,-.32 Q .02,-.42 .22,-.37 L .16,-.33 Q .39,-.34 .55,-.24 Q .19,-.29 -.03,-.20 L .015,-.255 Q -.28,-.20 -.46,-.06 L -.41,-.15 Z');
     ink('M -.66,.22 Q -.4,-.08 -.23,-.11 L -.27,-.05 Q -.02,-.18 .18,-.15 L .12,-.10 Q .40,-.14 .62,-.02 Q .21,-.075 .015,.04 L .05,-.02 Q -.19,.03 -.34,.15 L -.31,.09 Z');
     ink('M -.56,.52 Q -.39,.27 -.24,.19 L -.26,.25 Q .01,.09 .22,.08 L .16,.135 Q .32,.10 .47,.13 Q .13,.22 -.04,.34 L -.02,.27 Q -.31,.37 -.56,.52 Z');
     for(let i=0;i<21;i++){const x=-.59+(i*37%117)/100,y=-.38+(i*47%91)/100,r=.004+(i%4)*.003;c.beginPath();c.ellipse(x,y,r*(i%3+1),r,(-.2+i*.11),0,Math.PI*2);c.fill();}
+    c.save();c.strokeStyle='#ffffff';c.lineWidth=.011;c.beginPath();c.moveTo(-.54,-.08);c.quadraticCurveTo(-.15,-.32,.20,-.34);c.moveTo(-.55,.17);c.quadraticCurveTo(-.10,-.08,.30,-.11);c.stroke();c.restore();
   }
   if(id==='claw')for(let i=-1;i<=1;i++)poly([[-.43+i*.2,-.38],[-.31+i*.2,-.40],[.16+i*.2,.38],[.10+i*.2,.42]]);
-  if(id==='star'){const p:number[][]=[];for(let i=0;i<10;i++){const a=-Math.PI/2+i*Math.PI/5,r=i%2?.19:.46;p.push([Math.cos(a)*r,Math.sin(a)*r]);}poly(p);}
+  if(id==='star'){
+    const star=(x:number,y:number,r:number)=>{const p:number[][]=[];for(let i=0;i<10;i++){const a=-Math.PI/2+i*Math.PI/5,rr=i%2?r*.43:r;p.push([x+Math.cos(a)*rr,y+Math.sin(a)*rr]);}poly(p);};
+    c.save();c.shadowColor='#ffe02e';c.shadowBlur=.13;c.fillStyle='#c95118';star(0,0,.38);c.fillStyle='#ffe02e';star(0,0,.32);c.shadowBlur=0;c.fillStyle='#fff69b';star(-.07,-.09,.09);for(const [x,y,r] of [[-.52,-.18,.06],[.48,.12,.045],[.38,-.36,.025]] as const)star(x,y,r);c.restore();
+  }
+  if(id==='blush'){
+    c.save();const glow=c.createRadialGradient(0,0,.02,0,0,.65);glow.addColorStop(0,'#ff8cadbb');glow.addColorStop(1,'#ff8cad00');c.fillStyle=glow;c.beginPath();c.ellipse(0,0,.65,.42,0,0,Math.PI*2);c.fill();c.rotate(-.35);
+    for(let i=-1;i<=1;i++){c.beginPath();c.moveTo(i*.22-.10,.18);c.quadraticCurveTo(i*.22+.01,-.01,i*.22+.13,-.17);c.lineWidth=.055;c.strokeStyle='#ffd3debb';c.stroke();}c.restore();
+  }
+  if(id==='rune'){
+    c.save();c.strokeStyle='#551027';c.lineWidth=.027;
+    const veins=[[-.10,-.18,-.56,-.43],[-.17,.18,-.61,.49],[.17,.10,.59,.32],[.10,-.28,.47,-.59]];
+    for(const [x,y,a,b] of veins){c.beginPath();c.moveTo(x,y);c.lineTo((x+a)*.5,y*.73);c.lineTo(a,b);c.stroke();}
+    c.shadowColor='#ffad46';c.shadowBlur=.14;c.strokeStyle='#f8483c';c.lineWidth=.065;c.stroke(new Path2D('M 0,-.75 L .30,-.12 L 0,.64 L -.30,-.12 Z M 0,-.43 L .15,-.09 L 0,.25 L -.15,-.09 Z'));
+    c.strokeStyle='#fff3bd';c.lineWidth=.035;c.stroke(new Path2D('M 0,-.75 L .30,-.12 L 0,.64 L -.30,-.12 Z M 0,-.43 L .15,-.09 L 0,.25 L -.15,-.09 Z'));c.restore();
+  }
+  if(id==='flame'){
+    const outer=new Path2D('M -.65,.72 C -.55,.38 -.35,.32 -.43,.06 C -.24,.24 -.20,.13 -.16,-.10 C -.13,-.26 .02,-.38 .12,-.73 C .04,-.39 .22,-.30 .16,-.07 C .34,-.21 .37,-.30 .36,-.50 C .57,-.19 .40,.02 .58,.15 C .72,.39 .54,.58 .62,.72 Z');
+    c.save();c.shadowColor='#ff8b24';c.shadowBlur=.18;c.fillStyle='#a51831';c.fill(outer);c.fillStyle='#ff8b24';c.fill(outer);c.shadowBlur=0;
+    c.fillStyle='#fff05d';c.fill(new Path2D('M -.49,.70 C -.39,.36 -.18,.39 -.21,.13 C -.04,.20 .04,.04 .07,-.38 C .08,-.09 .26,-.05 .23,.21 C .43,.05 .42,-.07 .44,-.12 C .48,.23 .32,.43 .46,.70 Z'));
+    c.fillStyle='#fff6b1';c.fill(new Path2D('M -.24,.70 C -.17,.42 .02,.46 .04,.19 C .12,.42 .19,.42 .24,.70 Z'));c.restore();
+  }
   if(id==='crown')poly([[-.46,-.28],[-.30,.31],[.30,.31],[.46,-.28],[.20,-.08],[0,-.43],[-.20,-.08]]);
   if(id==='hearts')for(const x of [-.27,0,.27]){c.save();c.translate(x,0);c.scale(.55,.55);c.beginPath();c.moveTo(0,.40);c.bezierCurveTo(-.8,-.05,-.45,-.58,0,-.23);c.bezierCurveTo(.45,-.58,.8,-.05,0,.40);c.fill();c.restore();}
   if(id==='tribal'){

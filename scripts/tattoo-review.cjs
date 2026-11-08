@@ -14,7 +14,7 @@ async function review() {
     await page.goto('http://study.local/?cosmetics-study');
     const select = page.getByLabel('Рисунок',{exact:true});
     await fs.mkdir('dist/tattoo-review',{recursive:true});
-    for(const id of ['claw','battle','lightning','tribal']) {
+    for(const id of ['claw','battle','lightning','tribal','rune','flame','star','blush']) {
       await select.selectOption(id);
       await page.evaluate(()=>new Promise(done=>requestAnimationFrame(()=>requestAnimationFrame(done))));
       await page.screenshot({path:'dist/tattoo-review/'+id+'.png'});
