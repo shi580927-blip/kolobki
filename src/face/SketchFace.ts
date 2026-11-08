@@ -185,6 +185,7 @@ export class SketchFace extends T.Group {
   private scars=Array.from({length:3},(_,i)=>({
     rim:patch(this,'closed-eye-scar-'+i,'#421822',28,6),
     wound:patch(this,'closed-eye-wound-'+i,'#e53243',28,6),
+    core:patch(this,'closed-eye-scar-core-'+i,'#ffbb91',28,6),
     highlight:patch(this,'closed-eye-scar-ridge-'+i,'#ffe0b6',28,3),
   }));
   closedScarEye=false;
@@ -206,7 +207,7 @@ export class SketchFace extends T.Group {
   private lastDraw='';
   constructor(env?:T.Texture) {
     super();
-    this.scarLid.mesh.visible=false;this.scarCrease.mesh.visible=false;this.scars.forEach(s=>{s.rim.mesh.visible=false;s.wound.mesh.visible=false;s.highlight.mesh.visible=false;});
+    this.scarLid.mesh.visible=false;this.scarCrease.mesh.visible=false;this.scars.forEach(s=>{for(const layer of Object.values(s))layer.mesh.visible=false;});
     this.traverse(o=>{if(o instanceof T.Mesh){o.material.envMap=env??null;o.material.envMapIntensity=o.name==='sculpted-brow'?.30:.70;}});
     const geom=this.mouth.mesh.geometry, uv=geom.attributes.uv;
     const shades=new Float32Array(uv.count*3);
@@ -247,16 +248,16 @@ export class SketchFace extends T.Group {
     this.eyes.forEach((draw,index)=>{const scarred=this.closedScarEye&&index===1;draw(p,scarred?1:blink,color,detail,gaze,poseKey,name==='stunned',name==='rage',scarred,this.browStyle,name==='curious');});
     this.scarLid.mesh.visible=this.closedScarEye;this.scarCrease.mesh.visible=this.closedScarEye;
     if(this.closedScarEye){this.scarLid.mesh.material.color.set(color).lerp(new T.Color('#28151b'),.46);this.scarLid.draw((u,v)=>{const x=.10+.55*u,curve=-.025-.075*Math.sin(Math.PI*u),width=.055*Math.sin(Math.PI*u)**.55;return [x,curve+(v-.5)*width,.020+.010*Math.sin(Math.PI*u)*Math.sin(Math.PI*v)];});this.scarCrease.draw((u,v)=>{const x=.11+.53*u,curve=-.028-.075*Math.sin(Math.PI*u),width=.010*Math.sin(Math.PI*u)**.5;return [x,curve+(v-.5)*width,.034];});}
-    this.scars.forEach((scar,index)=>{for(const layer of Object.values(scar))layer.mesh.visible=this.closedScarEye;if(!this.closedScarEye)return;scar.wound.mesh.material.color.set(this.scarInk).lerp(new T.Color('#4b0715'),.52);const vertex=(u:number,v:number,layer:'rim'|'wound'|'highlight')=>{const taper=Math.sin(Math.PI*u)**.68;
+    this.scars.forEach((scar,index)=>{for(const layer of Object.values(scar))layer.mesh.visible=this.closedScarEye;if(!this.closedScarEye)return;scar.wound.mesh.material.color.set(this.scarInk).lerp(new T.Color('#4b0715'),.52);const vertex=(u:number,v:number,layer:'rim'|'wound'|'core'|'highlight')=>{const taper=Math.sin(Math.PI*u)**.68;
       const notch=Math.max(0,1-Math.abs(u-(.28+index*.047))/.045)+Math.max(0,1-Math.abs(u-.72)/.035);
       const torn=(.012*Math.sin(47*u+index*7)+.007*Math.sin(83*u+index*3))*taper;
-      const center=.12+index*.105+.45*u+.020*Math.sin(5*u+index)+torn;
+      const center=.12+index*.125+.45*u+.020*Math.sin(5*u+index)+torn;
       const width=(.27-index*.012)*taper*(1-.40*notch)*(.88+.15*Math.sin(35*u+index*5)+.07*Math.sin(73*u+index));
-      const inset=layer==='rim'?v-.5:layer==='wound'?(v-.5)*.70:.28+(v-.5)*.19;
+      const inset=layer==='rim'?v-.5:layer==='wound'?(v-.5)*.72:layer==='core'?(v-.5)*.43:.29+(v-.5)*.14;
       const x=center+inset*width, y=.78-index*.075-u*(1.25-index*.10);
       const scale=.65+.85*this.scarScale;
-      const relief=layer==='rim'?.021:layer==='wound'?.027:.038;
-      return [.38+(x-.38)*scale+this.scarShift*2,y*scale,relief+.012*taper*(1-Math.abs(v*2-1))] as [number,number,number];};scar.rim.draw((u,v)=>vertex(u,v,'rim'));scar.wound.draw((u,v)=>vertex(u,v,'wound'));scar.highlight.draw((u,v)=>vertex(u,v,'highlight'));});
+      const relief=layer==='rim'?.021:layer==='wound'?.027:layer==='core'?.034:.039;
+      return [.38+(x-.38)*scale+this.scarShift*2,y*scale,relief+.012*taper*(1-Math.abs(v*2-1))] as [number,number,number];};scar.rim.draw((u,v)=>vertex(u,v,'rim'));scar.wound.draw((u,v)=>vertex(u,v,'wound'));scar.core.draw((u,v)=>vertex(u,v,'core'));scar.highlight.draw((u,v)=>vertex(u,v,'highlight'));});
     if(this.lastMouth===poseKey+color)return;
     this.lastMouth=poseKey+color;
     const mouthEdge=(curve:Curve,u:number)=>{
