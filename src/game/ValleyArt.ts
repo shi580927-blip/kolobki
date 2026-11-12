@@ -15,7 +15,7 @@ import {EXTREME_ARCHES} from './ExtremeArches';
 const meadowDark=new T.Color('#36953a'),meadowLight=new T.Color('#86c946'),sunGrass=new T.Color('#c2d85c'),soil=new T.Color('#dcae70');
 /** Continuous world-space colour fields keep the broad slopes from reading as a flat sheet. */
 export function valleyGroundColor(x:number,y:number,z:number){
- const patch=.5+.25*Math.sin(x*.075+Math.sin(z*.09)*1.3)+.25*Math.sin(z*.13-x*.035);
+ const patch=.5+.12*Math.sin(x*.052+Math.sin(z*.045)*.5)+.10*Math.sin(z*.065-x*.023);
  const grass=meadowDark.clone().lerp(meadowLight,Math.max(0,Math.min(1,patch))).lerp(sunGrass,Math.max(0,Math.min(.23,(y+2)*.016)));
  for(const c of VALLEY_CLEARINGS){
   const blend=Math.max(0,1-Math.hypot(x-c.x,z-c.z)/(c.radius*1.4))*.30;
@@ -27,8 +27,8 @@ export function valleyGroundColor(x:number,y:number,z:number){
  const path=Math.max(1-T.MathUtils.smoothstep(wide,MEADOW_TRACK.halfWidth-1.1,MEADOW_TRACK.halfWidth+.5),1-T.MathUtils.smoothstep(distance,edge-.6,edge+1),1-T.MathUtils.smoothstep(walking,2.5+.18*Math.sin(z),4.1));
  const ground=grass.lerp(soil,path*.96),sand=shoreSandCoverage(x,z);
  const gx=(heightAt(x+.35,z)-heightAt(x-.35,z))/.7,gz=(heightAt(x,z+.35)-heightAt(x,z-.35))/.7;
- const slope=Math.hypot(gx,gz),rock=T.MathUtils.smoothstep(slope,.48,.98)*(1-path)*(1-sand);
- return ground.lerp(new T.Color('#d8c4a4'),rock*.9);
+ const slope=Math.hypot(gx,gz),rock=T.MathUtils.smoothstep(slope,.85,1.45)*(1-path)*(1-sand);
+ return ground.lerp(new T.Color('#a9a994'),rock*.65);
 }
 
 /** Seeded composition follows the whole playable loop, with space around every solid prop. */
