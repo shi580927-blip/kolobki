@@ -13,7 +13,7 @@ test('lagoon retains gentle beach sectors and remains outside the driving corrid
  for(const a of [.6,1.0,Math.PI/2]){let last=heightAt(POND.x,POND.z);for(let r=.25;r<pondRadius(a)*.89+1;r+=.25){const next=heightAt(POND.x+Math.cos(a)*r,POND.z+Math.sin(a)*r);assert.ok(Math.abs(next-last)<.25,'shore slope remains gentle');last=next;}}
 });
 test('bridge has physical support and pond surface does not add a water collider',async()=>{
- await R.init();const world=new R.World({x:0,y:-18,z:0}),scene=new Scene();addPondStudy(scene,world);assert.equal(world.colliders.len(),21); // Three extra solid masses frame the raised spring; the water adds none.
+ await R.init();const world=new R.World({x:0,y:-18,z:0}),scene=new Scene();addPondStudy(scene,world);assert.equal(world.colliders.len(),14); // Three rocky spring masses and bridge support; the water adds none.
 const ray=new R.Ray({x:POND.x,y:POND.water+4,z:POND.z},{x:0,y:-1,z:0});world.step();assert.ok(world.castRay(ray,10,true));world.free();
 });
 
@@ -62,7 +62,7 @@ test('cascade is solid at the bank and leaves the pond ford and bridge entrances
  const {SHORE_CASCADE,addShoreCascade}=await import('../src/game/ShoreCascade');
  await R.init();const w=new R.World({x:0,y:-18,z:0}),scene=new Scene(),cascade=addShoreCascade(scene,w);w.step();
  const {x,z,crest}=SHORE_CASCADE;
- const hit=w.castRay(new R.Ray({x,y:crest+3,z},{x:0,y:-1,z:0}),10,true);assert.ok(hit);assert.ok(Math.abs(hit.timeOfImpact-3)<.3);
+ const hit=w.castRay(new R.Ray({x:x-2.5,y:crest+3,z},{x:0,y:-1,z:0}),10,true);assert.ok(hit);assert.ok(Math.abs(hit.timeOfImpact-3)<.3);
  for(const px of [POND.x-8,POND.x,POND.x+8])assert.equal(w.castRay(new R.Ray({x:px,y:10,z:POND.z+7},{x:0,y:-1,z:0}),12,true),null);
  cascade.update(1/60);assert.ok(scene.getObjectByName('shore-cascade-water'));w.free();
 });

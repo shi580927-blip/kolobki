@@ -17,6 +17,10 @@ export function makeLeafGeometry(n=14,m=6){
 export interface BerryPlacement {x:number;z:number;centerY:number;onPlant:boolean}
 export function berryPlacement(i:number):BerryPlacement {
  let x=i===0?0:i===1?-4:i===2?4:Math.sin(i*.9)*28,z=i===0?5:i===1?9:i===2?10:5+i*4;
+ // The former pair on the steep eastern headland could only be reached by
+ // wedging the ball between its rock face and the lagoon. Use open dry ground.
+ if(i===5){x=14;z=52;}
+ if(i===6){x=19;z=56;}
  // Keep the accepted fruit and its plant rooted on dry land as the lake grows.
  if(pondClearance(x,z)<4.5){const a=Math.atan2(z-POND.z,x-POND.x),r=pondRadius(a)+4.5;x=POND.x+Math.cos(a)*r;z=POND.z+Math.sin(a)*r;}
  const onPlant=i%3===1;

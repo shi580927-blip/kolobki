@@ -24,11 +24,7 @@ export function addShoreCascade(scene:T.Scene,world:R.World){
  const ground=(px:number,pz:number)=>{const q=worldXZ(px,pz);return heightAt(q.x,q.z);};
  const turn=new T.Quaternion().setFromAxisAngle(new T.Vector3(0,1,0),Math.PI/2);
  // dx,dz,width,depth,top,lean: an irregular outcrop, never a repeated block wall.
- const masses=[[-2.55,.5,3.3,3.6,4.65,-.25],[-2.25,.2,2.8,3.0,6.3,.26,4.20],[2.4,.65,3.3,3.5,4.25,.24],[2.10,.15,2.7,2.9,5.85,-.18,3.95],[-2.0,-1.8,2.9,2.9,6.6,-.36],[2.0,-1.6,2.65,3.0,6.05,.26],[0,-.15,2.5,4.1,5.66,-.06]];
- // Raise the visual cascade into a proper rocky spring head; its shallow
- // lagoon and existing water interaction remain at the same level.
- for(const mass of masses)mass[4]+=3.2;
- masses.push([0,-2.3,2.65,3.5,crest-.15,0],[-2.15,-2.7,2.2,3.0,crest+1.2,-.1],[2.05,-2.8,2.0,2.8,crest+.9,.1]);
+ const masses:number[][]=[[-2.7,-.4,2.7,3.2,crest-.15,-.12],[2.7,-.4,2.7,3.2,crest-.3,.12],[0,-2.5,3.1,2.6,crest+.15,0]];
  const pieces:T.BufferGeometry[]=[],dummy=new T.Object3D();
  for(let k=0;k<masses.length;k++){
   const [dx,dz,width,depth,top,lean]=masses[k],px=x+dx,pz=z+dz,base=masses[k][6]??(ground(px,pz)-.38);

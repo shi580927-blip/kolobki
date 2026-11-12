@@ -13,12 +13,10 @@ export function makeGroundLighting(){
    // World-space exposed rock follows the actual slope. No extra surface or
    // collision layer: the same terrain triangles carry grass and stone.
    vec3 groundNormal=normalize(cross(dFdx(contactWorld),dFdy(contactWorld)));
-   float mountainZone=smoothstep(118.,140.,length(contactWorld.xz));
-   float plateauZone=1.-smoothstep(14.,28.,length(contactWorld.xz-vec2(-77.,34.)));
-   float cliffZone=max(mountainZone,plateauZone);
+   float cliffZone=1.-smoothstep(11.,23.,length(contactWorld.xz-vec2(-77.,34.)));
    // The rock belongs to the same terrain triangles and collider as the hill.
    // Gentle approaches stay grassy; only the steep edge exposes stone.
-   float exposed=(1.-smoothstep(.68,.91,abs(groundNormal.y)))*cliffZone;
+   float exposed=(1.-smoothstep(.38,.65,abs(groundNormal.y)))*cliffZone;
    float strata=.5+.5*sin(contactWorld.y*.31+sin(contactWorld.x*.055+contactWorld.z*.043)*1.1);
    float stoneGrain=sin(dot(contactWorld,vec3(.73,.31,.59)))*sin(dot(contactWorld,vec3(.42,-.53,.81)));
    // Uneven four-to-five-sided plates in world space, without separate blocks.
@@ -58,6 +56,6 @@ export function makeGroundLighting(){
    diffuseColor.rgb*=1.-contactShade;
   `);
  };
- material.customProgramCacheKey=()=> 'valley-ground-integrated-cliff-v7';
+ material.customProgramCacheKey=()=> 'valley-ground-meadow-v8';
  return {material,setContacts(positions:readonly T.Vector3[]){contacts.forEach((c,i)=>{const p=positions[i];if(p)c.set(p.x,p.y,p.z,1);else c.w=0;});}};
 }

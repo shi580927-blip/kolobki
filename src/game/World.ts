@@ -3,12 +3,9 @@ import RAPIER from "@dimforge/rapier3d-compat";
 import { terrainData, heightAt, WORLD_SIZE } from "../core/terrain";
 import {makeGroundLighting} from "./GroundLighting";
 import {addValleyArt,valleyGroundColor,valleyRockGeometry} from "./ValleyArt";
-import {addRockArch} from "./RockArch";
 import {addPondStudy} from "./PondStudy";
 import {addSouthBridge} from './SouthBridge';
-import {addCoastalCliffs} from './CoastalCliffs';
 import {addValleyLandmarks} from './ValleyLandmarks';
-import {addExtremeArches} from './ExtremeArches';
 import {addSunnyLandmarks} from './SunnyLandmarks';
 import {addIslandHorizon} from './IslandHorizon';
 import {ValleyFeatures} from './ValleyFeatures';
@@ -53,9 +50,6 @@ export function createWorld(scene: THREE.Scene, world: RAPIER.World) {
   }
   const art=addValleyArt(scene,world);
   const pond=addPondStudy(scene,world);
-  addRockArch(scene,world);
-  addExtremeArches(scene,world);
-  addCoastalCliffs(scene,world);
   addSouthBridge(scene,world);
   addValleyLandmarks(scene,world);
   const landmarks=addSunnyLandmarks(scene,world);
