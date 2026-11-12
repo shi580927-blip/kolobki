@@ -8,8 +8,6 @@ import {addPondStudy} from "./PondStudy";
 import {addSouthBridge} from './SouthBridge';
 import {addCoastalCliffs} from './CoastalCliffs';
 import {addValleyLandmarks} from './ValleyLandmarks';
-import {addPlateauCliffs} from './PlateauCliffs';
-import {addMountainCliffs} from './MountainCliffs';
 import {addExtremeArches} from './ExtremeArches';
 import {addSunnyLandmarks} from './SunnyLandmarks';
 import {addIslandHorizon} from './IslandHorizon';
@@ -56,8 +54,6 @@ export function createWorld(scene: THREE.Scene, world: RAPIER.World) {
   const art=addValleyArt(scene,world);
   const pond=addPondStudy(scene,world);
   addRockArch(scene,world);
-  addPlateauCliffs(scene,world);
-  addMountainCliffs(scene,world);
   addExtremeArches(scene,world);
   addCoastalCliffs(scene,world);
   addSouthBridge(scene,world);
