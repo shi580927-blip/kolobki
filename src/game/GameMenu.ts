@@ -23,6 +23,10 @@ export class GameMenu {
  private profile(slot:'head'|'mark'='head'){
   this.title.textContent='Мой шаробес';this.body.textContent='Монеты: '+this.wardrobe.coins+' · Каждая собранная ягода даёт 1 монету.';
   this.actions.replaceChildren();this.action(slot==='head'?'К раскраскам':'К головным уборам',()=>this.profile(slot==='head'?'mark':'head'),'wardrobe-tab');
+  const skinButton=this.action('Черепушка · '+(this.wardrobe.skull?'Снять':'Надеть'),()=>{
+   this.wardrobe.setSkull(!this.wardrobe.skull);this.wear();this.profile(slot);
+  },'wear-skull');
+  skinButton.setAttribute('aria-pressed',String(this.wardrobe.skull));
   for(const item of GOODS.filter(x=>x.slot===slot)){
    const owned=this.wardrobe.owned.has(item.id),worn=this.wardrobe.outfit[slot]===item.id;
    const button=this.action(item.name+' · '+(worn?'Снять':owned?'Надеть':item.price+' мон.'),()=>{this.wardrobe.choose(item);this.wear();this.profile(slot);},'wear-'+item.id);

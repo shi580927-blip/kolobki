@@ -52,6 +52,11 @@ async function review() {
     await page.getByLabel('Выражение лица').selectOption('curious');
     await page.waitForTimeout(5000);
     await page.screenshot({path:'dist/brow-review/curious-bold_short.png'});
+    await page.goto('http://study.local/?skin=skull');
+    await page.waitForFunction(()=>window.__SHAROBESY__?.fps>0);
+    assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('sharobesy.wardrobe.v1')).skull),true);
+    await page.keyboard.press('Digit4');
+    await page.screenshot({path:'dist/tattoo-review/skull-game.png'});
   } finally {
     await browser.close();
   }

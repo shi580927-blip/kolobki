@@ -158,6 +158,8 @@ async function start() {
   portraitLight.position.set(-3, 4, 5);
   portraitScene.add(portraitLight);
   const wardrobe=new Wardrobe();
+  const skullLink=new URLSearchParams(location.search).get('skin')==='skull';
+  if(skullLink&&!appearanceTest){wardrobe.setSkull(true);const url=new URL(location.href);url.searchParams.delete('skin');history.replaceState(null,'',url.href);}
   const portraitVisual=new RuntimeVisual({...design,furCount:Math.min(design.furCount,24)},atlas,resources.textures,skin.mood,environmentFor(portraitRenderer),experimentalFace);
   type BrowStyle=SketchFace['browStyle'];
   const browStyles=['classic','elegant','rounded','bold_short'] as const;
@@ -165,7 +167,7 @@ async function start() {
   const applyBrows=(style:BrowStyle)=>{currentBrow=style;for(const face of [visual.face.experimentalFace,portraitVisual.face.experimentalFace])if(face)face.browStyle=style;};
   const savedBrow=storage.getItem('sharobesy.browStyle');
   if(browStyles.some(style=>style===savedBrow))applyBrows(savedBrow as BrowStyle);
-  function wear(){const outfit=appearanceTest?authorOutfit:wardrobe.outfit;visual.setOutfit(outfit);portraitVisual.setOutfit(outfit);}
+  function wear(){const outfit=appearanceTest?authorOutfit:wardrobe.outfit;for(const model of [visual,portraitVisual]){model.setOutfit(outfit);model.setSkull(appearanceTest?skullLink:wardrobe.skull);}}
   wear();
   portraitScene.add(portraitVisual);
   const portraitCamera = new T.PerspectiveCamera(38, 1, 0.1, 10);
