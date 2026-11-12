@@ -2,6 +2,7 @@ import * as T from 'three';
 import {wrapU,type TattooId,type TattooPlacement} from './CosmeticCatalog';
 /** Experimental UV overlay follows the face heading, independently of the physical roll. */
 export class BodyDecoration extends T.Group {
+ private skullTexture?:T.Texture;
  private readonly canvas=document.createElement('canvas');
  private readonly texture:T.CanvasTexture;
  private readonly mesh:T.Mesh<T.SphereGeometry,T.MeshStandardMaterial>;
@@ -9,7 +10,21 @@ export class BodyDecoration extends T.Group {
  private readonly maskEnabled={value:0};
  constructor(){super();this.name='body-decoration';this.canvas.width=1024;this.canvas.height=1024;this.texture=new T.CanvasTexture(this.canvas);this.texture.colorSpace=T.SRGBColorSpace;this.texture.wrapS=T.RepeatWrapping;this.texture.anisotropy=4;this.mesh=new T.Mesh(new T.SphereGeometry(1.004,64,48),new T.MeshStandardMaterial({map:this.texture,transparent:true,depthWrite:false,roughness:.55,polygonOffset:true,polygonOffsetFactor:-1}));const mat=this.mesh.material;mat.onBeforeCompile=shader=>{shader.uniforms.cosmeticFaceInverse=this.faceInverse;shader.uniforms.cosmeticMaskEnabled=this.maskEnabled;shader.vertexShader=shader.vertexShader.replace('#include <common>','#include <common>\nvarying vec3 cosmeticWorld;').replace('#include <worldpos_vertex>','#include <worldpos_vertex>\ncosmeticWorld=(modelMatrix*vec4(transformed,1.0)).xyz;');shader.fragmentShader=shader.fragmentShader.replace('#include <common>','#include <common>\nvarying vec3 cosmeticWorld; uniform mat4 cosmeticFaceInverse; uniform float cosmeticMaskEnabled;').replace('#include <clipping_planes_fragment>','#include <clipping_planes_fragment>\nvec3 f=(cosmeticFaceInverse*vec4(cosmeticWorld,1.0)).xyz; vec2 e1=(f.xy-vec2(-.36,.035))/vec2(.33,.34); vec2 e2=(f.xy-vec2(.36,.035))/vec2(.33,.34); vec2 m=(f.xy-vec2(0.,-.43))/vec2(.44,.18); if(cosmeticMaskEnabled>.5 && f.z>0. && (dot(e1,e1)<1. || dot(e2,e2)<1. || dot(m,m)<1.)) discard;');};mat.customProgramCacheKey=()=> 'body-face-exclusion-v1';this.add(this.mesh);this.mesh.visible=false;}
  setFaceFrame(face:T.Object3D){face.updateWorldMatrix(true,false);this.faceInverse.value.copy(face.matrixWorld).invert();}
- setTattoo(placement:TattooPlacement|null){const ctx=this.canvas.getContext('2d')!;ctx.clearRect(0,0,1024,1024);this.mesh.visible=!!placement;if(!placement){this.texture.needsUpdate=true;return;}
+ setTattoo(placement:TattooPlacement|null){if(placement?.id==='skull'){
+   if(!this.skullTexture){
+    const map=new T.TextureLoader().load(import.meta.env.BASE_URL+'assets/cosmetics/skull.webp');
+    map.colorSpace=T.SRGBColorSpace;
+    map.wrapS=T.RepeatWrapping;
+    map.offset.x=.25;
+    this.skullTexture=map;
+   }
+   this.mesh.material.map=this.skullTexture;
+   this.maskEnabled.value=1;
+   this.mesh.visible=true;
+   return;
+  }
+  this.mesh.material.map=this.texture;
+  const ctx=this.canvas.getContext('2d')!;ctx.clearRect(0,0,1024,1024);this.mesh.visible=!!placement;if(!placement){this.texture.needsUpdate=true;return;}
   this.maskEnabled.value=placement.excludeFace?1:0;
   const x=wrapU(.25)*1024,y=(placement.id==='star'||placement.id==='blush'?.61:1-placement.v)*1024,size=placement.scale*1024;
   const mirrored=placement.id!=='claw'&&placement.id!=='rune'&&placement.id!=='lightning';
@@ -72,5 +87,5 @@ export class BodyDecoration extends T.Group {
     for(const [x,y,r] of [[-.53,-.58,.018],[-.41,-.64,.011],[.38,-.58,.018],[.53,-.10,.013],[-.48,.56,.014],[.54,.53,.012]] as const){c.beginPath();c.arc(x,y,r,0,Math.PI*2);c.fill();}
   }
  }
- dispose(){this.mesh.geometry.dispose();this.mesh.material.dispose();this.texture.dispose();}
+ dispose(){this.skullTexture?.dispose();this.mesh.geometry.dispose();this.mesh.material.dispose();this.texture.dispose();}
 }
