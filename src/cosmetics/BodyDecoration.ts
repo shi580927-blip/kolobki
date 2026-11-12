@@ -19,7 +19,7 @@ export class BodyDecoration extends T.Group {
     this.skullTexture=map;
    }
    this.mesh.material.map=this.skullTexture;
-   this.maskEnabled.value=1;
+   this.maskEnabled.value=0;
    this.mesh.visible=true;
    return;
   }

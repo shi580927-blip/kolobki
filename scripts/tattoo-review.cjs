@@ -25,6 +25,10 @@ async function review() {
         await page.getByRole('button',{name:'↶ 30°'}).click({clickCount:2});
       }
     }
+    await select.selectOption('skull');
+    await page.getByLabel('Выражение лица').selectOption('attack');
+    await page.getByRole('button',{name:'Моргание',exact:true}).click();
+    await page.screenshot({path:'dist/tattoo-review/skull-blink.png'});
     await select.selectOption('');
     await page.goto('http://study.local/?face-v5-game');
     await page.getByRole('button',{name:'Настройки',exact:true}).click({timeout:60000});
