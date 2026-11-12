@@ -1,0 +1,82 @@
+{
+  "report": [
+    {
+      "stage": "splash",
+      "position": [
+        -35,
+        1.5217745304107666,
+        53
+      ],
+      "wet": 0.909184099046191,
+      "maxWet": 0.909184099046191,
+      "waves": 0,
+      "splashes": 1,
+      "rescued": false,
+      "safety": {
+        "idle": 0,
+        "under": 0,
+        "flying": false,
+        "rescues": 0
+      }
+    },
+    {
+      "stage": "wake",
+      "position": [
+        -29.26108741760254,
+        2.0585386753082275,
+        55.371604919433594
+      ],
+      "wet": 0.5684047210469578,
+      "maxWet": 1,
+      "waves": 7,
+      "splashes": 0,
+      "rescued": false,
+      "safety": {
+        "idle": 0,
+        "under": 0,
+        "flying": false,
+        "rescues": 0
+      }
+    },
+    {
+      "stage": "shore",
+      "position": [
+        -5.388399124145508,
+        4.40321159362793,
+        65.15819549560547
+      ],
+      "wet": 0,
+      "maxWet": 1,
+      "waves": 0,
+      "splashes": 0,
+      "rescued": false,
+      "safety": {
+        "idle": 0,
+        "under": 0,
+        "flying": false,
+        "rescues": 0
+      }
+    },
+    {
+      "stage": "rescue",
+      "position": [
+        -32.37812805175781,
+        5.590506076812744,
+        53.5711669921875
+      ],
+      "wet": 0,
+      "maxWet": 1,
+      "waves": 2,
+      "splashes": 1,
+      "rescued": true,
+      "safety": {
+        "idle": 0,
+        "under": 0,
+        "flying": true,
+        "rescues": 1
+      }
+    }
+  ],
+  "errors": [],
+  "mode": "actual game physics and actor; controlled initial drop fixture, no live-game teleport hooks"
+}
