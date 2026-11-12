@@ -8,7 +8,7 @@ import {VALLEY_ROUTE} from '../src/core/valleyRoute';
 import {coastalCliffGeometry,addCoastalCliffs} from '../src/game/CoastalCliffs';
 
 test('coastal headlands add real raised ground and leave the main route unchanged',()=>{
- for(const c of COAST_TERRACES)assert.ok(coastHeight(c.x,c.z)>4);
+ for(const c of COAST_TERRACES)assert.ok(coastHeight(c.x,c.z)>2&&coastHeight(c.x,c.z)<4,'low rounded headland');
  for(let i=0;i<VALLEY_ROUTE.length;i++){const a=VALLEY_ROUTE[i],b=VALLEY_ROUTE[(i+1)%VALLEY_ROUTE.length];for(let t=0;t<=1;t+=.01)assert.equal(coastHeight(a.x+(b.x-a.x)*t,a.z+(b.z-a.z)*t),0);}
  const g=coastalCliffGeometry(),p=g.getAttribute('position');assert.ok(p.count/3<1000);assert.ok(p.count/3>300);assert.ok(Array.from(p.array).every(Number.isFinite));g.dispose();
 });

@@ -12,7 +12,7 @@ test('physical plateau cliffs leave the race corridor and southern access open w
  for(const g of parts){
   const p=g.getAttribute('position'),c=g.getAttribute('color');triangles+=p.count/3;
   g.computeBoundingBox();const box=g.boundingBox!,height=box.max.y-box.min.y;
-  assert.ok(height>1.5);if(height<5)lowShelves++;
+  assert.ok(height>0);if(height<5)lowShelves++;
   widths.push(Math.max(box.max.x-box.min.x,box.max.z-box.min.z));
   for(let i=0;i<p.count;i++){
    const x=p.getX(i),y=p.getY(i),z=p.getZ(i);

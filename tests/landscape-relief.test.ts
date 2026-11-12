@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {landscapeRelief,RELIEF_MODULES} from '../src/core/landscapeRelief';
 import {VALLEY_ROUTE} from '../src/core/valleyRoute';
 test('authored relief has a raised plateau, continuous boundaries and leaves the driving loop open',()=>{
- for(const m of RELIEF_MODULES){assert.ok(landscapeRelief(m.x,m.z)>=6);
+ for(const m of RELIEF_MODULES){assert.ok(landscapeRelief(m.x,m.z)>=m.height*.8);
   for(let a=0;a<Math.PI*2;a+=.2){const x=m.x+Math.cos(a)*m.radius,z=m.z+Math.sin(a)*m.radius;
    assert.ok(Math.abs(landscapeRelief(x+.01,z)-landscapeRelief(x-.01,z))<.05);
   }
