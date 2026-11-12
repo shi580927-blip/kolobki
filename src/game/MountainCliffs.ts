@@ -3,7 +3,7 @@ import R from '@dimforge/rapier3d-compat';
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
 import {heightAt} from '../core/terrain';
 import {nearestExplorationPath} from '../core/valleyExploration';
-import {naturalCliffMaterial} from './StoneArt';
+import {stoneMaterial} from './StoneArt';
 import {scenicStone} from './ScenicStone';
 import {addStoneGreenery} from './StoneGreenery';
 
@@ -31,7 +31,9 @@ export function mountainCliffGeometry(){
    if(Math.abs(q.x)>187||Math.abs(q.z)>187||nearestExplorationPath(q.x,q.z).distance<rx+11)continue;
    let low=heightAt(q.x,q.z),high=low;
    for(const du of [-rx,0,rx])for(const dv of [-rz,rz]){const b=at(u+du,v+dv);low=Math.min(low,heightAt(b.x,b.z));high=Math.max(high,heightAt(b.x,b.z));}
-   const base=low-.8,top=Math.max(low+1.6,high+.35)-(shelf?1.1:0);
+   // Keep the visible stone embedded in the hill instead of stacking tall
+   // isolated blocks above the walkable surface.
+   const base=low-.8,top=Math.min(Math.max(low+1.6,high+.2)-(shelf?1.1:0),low+4.5);
    const height=Math.max(1.4,top-base),layers=Math.ceil(height/6.5);
    for(let layer=0;layer<layers;layer++){
     const phase=p.seed*13+j*2+shelf+layer*1.9,offset=at(u+.65*Math.sin(phase),v+.55*Math.cos(phase*1.7));
@@ -42,7 +44,7 @@ export function mountainCliffGeometry(){
  const geometry=mergeGeometries(parts);parts.forEach(p=>p.dispose());return geometry;
 }
 export function addMountainCliffs(scene:T.Scene,world:R.World){
- const geometry=mountainCliffGeometry(),material=naturalCliffMaterial();
+ const geometry=mountainCliffGeometry(),material=stoneMaterial();
  material.emissive.set('#b7aa92');material.emissiveIntensity=.12;
  const mesh=new T.Mesh(geometry,material);mesh.name='valley-mountain-rock-shoulders';mesh.castShadow=true;mesh.receiveShadow=true;scene.add(mesh);
  addStoneGreenery(mesh,mountainCliffLayout().flatMap(p=>[-.35,0,.35].flatMap(u=>[-.3,0,.3].map(v=>({x:p.x+u*p.width,z:p.z+v*p.depth})))));

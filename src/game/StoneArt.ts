@@ -57,5 +57,3 @@ export function stoneMaterial(arches:readonly {x:number;y:number;z:number;rx:num
  };
  m.customProgramCacheKey=()=> 'valley-stone-plates-v2';return m;
 }
-/** Open cliffs are natural rock; the cut-stone joints belong only on ruins and arches. */
-export function naturalCliffMaterial(){return new T.MeshStandardMaterial({vertexColors:true,roughness:1});}
