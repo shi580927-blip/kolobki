@@ -29,14 +29,14 @@ export class BerryArt {
  private drupeGeometry=new T.SphereGeometry(1,16,12);
  private stemMaterial=new T.MeshStandardMaterial({color:'#56813a',roughness:.78});
  constructor(environment?:T.Texture){
-  this.fruitMaterial=new T.MeshPhysicalMaterial({color:'#df1544',roughness:.23,metalness:0,clearcoat:.8,clearcoatRoughness:.14,transmission:0,thickness:.24,ior:1.36,attenuationColor:new T.Color('#ff3150'),attenuationDistance:.65,envMap:environment,envMapIntensity:.75});
+  this.fruitMaterial=new T.MeshPhysicalMaterial({color:'#d73250',roughness:.48,metalness:0,clearcoat:.18,clearcoatRoughness:.55,transmission:0,thickness:.24,ior:1.36,attenuationColor:new T.Color('#ff3150'),attenuationDistance:.65,envMap:environment,envMapIntensity:.28});
   // A thin flesh glow gives fruit-like translucency without a second scene/refraction pass.
   this.fruitMaterial.onBeforeCompile=shader=>{shader.fragmentShader=shader.fragmentShader.replace('#include <opaque_fragment>',`float fleshRim=pow(1.-abs(dot(normal,normalize(vViewPosition))),2.);
    float fleshBack=0.;
    #if NUM_DIR_LIGHTS > 0
     fleshBack=pow(max(dot(-normal,directionalLights[0].direction),0.),1.5);
    #endif
-   outgoingLight+=diffuseColor.rgb*(.035+.10*fleshRim+.18*fleshBack);
+   outgoingLight+=diffuseColor.rgb*(.02+.045*fleshRim+.08*fleshBack);
    #include <opaque_fragment>`);};
   this.fruitMaterial.customProgramCacheKey=()=> 'raspberry-flesh-v1';
  }

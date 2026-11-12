@@ -5,7 +5,7 @@ import {ConvexGeometry} from 'three/addons/geometries/ConvexGeometry.js';
 import {RELIEF_MODULES} from '../core/landscapeRelief';
 import {heightAt} from '../core/terrain';
 import {nearestRoutePoint} from '../core/valleyRoute';
-import {stoneColors,stoneMaterial} from './StoneArt';
+import {stoneColors,naturalCliffMaterial} from './StoneArt';
 
 /** Broad interlocking upper masses and lower shelves, rather than a ring of pillars.
  * Their merged visible triangles are also the physical surface. */
@@ -57,7 +57,7 @@ export function addPlateauCliffs(scene:T.Scene,world:R.World){
  const {parts}=plateauCliffParts();
  if(!parts.length)return;
  const geometry=mergeGeometries(parts);parts.forEach(p=>p.dispose());
- const material=stoneMaterial();
+ const material=naturalCliffMaterial();
  // A restrained ambient fill keeps the shaded side readable without extra lights/passes.
  material.emissive.set('#a99c87');material.emissiveIntensity=.16;
  const mesh=new T.Mesh(geometry,material);mesh.name='western-plateau-rock-buttresses';

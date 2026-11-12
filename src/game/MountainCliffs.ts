@@ -3,7 +3,7 @@ import R from '@dimforge/rapier3d-compat';
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
 import {heightAt} from '../core/terrain';
 import {nearestExplorationPath} from '../core/valleyExploration';
-import {stoneMaterial} from './StoneArt';
+import {naturalCliffMaterial} from './StoneArt';
 import {scenicStone} from './ScenicStone';
 import {addStoneGreenery} from './StoneGreenery';
 
@@ -42,7 +42,7 @@ export function mountainCliffGeometry(){
  const geometry=mergeGeometries(parts);parts.forEach(p=>p.dispose());return geometry;
 }
 export function addMountainCliffs(scene:T.Scene,world:R.World){
- const geometry=mountainCliffGeometry(),material=stoneMaterial();
+ const geometry=mountainCliffGeometry(),material=naturalCliffMaterial();
  material.emissive.set('#b7aa92');material.emissiveIntensity=.12;
  const mesh=new T.Mesh(geometry,material);mesh.name='valley-mountain-rock-shoulders';mesh.castShadow=true;mesh.receiveShadow=true;scene.add(mesh);
  addStoneGreenery(mesh,mountainCliffLayout().flatMap(p=>[-.35,0,.35].flatMap(u=>[-.3,0,.3].map(v=>({x:p.x+u*p.width,z:p.z+v*p.depth})))));

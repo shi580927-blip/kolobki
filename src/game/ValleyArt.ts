@@ -12,7 +12,7 @@ import {randomFrom} from '../core/skin';
 import {landmarkClearance} from '../core/scenicLayout';
 import {EXTREME_ARCHES} from './ExtremeArches';
 
-const meadowDark=new T.Color('#348d31'),meadowLight=new T.Color('#7fbb35'),sunGrass=new T.Color('#b8d254'),soil=new T.Color('#dcac63');
+const meadowDark=new T.Color('#36953a'),meadowLight=new T.Color('#86c946'),sunGrass=new T.Color('#c2d85c'),soil=new T.Color('#dcae70');
 /** Continuous world-space colour fields keep the broad slopes from reading as a flat sheet. */
 export function valleyGroundColor(x:number,y:number,z:number){
  const patch=.5+.25*Math.sin(x*.075+Math.sin(z*.09)*1.3)+.25*Math.sin(z*.13-x*.035);
@@ -102,11 +102,11 @@ function flowerPetalGeometry(){
  const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(p,3));g.computeVertexNormals();return g;
 }
 function canopyGeometry(){
- const g=new T.SphereGeometry(1,11,8),p=g.getAttribute('position'),colors:number[]=[];
+ const g=new T.SphereGeometry(1,20,14),p=g.getAttribute('position'),colors:number[]=[];
  for(let i=0;i<p.count;i++){
-  const x=p.getX(i),y=p.getY(i),z=p.getZ(i),s=1+.10*Math.sin(x*7+z*4)*Math.sin(y*5)+.035*Math.cos(z*12+x*6);
+  const x=p.getX(i),y=p.getY(i),z=p.getZ(i),s=1+.035*Math.sin(x*8+z*5)*Math.sin(y*7)+.018*Math.cos(z*14+x*9);
   p.setXYZ(i,x*s,y*(1+.025*Math.cos(z*8)),z*s);
-  const c=new T.Color('#347a2c').lerp(new T.Color('#bfd44b'),Math.max(0,Math.min(1,(y+1)*.5)));
+  const c=new T.Color('#58a83b').lerp(new T.Color('#c5e269'),Math.max(0,Math.min(1,(y+1)*.5)));
   colors.push(c.r,c.g,c.b);
  }
  g.setAttribute('color',new T.Float32BufferAttribute(colors,3));g.computeVertexNormals();return g;
@@ -151,7 +151,7 @@ export function addValleyArt(scene:T.Scene,world:R.World){
    branchDirection.set(Math.cos(a),.35,Math.sin(a)).normalize();
    dummy.quaternion.setFromUnitVectors(leafAxis,branchDirection);dummy.scale.setScalar((.42+(j%3)*.05)*s);dummy.updateMatrix();treeLeaves.setMatrixAt(i*12+j,dummy.matrix);
   }
-  const tint=['#e5efad','#e5e991','#bed49a'][p.kind];
+  const tint=['#d9f5ab','#f0eaa4','#bfe4b0'][p.kind];
   for(let j=0;j<6;j++){
    const a=j*2.39996+yaw,r=j===0?0:(1.12+(j%2)*.2)*s,yOffset=j===0?5.6:4.35+(j%3)*.58;
    put(crowns,i*6+j,p.x+Math.cos(a)*r+Math.cos(yaw)*.25*s,y+yOffset*s,p.z+Math.sin(a)*r-Math.sin(yaw)*.25*s,(j===0?2.0:1.65+(j%2)*.2)*s,(p.kind===1?1.9:1.4+(j%2)*.2)*s,(j===0?2.0:1.65)*s,tint);

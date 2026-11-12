@@ -4,7 +4,7 @@ import {ConvexGeometry} from 'three/addons/geometries/ConvexGeometry.js';
 import {mergeGeometries,toCreasedNormals} from 'three/addons/utils/BufferGeometryUtils.js';
 import {COAST_TERRACES} from '../core/coast';
 import {heightAt} from '../core/terrain';
-import {stoneColors,stoneMaterial} from './StoneArt';
+import {stoneColors,naturalCliffMaterial} from './StoneArt';
 
 /** Broad overlapping rock shoulders and low shelves, with no grass needles. */
 export function coastalCliffGeometry(){
@@ -43,7 +43,7 @@ export function coastalCliffGeometry(){
  const g=mergeGeometries(parts);parts.forEach(p=>p.dispose());return g;
 }
 export function addCoastalCliffs(scene:T.Scene,world:R.World){
- const g=coastalCliffGeometry(),m=stoneMaterial();m.emissive.set('#a99c87');m.emissiveIntensity=.16;
+ const g=coastalCliffGeometry(),m=naturalCliffMaterial();m.emissive.set('#a99c87');m.emissiveIntensity=.16;
  const mesh=new T.Mesh(g,m);mesh.name='lagoon-coastal-terraces';mesh.castShadow=mesh.receiveShadow=true;scene.add(mesh);
  const vertices=new Float32Array(g.getAttribute('position').array),indices=Uint32Array.from({length:vertices.length/3},(_,i)=>i);
  world.createCollider(R.ColliderDesc.trimesh(vertices,indices).setFriction(.9));return mesh;

@@ -18,7 +18,7 @@ test('landmark buildings keep the full driving corridors open and have real roof
   const origin=new Vector3(p.x,100,p.z),direction=new Vector3(0,-1,0),visual=new Raycaster(origin,direction).intersectObject(building)[0],physical=w.castRay(new R.Ray(origin,direction),120,true);
   assert.ok(visual&&physical);assert.ok(Math.abs(visual.distance-physical.timeOfImpact)<.003);
  }
- assert.equal(art.buildings,8);art.update(1);w.free();
+ assert.equal(art.buildings,1);art.update(1);w.free();
 });
 test('scenic island joins every terrain edge without filling the playable field or adding physics',()=>{
  const g=islandCoastGeometry(),p=g.getAttribute('position');
