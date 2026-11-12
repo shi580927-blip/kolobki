@@ -16,6 +16,9 @@ function eye(parent:T.Group, side:number) {
   const brow=patch(parent,'sculpted-brow','#302436',36,16);
   const eyeOutline=patch(parent,'eye-outline','#191316',72,6);
   const browCaps=[patch(parent,'brow-inner-cap','#302436',12,8),patch(parent,'brow-outer-cap','#302436',12,8)];
+  const shadow=patch(parent,'eyeshadow','#805178',36,8);
+  const liner=patch(parent,'eyeliner','#211522',36,6);
+  const lashes=Array.from({length:3},()=>patch(parent,'lash','#211522',12,4));
   const corner=patch(parent,'smile-dimple','#763036',20,8);
   const furrow=patch(parent,'forehead-fold','#bb3c41',16,6);
   brow.mesh.material.roughness=.82;
@@ -27,7 +30,7 @@ function eye(parent:T.Group, side:number) {
   let shadowKey='';
   let lastShape='';
   upper.mesh.receiveShadow=true;
-  return (p:Pose,blink:number,color:string,detail:boolean,gaze:number,poseKey:string,stunned:boolean,rage:boolean,scarred=false,browStyle='classic',curious=false, paintedLids=false)=>{
+  return (p:Pose,blink:number,color:string,detail:boolean,gaze:number,poseKey:string,stunned:boolean,rage:boolean,scarred=false,browStyle='classic',curious=false, paintedLids=false, makeup={shadow:false,liner:false,lashes:false})=>{
     white.mesh.visible=!scarred;eyeOutline.mesh.visible=!scarred;// As the animated aperture closes, reveal the continuous skull paint beneath it.
     upper.mesh.visible=lower.mesh.visible=!scarred&&!paintedLids;
     // The underlying angry eyeball is a circle, not a compressed eye shape.
@@ -66,8 +69,26 @@ function eye(parent:T.Group, side:number) {
       }
       ambient.needsUpdate=true;
     }
-    const shapeKey=poseKey+':'+Math.round(blink*240)+color+detail+':'+browStyle+':'+curious;
+    const shapeKey=poseKey+':'+Math.round(blink*240)+color+detail+':'+browStyle+':'+curious+':'+makeup.shadow+makeup.liner+makeup.lashes;
     const changed=shapeKey!==lastShape;
+    shadow.mesh.visible=makeup.shadow&&!scarred;
+    liner.mesh.visible=makeup.liner&&!scarred;
+    // Follow the upper eyelid through expressions and blinks.
+    const lidPoint=(u:number)=>bounds(u)[1];
+    if(changed&&shadow.mesh.visible)shadow.draw((u,v)=>{
+      const fade=Math.sin(Math.PI*u);
+      return [xAt(u),lidPoint(u)+v*.095*fade,eyeRelief(u,1)+.005];
+    });
+    if(changed&&liner.mesh.visible)liner.draw((u,v)=>{
+      const along=Math.min(1,u/.84),wing=Math.max(0,(u-.84)/.16);
+      return [xAt(along)+side*.085*wing,lidPoint(along)+.064*wing+v*.023*Math.sin(Math.PI*u),eyeRelief(along,1)+.018];
+    });
+    lashes.forEach((lash,index)=>{
+      lash.mesh.visible=makeup.lashes&&!scarred;
+      if(!changed||!lash.mesh.visible)return;
+      const root=.69+index*.085;
+      lash.draw((u,v)=>[xAt(root)+side*(.052*u*u+.016*(v-.5)*(1-u)),lidPoint(root)+.073*u,eyeRelief(root,1)+.021]);
+    });
     if(changed)eyeOutline.draw((u,v)=>{
       const a=2*Math.PI*u,t=(1-Math.cos(a))*.5;
       const [lo,hi]=bounds(t),top=Math.sin(a)>=0;
@@ -196,6 +217,7 @@ export class SketchFace extends T.Group {
     core:patch(this,'closed-eye-scar-core-'+i,'#df644f',28,6),
     highlight:patch(this,'closed-eye-scar-ridge-'+i,'#ffe0b6',28,3),
   }));
+  eyeMakeup={shadow:false,liner:false,lashes:false};
   paintedLids=false;
   closedScarEye=false;
   browStyle:'classic'|'elegant'|'rounded'|'bold_short'='classic';
@@ -254,7 +276,7 @@ export class SketchFace extends T.Group {
     const drawKey=[poseKey,Math.round(blink*240),Math.round(gaze*250),color,detail,this.closedScarEye,this.scarScale,this.scarShift,this.scarInk,this.browStyle].join(':');
     if(drawKey===this.lastDraw)return;
     this.lastDraw=drawKey;
-    this.eyes.forEach((draw,index)=>{const scarred=this.closedScarEye&&index===1;draw(p,scarred?1:blink,color,detail,gaze,poseKey,name==='stunned',name==='rage',scarred,this.browStyle,name==='curious',this.paintedLids);});
+    this.eyes.forEach((draw,index)=>{const scarred=this.closedScarEye&&index===1;draw(p,scarred?1:blink,color,detail,gaze,poseKey,name==='stunned',name==='rage',scarred,this.browStyle,name==='curious',this.paintedLids,this.eyeMakeup);});
     this.scarLid.mesh.visible=this.closedScarEye;this.scarCrease.mesh.visible=this.closedScarEye;
     if(this.closedScarEye){this.scarLid.mesh.material.color.set(color).lerp(new T.Color('#28151b'),.46);this.scarLid.draw((u,v)=>{const x=.10+.55*u,curve=-.025-.075*Math.sin(Math.PI*u),width=.055*Math.sin(Math.PI*u)**.55;return [x,curve+(v-.5)*width,.020+.010*Math.sin(Math.PI*u)*Math.sin(Math.PI*v)];});this.scarCrease.draw((u,v)=>{const x=.11+.53*u,curve=-.028-.075*Math.sin(Math.PI*u),width=.010*Math.sin(Math.PI*u)**.5;return [x,curve+(v-.5)*width,.034];});}
     this.scars.forEach((scar,index)=>{for(const layer of Object.values(scar))layer.mesh.visible=this.closedScarEye;if(!this.closedScarEye)return;scar.wound.mesh.material.color.set(this.scarInk).lerp(new T.Color('#4b0715'),.52);const vertex=(u:number,v:number,layer:'rim'|'wound'|'core'|'highlight')=>{const taper=Math.sin(Math.PI*u)**.68;

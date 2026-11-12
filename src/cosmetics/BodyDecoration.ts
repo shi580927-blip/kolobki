@@ -25,8 +25,8 @@ export class BodyDecoration extends T.Group {
   }
   this.mesh.material.map=this.texture;
   const ctx=this.canvas.getContext('2d')!;ctx.clearRect(0,0,1024,1024);this.mesh.visible=!!placement;if(!placement){this.texture.needsUpdate=true;return;}
-  this.maskEnabled.value=placement.excludeFace?1:0;
-  const x=wrapU(.25)*1024,y=(placement.id==='star'||placement.id==='blush'?.61:1-placement.v)*1024,size=placement.scale*1024;
+  this.maskEnabled.value=0;
+  const x=wrapU(.25)*1024,y=(['star','blush','freckles'].includes(placement.id)?.61:1-placement.v)*1024,size=placement.scale*1024;
   const mirrored=placement.id!=='claw'&&placement.id!=='rune'&&placement.id!=='lightning';
   const spread=placement.id==='star'||placement.id==='blush'?.095:.105+.08*(placement.rearOffset??.45);
   const copies=mirrored?[{offset:-spread,flip:1},{offset:spread,flip:-1}]:[{offset:placement.id==='rune'||placement.id==='lightning'?-spread:0,flip:1}];
@@ -53,6 +53,12 @@ export class BodyDecoration extends T.Group {
     c.save();c.strokeStyle='#ffffff';c.lineWidth=.011;c.beginPath();c.moveTo(-.54,-.08);c.quadraticCurveTo(-.15,-.32,.20,-.34);c.moveTo(-.55,.17);c.quadraticCurveTo(-.10,-.08,.30,-.11);c.stroke();c.restore();
   }
   if(id==='claw')for(let i=-1;i<=1;i++)poly([[-.43+i*.2,-.38],[-.31+i*.2,-.40],[.16+i*.2,.38],[.10+i*.2,.42]]);
+  if(id==='freckles'){
+    c.fillStyle='#965840';
+    for(const [x,y,r] of [[-.31,-.05,.028],[-.12,-.15,.022],[.09,-.09,.032],[.26,.02,.021],[-.2,.11,.018],[.02,.16,.024],[.18,.12,.016]]){
+      c.beginPath();c.arc(x,y,r,0,Math.PI*2);c.fill();
+    }
+  }
   if(id==='star'){
     const star=(x:number,y:number,r:number)=>{const p:number[][]=[];for(let i=0;i<10;i++){const a=-Math.PI/2+i*Math.PI/5,rr=i%2?r*.43:r;p.push([x+Math.cos(a)*rr,y+Math.sin(a)*rr]);}poly(p);};
     c.save();c.shadowColor='#ffe02e';c.shadowBlur=.13;c.fillStyle='#c95118';star(0,0,.24);c.fillStyle='#ffe02e';star(0,0,.21);c.shadowBlur=0;c.fillStyle='#fff69b';star(-.04,-.05,.055);for(const [x,y,r] of [[-.35,-.12,.035],[.32,.08,.03],[.28,-.22,.02]] as const)star(x,y,r);c.restore();
