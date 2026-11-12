@@ -43,6 +43,7 @@ export class RuntimeVisual extends T.Group {
   if(enabled&&!this.skullPaint){
    this.skullPaint=new BodyDecoration();
    this.skullPaint.setTattoo({id:'skull',color:'#ffffff',u:.25,v:.5,scale:1,excludeFace:false});
+   this.skullPaint.setPartialSkull(true);
    this.face.add(this.skullPaint);
   }
   if(this.skullPaint)this.skullPaint.visible=enabled;
