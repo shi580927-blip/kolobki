@@ -97,13 +97,19 @@ function eye(parent:T.Group, side:number) {
       const geometry=new T.TubeGeometry(new T.CatmullRomCurve3(points),120,.014,6,false);
       spiral.geometry.dispose();spiral.geometry=geometry;
     }
+    const irisRadius=curious ? (eyeOuter-inner)/3 : .129*p.irisScale;
+    const ringRadii=curious
+      ? [irisRadius,irisRadius*.94,irisRadius*.80,irisRadius*.16]
+      : [.129,.115,.081,.024].map(radius=>radius*p.irisScale);
     rings.forEach((part,i)=>{
       part.mesh.visible=blink<.985&&!stunned&&!rage;
       part.draw((u,v)=>{
-        const angle=u*Math.PI*2,r=[.129,.115,.081,.024][i]*p.irisScale;
+        const angle=u*Math.PI*2,r=ringRadii[i];
         // Keep both irises focused toward the bridge in every expression.
         const focusOffset=side*Math.min(p.irisX,0)*.2;
-        const x=side*.25+focusOffset+gaze*.35+(i===3?-.030:0)+r*v*Math.cos(angle);
+        const focus=.25+side*(focusOffset+gaze*.35);
+        const centre=curious ? T.MathUtils.clamp(focus,inner+irisRadius,eyeOuter-irisRadius) : focus;
+        const x=side*centre+(i===3?-.030:0)+r*v*Math.cos(angle);
         const fraction=T.MathUtils.clamp((side*x-inner)/(eyeOuter-inner),0,1);
         const ex=Math.acos(1-2*fraction)/Math.PI;
         const [lo,hi]=bounds(ex);
