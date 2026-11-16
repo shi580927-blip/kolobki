@@ -130,3 +130,38 @@
 #match-result #result-replay{display:block;width:420px;margin:15px auto 14px;font-size:30px;min-height:70px}
 
 #hud:has(#match-result:not([hidden])) > :not(#match-result):not(#game-menu){visibility:hidden}
+/* Shared cosmetic screen finish: 1280×720 stage, uniform scaling. */
+#game-menu:is([data-screen=profile],[data-screen=shop]){font-family:Arial,sans-serif;background:linear-gradient(180deg,#5fc8f235,#c0ed9255 48%,#edc78ce8 90%);isolation:isolate}
+#game-menu:is([data-screen=profile],[data-screen=shop])::before{content:'ШАРОБЕСЫ';position:absolute;left:90px;top:16px;font-size:48px;font-weight:1000;font-style:italic;letter-spacing:-2px;color:#ffdd26;-webkit-text-stroke:1px #fff49b;text-shadow:0 4px #e66b15,3px 7px #4e155c,-3px -2px #652179,5px 8px 0 #fff8;z-index:-1}
+#game-menu:is([data-screen=profile],[data-screen=shop])>h2{position:absolute;left:30px;top:92px;margin:0;padding:10px 28px;border:3px solid #e9c8ff;border-radius:32px;background:linear-gradient(#cb83fa 0%,#9753d9 18%,#6536a4 60%,#482579 90%);box-shadow:inset 0 3px 2px #fff9,0 4px 0 #442169,0 0 0 2px #ac6edd;color:#fff8ed;font-size:28px;text-shadow:0 3px #341b53}
+#game-menu:is([data-screen=profile],[data-screen=shop])>p{right:28px;top:20px;margin:0;padding:9px 22px;font-size:20px;color:#fff;border:2px solid #c1a6ff;border-radius:26px;background:linear-gradient(#6745ac,#2e225a);box-shadow:inset 0 2px #fff5,0 3px #4c2678}
+#game-menu[data-screen=profile] .menu-actions{inset:155px 24px 16px}
+#game-menu[data-screen=profile] .wardrobe-stage{left:295px;top:0;width:540px;height:230px}
+#game-menu[data-screen=profile] .wardrobe-podium{left:46px;width:430px;height:75px;border:7px solid #c99bf1;box-shadow:inset 0 3px 6px #fff8,0 12px 0 #654093,0 18px 0 #ac80c4,0 24px 15px #4e2e5055,0 -3px 20px #ffe771aa;background:radial-gradient(ellipse,#f6d2e7 25%,#f6dfad 47%,#fff26d 49%,#ffbd23 53%,#a76ac5 55%,#72459c 70%)}
+#hud:has(#game-menu[data-screen=profile]:not([hidden])) #portrait{left:370px;top:57px;width:380px;height:380px}
+#game-menu[data-screen=profile] .fitting-turn{top:145px;width:55px;height:60px;font-size:36px;box-shadow:inset 0 3px #fff8,0 5px #7e3d7e}
+#game-menu[data-screen=profile] #fitting-turn-\-1{left:280px}#game-menu[data-screen=profile] #fitting-turn-1{left:790px}
+.outfit-summary{position:absolute;right:0;top:-75px;width:300px;height:300px;padding:12px;border:4px solid #d8a7fa;border-radius:27px;background:linear-gradient(#c290ee,#8255b9);box-shadow:inset 0 0 0 3px #f4dcff,0 5px #512d80}
+.outfit-summary h3{margin:-10px -10px 14px;padding:12px 8px;border:3px solid #fff3a4;border-radius:25px;background:linear-gradient(#fff561,#ffcb20 50%,#f8a714);box-shadow:0 4px #b3664a;color:#512164;text-align:center;font-size:24px;text-shadow:0 1px #fff8}
+.outfit-summary>div{display:flex;align-items:center;gap:8px;height:61px;margin:7px 0;padding:4px 9px;background:linear-gradient(#fff9f4,#ecdcf8);border:2px solid #f8eeff;border-radius:16px;color:#33204d;text-shadow:none}
+.outfit-summary img{width:52px;height:52px;object-fit:contain}.outfit-summary span{flex:1}.outfit-summary small,.outfit-summary strong{display:block}.outfit-summary small{font-size:12px;margin-bottom:3px}.outfit-summary strong{font-size:15px}.outfit-summary b{display:grid;place-items:center;width:23px;height:23px;border:2px solid #f3ffc4;background:linear-gradient(#90dc2e,#399315);color:white;border-radius:50%}
+.fitting-tabs{position:absolute;top:248px;left:6px;display:flex;gap:5px;height:53px}.fitting-tabs button{margin:0!important;width:230px;font-size:23px!important;border:3px solid #d8adff!important;border-radius:25px 25px 0 0!important;background:linear-gradient(#ae76e5,#603297)!important;box-shadow:inset 0 3px #fff6}
+.fitting-tabs button[aria-pressed=true]{background:linear-gradient(#fff678,#ffbc1c)!important;color:#512369!important;border-color:#fff3b4!important;text-shadow:none}
+.fitting-rail{position:absolute;top:296px;left:0;right:0;height:174px;display:flex;gap:12px;overflow-x:auto;padding:12px 18px;border:4px solid #e6c2fc;border-radius:27px;background:linear-gradient(#bc8aeb,#8354b8);box-shadow:inset 0 3px #fff6,0 5px #59367f;scrollbar-width:thin}
+#game-menu[data-screen=profile] .fitting-rail .wardrobe-card{position:relative;top:auto;flex:1 0 182px;max-width:280px;height:140px;margin:0;padding:6px 12px;font-size:15px;border-radius:20px;border:3px solid #fff1cf;background:linear-gradient(#fff6de,#efdaed);box-shadow:inset 0 2px white,0 4px #70458e;text-align:center}
+#game-menu[data-screen=profile] .fitting-rail .wardrobe-card img{height:88px;width:110px;margin:0}
+#game-menu[data-screen=profile] .wardrobe-card[aria-pressed=true]::after{content:'✓';position:absolute;right:5px;top:4px;border-radius:50%;padding:2px 6px;background:#71c82d;color:#fff;border:2px solid #fff6a6}
+#game-menu[data-screen=profile] #menu-back,#game-menu[data-screen=profile] #fitting-shop{position:absolute;top:auto;bottom:0;width:235px;height:64px;margin:0;border:3px solid #d9afff;border-radius:33px;font-size:25px;background:linear-gradient(#b678e9,#7242ae 45%,#4c2a7b);color:white;text-shadow:0 2px #3c1c5f;box-shadow:inset 0 3px #fff8,0 5px #45245e}
+#game-menu[data-screen=profile] #menu-back{left:10px;right:auto}#game-menu[data-screen=profile] #fitting-shop{right:10px;width:330px;background:linear-gradient(#fff66d,#ffcb23 55%,#ffa813);color:#522263;border-color:#fff1aa;text-shadow:0 1px white}
+#game-menu[data-screen=shop]>h2{top:87px}
+#game-menu[data-screen=shop] .menu-actions{top:151px;background:linear-gradient(#9e67d9f5,#59378dec);border-color:#e3b8fc;box-shadow:inset 0 3px 3px #fff9,0 6px #4c296c}
+#game-menu[data-screen=shop] .shop-tabs{top:-61px;left:370px;width:814px;gap:5px}
+#game-menu[data-screen=shop] .shop-tabs button{font-size:21px;border-radius:26px 26px 10px 10px;box-shadow:inset 0 3px #fff7}
+.shop-showcase{position:absolute;left:18px;top:15px;width:815px;height:151px;overflow:hidden;padding:21px 24px;border:3px solid #f1b7ff;border-radius:26px;background:radial-gradient(ellipse at 65% 90%,#feb2f6,#a74de3 38%,#573298 77%);box-shadow:inset 0 0 12px #ee8bff,0 3px #452367;text-shadow:0 3px #482060}
+.shop-showcase h3{font-size:29px;color:#fff09c;margin:6px 0}.shop-showcase span{font-size:17px}.shop-showcase img{position:absolute;top:-2px;width:155px;height:155px;object-fit:contain;filter:drop-shadow(0 0 8px #fff7)}.shop-showcase img:nth-of-type(1){right:268px}.shop-showcase img:nth-of-type(2){right:135px}.shop-showcase img:nth-of-type(3){right:2px}
+#game-menu[data-screen=shop] .shop-grid{top:184px;height:284px;grid-auto-rows:131px;gap:12px}
+#game-menu[data-screen=shop] .shop-card{border-radius:21px;box-shadow:inset 0 2px #fff,0 4px #412160;font-size:16px}.shop-card img{height:70px;width:102px}.shop-card strong{font-size:16px}.shop-card span{font-size:15px;margin-top:2px;padding:2px 15px}
+#game-menu[data-screen=shop] .shop-detail{height:451px;border-color:#fff0b1;box-shadow:inset 0 0 0 3px #cda0e4,0 5px #4b2c6d}
+#game-menu[data-screen=shop] #shop-buy{box-shadow:inset 0 3px #fff8,0 4px #327e24;border-radius:30px}
+#game-menu:is([data-screen=profile],[data-screen=shop]) button:focus-visible{outline:4px solid #fff5a0;outline-offset:3px;filter:brightness(1.1)}
+#game-menu:is([data-screen=profile],[data-screen=shop]) button:hover:not(:disabled){filter:brightness(1.07)}
