@@ -6,6 +6,7 @@ export class GameMenu {
   this.panel=document.createElement('section');this.panel.id='game-menu';this.panel.setAttribute('role','dialog');this.panel.setAttribute('aria-modal','true');this.panel.setAttribute('aria-labelledby','game-menu-title');
   this.title=document.createElement('h2');this.title.id='game-menu-title';this.body=document.createElement('p');this.actions=document.createElement('div');this.actions.className='menu-actions';this.panel.append(this.title,this.body,this.actions);document.querySelector('#hud')!.append(this.panel);
   const button=document.createElement('button');button.id='menu-open';button.textContent='Меню';button.onclick=()=>this.show();document.querySelector('#tools')!.prepend(button);
+  addEventListener('sharobesy-home',()=>{this.started=false;this.show();});
   addEventListener('keydown',e=>{if(e.code==='Escape'){if(this.open&&this.started)this.close();else this.show();}});this.show();
  }
  get open(){return !this.panel.hidden;}
