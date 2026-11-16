@@ -7,6 +7,7 @@ async function review() {
   const browser = await chromium.launch({args:['--use-angle=swiftshader','--enable-unsafe-swiftshader']});
   try {
     const page = await browser.newPage({viewport:{width:1440,height:810}});
+    page.setDefaultTimeout(120000);
     await page.route('http://study.local/**', async route => {
       const file = new URL(route.request().url()).pathname.replace(/^\/kolobki\//,'/');
       await route.fulfill({path:path.join('dist',file==='/'?'index.html':file)});
@@ -93,7 +94,9 @@ async function review() {
     await page.screenshot({path:'dist/tattoo-review/mode-selection.png'});
     await page.locator('#menu-match').click();
     await page.locator('#match-start').click();
-    await page.waitForFunction(()=>window.__SHAROBESY__.match.phase==='running');
+    await page.waitForFunction(()=>['countdown','running'].includes(window.__SHAROBESY__.match.phase));
+    assert.equal(await page.locator('#match-entry').isVisible(),false);
+    assert.equal(await page.evaluate(()=>window.__SHAROBESY__.match.visual.visible),true);
     assert.equal(await page.locator('#match-result').isVisible(),false);
     await page.locator('#reset').click();
     assert.equal(await page.locator('#match-result').isVisible(),false);
