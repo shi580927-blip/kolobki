@@ -13,13 +13,16 @@ export class MatchSession {
  readonly rules=new RouteMatch(MEADOW_TRACK);readonly rivalTrain:TrainSystem;
  private route:MatchRouteVisual;private label:HTMLElement;private result:HTMLElement;
  private button:HTMLButtonElement;private finishEmitted=false;
- private entry:HTMLElement;
+ private entry:HTMLElement;private raceHud:HTMLElement;
  private recruit:number|undefined;private recruitTime=0;
  constructor(private world:R.World,scene:T.Scene,private player:PhysicsPlayer,private npcs:NpcSystem,private train:TrainSystem,private options:TrainOptions,private resetGame:()=>void,private events:EventBus){
   const actors=npcs.actors.slice(1).map(a=>({id:a.entry.id,physics:a.physics}));
   this.rivalTrain=new TrainSystem(world,npcs.actors[0].physics,actors,new EventBus(),{manageGroups:false,breakOnContact:false,canRecruit:id=>!train.has(id)&&!train.isJoining(id)});
   this.route=new MatchRouteVisual(scene,this.rules.track);
   this.label=document.createElement('div');this.label.id='match-status';this.label.setAttribute('role','status');document.querySelector('#hud')!.appendChild(this.label);
+  this.raceHud=document.createElement('section');this.raceHud.id='race-hud';this.raceHud.hidden=true;
+  this.raceHud.innerHTML='<header>⚑ ЗАЕЗД <small>Солнечная долина</small></header><div class="race-lap"></div><div class="race-clock"></div><aside class="race-standing"><strong class="race-place"></strong><div class="race-leaders"></div></aside>';
+  document.querySelector('#hud')!.appendChild(this.raceHud);
   this.result=document.createElement('div');this.result.id='match-result';this.result.hidden=true;this.result.setAttribute('role','dialog');this.result.setAttribute('aria-modal','true');this.result.setAttribute('aria-labelledby','result-title');this.result.innerHTML='<div class="result-emblem" aria-hidden="true">★</div><h2 id="result-title"></h2><p class="result-subtitle"></p><div class="result-scores"><section><span>Твой результат</span><strong id="result-player"></strong><small>контрольных точек</small></section><section><span>Соперник</span><strong id="result-rival"></strong><small>контрольных точек</small></section></div><p class="result-time"></p>';document.querySelector('#hud')!.appendChild(this.result);
   this.entry=document.createElement('div');this.entry.id='match-entry';
   const heading=document.createElement('h2');heading.textContent='Матч с соперником';
@@ -66,7 +69,7 @@ export class MatchSession {
  exit(){
   this.rivalTrain.reset();this.rules.reset();
   this.options.manageGroups=true;this.options.breakOnContact=true;this.options.canRecruit=undefined;
-  this.train.reset();this.route.update(this.rules);this.label.hidden=true;this.result.hidden=true;this.button.textContent='Начать матч';
+  this.train.reset();this.route.update(this.rules);this.label.hidden=true;this.raceHud.hidden=true;document.querySelector('#hud')?.removeAttribute('data-racing');this.result.hidden=true;this.button.textContent='Начать матч';
   this.entry.hidden=false;this.entry.insertBefore(this.button,this.entry.querySelector('#sandbox-choice'));
  }
  preStep(dt:number){
@@ -103,7 +106,15 @@ export class MatchSession {
  render(){
   if(!this.active)return;
   const s=this.rules.snapshot();this.label.hidden=false;this.route.update(this.rules);
+  this.raceHud.hidden=s.phase==='finished';document.querySelector<HTMLElement>('#hud')!.dataset.racing=String(s.phase!=='finished');
   const lap=(index:number)=>Math.min(s.laps,Math.floor(s.progress[index]/s.checkpoints)+1);
+  const ahead=s.progress[0]===s.progress[1]?0:s.progress[0]>s.progress[1]?1:2;
+  this.raceHud.querySelector('.race-place')!.textContent=ahead===0?'Старт на равных':ahead+'-е место';
+  this.raceHud.querySelector('.race-lap')!.textContent=s.phase==='countdown'?'Старт через '+Math.ceil(s.countdown):'⚑ Круг '+lap(0)+' / '+s.laps;
+  const seconds=Math.max(0,MATCH_RULES.duration-s.remaining);
+  this.raceHud.querySelector('.race-clock')!.textContent='◷ '+Math.floor(seconds/60).toString().padStart(2,'0')+':'+(seconds%60).toFixed(1).padStart(4,'0');
+  const ranking=[{name:'Ты',progress:s.progress[0]},{name:'Соперник',progress:s.progress[1]}].sort((a,b)=>b.progress-a.progress);
+  this.raceHud.querySelector('.race-leaders')!.textContent=ranking.map((r,i)=>(i+1)+'. '+r.name+' · '+r.progress+' точек').join('\n');
   const target=this.rules.target(0),distance=Math.ceil(Math.hypot(target.x-this.player.current.x,target.z-this.player.current.z));
   const status=s.phase==='countdown'?`${s.trackName} · Старт через ${Math.ceil(s.countdown)} · Следуйте светящейся дорожке`:
    `${s.trackName} · ${Math.floor(Math.ceil(s.remaining)/60)}:${(Math.ceil(s.remaining)%60).toString().padStart(2,'0')} · Круг ${lap(0)}/${s.laps} · Чекпоинт ${Math.min(s.progress[0],s.laps*s.checkpoints-1)%s.checkpoints+1}/${s.checkpoints}: ${distance} м · Соперник: ${s.progress[1]}/${s.laps*s.checkpoints}`;

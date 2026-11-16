@@ -35,5 +35,5 @@ export function npcRoster(seed:number){
  const appearance=randomFrom(seed^0x19fe21),behavior=randomFrom(seed^0x6b0421),kinds:Temperament[]=['bully','coward','sly','sleepy','chaotic'];
  const spots=[[-6,9],[6,12],[-11,4],[13,10],[0,17]];
  for(let i=kinds.length-1;i>0;i--){const j=Math.floor(behavior()*(i+1));[kinds[i],kinds[j]]=[kinds[j],kinds[i]];}
- return kinds.map((kind,id)=>({id,kind,appearanceSeed:Math.floor(appearance()*0x100000000),behaviorSeed:Math.floor(behavior()*0x100000000),x:spots[id][0],z:spots[id][1]}));
+ return Array.from({length:15},(_,id)=>{const kind=kinds[id%kinds.length];return({id,kind,appearanceSeed:Math.floor(appearance()*0x100000000),behaviorSeed:Math.floor(behavior()*0x100000000),x:id<5?spots[id][0]:(id<10?-24:26)+(id%5)*2.8,z:id<5?spots[id][1]:-18+(id%5)*1.2});});
 }

@@ -33,6 +33,14 @@ const fs=require('node:fs/promises');
   await page.locator('#menu-play').click();await page.locator('#menu-free').click();
   assert.equal(await page.locator('#game-menu').isVisible(),false);
   await page.screenshot({path:'dist/deploy-review/valley.png'});
+  await page.waitForFunction(()=>window.__SHAROBESY__?.npcs?.length===15);
+  await page.waitForFunction(()=>window.__SHAROBESY__?.npcTrains?.length===3);
+  await page.locator('#menu-open').click();await page.locator('#menu-play').click();await page.locator('#menu-match').click();await page.locator('#match-start').click();
+  await page.locator('#race-hud:not([hidden])').waitFor();
+  assert.equal(await page.locator('.power-belt button').count(),3);
+  await page.screenshot({path:'dist/deploy-review/race.png'});
+  await page.locator('#reset').click();
+  assert.equal(await page.locator('#race-hud').isVisible(),false);
   assert.deepEqual(errors,[]);console.log('Live V5, illustrated background, fitting tabs, shop and free ride PASS');
  }finally{await browser.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});

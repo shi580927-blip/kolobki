@@ -1,3 +1,4 @@
+import {NpcFleet} from './game/NpcFleet';
 import {browStyleForSeed} from './face/BrowStyle';
 import {GOODS,Wardrobe,readOutfit} from './game/Wardrobe';
 import "./style.css";
@@ -129,6 +130,7 @@ async function start() {
   const trainOptions:TrainOptions={};
   const train=npcs?new TrainSystem(world,player,npcs.actors.map(a=>({id:a.entry.id,physics:a.physics})),bus,trainOptions):undefined;
   let match:MatchSession|undefined;
+  const fleet=npcs&&train?new NpcFleet(npcs,world,train,trainOptions):undefined;
   const duo=duoMode?new DuoSession(scene,player,skin.seed,buildVersion,seed=>{const s=skinFrom(seed);return new RuntimeVisual(designForGame(s),atlas,resources.textures,s.mood,worldEnvironment);}):undefined;
   if(!duoMode&&!appearanceTest&&!valleyStudy){const button=document.createElement('button');button.id='duo-launch';button.textContent='Вдвоём · в доработке';button.disabled=true;button.onclick=()=>{const url=new URL(location.href);url.searchParams.set('duo','1');url.hash='';location.assign(url.href);};document.querySelector('#tools')!.appendChild(button);}
   if(npcs){const label=document.createElement("div");label.id="train-status";label.textContent="Поезд: 0 / 5 · Коснитесь шаробеса без сильного тарана";label.style.cssText="position:absolute;left:30px;top:95px;font-size:16px;color:#fff;max-width:760px;background:#193b38cc;padding:7px 12px;border-radius:12px";hud.appendChild(label);}
@@ -242,7 +244,7 @@ async function start() {
   const resetGame = () => {
     player.reset();
     dust.reset();wake.reset();sandFall.reset();groundLighting.features.reset();
-    npcs?.reset();
+    fleet?.reset();npcs?.reset();
     train?.reset();trainStatus();
     berries.reset();abilities.reset();effects.reset();feedback.hidden=true;feedbackLife=0;impactMeter.reset();waterSafety.reset();physicsTime=0;faces.forEach(f=>f.rig.reset());
     updateBerryCount();
@@ -332,7 +334,8 @@ async function start() {
       abilities.step(dt);berries.step(dt);
       if(powerPanel?.takeRequest()){const kind=inventory.selected,result=abilities.activate(kind);if(result.ok){effects.power(kind,player.current);if(kind==='pepper')audio.dash();else if(kind==='bomb')audio.play();react(kind==='bomb'?'fury':'happy');}else tell(result.message);}
       player.step(dt, input, direction);
-      npcs?.step(dt,player,id=>(train?.has(id)||train?.isJoining(id)||match?.controlled(id))??false);
+      fleet?.step(dt,!match?.active);
+      npcs?.step(dt,player,id=>(train?.has(id)||train?.isJoining(id)||fleet?.controlled(id)||match?.controlled(id))??false);
       train?.step(dt);
       match?.stepTrain(dt);
       player.applySandDrag(dt);
@@ -357,7 +360,7 @@ async function start() {
       for(const actor of npcs?.actors??[]){actor.physics.updateCoating(dt);sandFall.emit(actor.entry.id,actor.physics.coating.shed,actor.physics.current);}
       berries.checkSegment(player.previous, player.current);
       events.drainContactForceEvents((e) => {
-        const internal=(train?.isInternalContact(e.collider1(),e.collider2())||match?.internal(e.collider1(),e.collider2()))??false;
+        const internal=(train?.isInternalContact(e.collider1(),e.collider2())||fleet?.internal(e.collider1(),e.collider2())||match?.internal(e.collider1(),e.collider2()))??false;
         const aa=abilityActors(),first=aa.find(a=>a.physics.collider.handle===e.collider1()),second=aa.find(a=>a.physics.collider.handle===e.collider2());
         if(first&&second){const direction=second.physics.current.clone().sub(first.physics.current).normalize(),closing=first.physics.impactVelocity.clone().sub(second.physics.impactVelocity).dot(direction);abilities.actorContact(first,second,closing,internal);}
         npcs?.contact(e.collider1(),e.collider2(),e.totalForceMagnitude(),internal,player);
@@ -373,7 +376,7 @@ async function start() {
         }
       });
       train?.afterStep();
-      match?.afterStep();
+      match?.afterStep();fleet?.afterStep();
       acc -= dt;
       steps++;
     }
@@ -444,7 +447,7 @@ async function start() {
       browStyle:currentBrow,portraitBrowStyle:portraitVisual.face.experimentalFace?.browStyle,
       faceVisibility: Object.entries(visual.face.rig.poses).filter(([,g])=>g.visible).map(([name,g])=>({name,rotation:g.rotation.toArray(),opacity:(g.children.find(o=>o.name.startsWith('study-')) as T.Mesh<T.BufferGeometry,T.ShaderMaterial>).material.uniforms.opacity.value})),
       wetSand:{wetness:player.coating.wetness,sand:player.coating.sand},waterSubmersion:pondSubmersion(player.current),waterSafety:waterSafety.snapshot(-1),waterWaves:wake.count,waterSplashes:wake.splashCount,dustCount:dust.count, physicsTime,impactCharge:impactMeter.value,train:train?.snapshot(),match:match?.snapshot(),audio:audio.snapshot(),fullscreen:!!document.fullscreenElement,
-      npcs:npcs?.snapshot().map(a=>({...a,state:train?.has(a.id)?"wagon":train?.isJoining(a.id)?"joining":match?.controlled(a.id)?a.id===0?"rival":"rival-wagon":a.state}))??[],npcContacts:npcs?.collisionsWithPlayer??0,npcSeed:npcs?.seed,
+      npcs:npcs?.snapshot().map(a=>({...a,state:train?.has(a.id)?"wagon":train?.isJoining(a.id)?"joining":match?.controlled(a.id)?a.id===0?"rival":"rival-wagon":a.state}))??[],npcContacts:npcs?.collisionsWithPlayer??0,npcSeed:npcs?.seed,npcTrains:fleet?.snapshot(),
       buildVersion,worldSize:WORLD_SIZE,worldArt:"sunny-valley-gardens-v2",environmentArt:groundLighting.art,valleyFeatures:groundLighting.features.snapshot(),skyArt:skyState,cloudCount:sky?.clouds.length??0,cameraFov:camera.fov,
       duo:duo?.snapshot(),abilities:abilities.snapshot(),powerDrops:berries.powers.map(p=>({kind:p.kind,position:p.mesh.position.toArray(),available:p.respawn===0})),menu:menu?.open,decorations:visual.decorations.style,effectParticles:effects.count,
       berryDetail,
