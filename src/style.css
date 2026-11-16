@@ -219,3 +219,6 @@
 #hud[data-stick-hand=right][data-racing=true] #jump{right:auto;left:28px}
 #hud[data-stick-hand=right][data-racing=true] #dash{right:auto;left:196px}
 #hud[data-stick-hand=right][data-racing=true] #camera-pad{right:auto;left:30px}
+
+#hud[data-racing=true] #berry-count{width:280px;font-size:0;white-space:nowrap}
+#hud[data-racing=true] #berry-count::after{content:attr(data-race-berries);font-size:23px}

@@ -142,7 +142,7 @@ async function start() {
   const tell=(text:string)=>{feedback.textContent=text;feedback.hidden=false;feedbackLife=2;};
   const abilityRoster:AbilityActor[]=npcs?.actors.map(a=>({id:a.entry.id,physics:a.physics,hit:()=>{a.brain.hit();a.visual.face.play("dazed");}}))??[];
   const abilityActors=()=>abilityRoster;
-  const abilities=new AbilitySystem(inventory,world,player,abilityActors,id=>!!train?.has(id)||!!train?.isJoining(id),id=>{match?.rivalTrain.releaseFrom(id,"ability-bomb");},result=>{tell(COMBO_LABELS[result.kind]+(result.count>1?" ×"+result.count:""));if(result.kind!=="blast"){effects.burst(result.position,result.kind==="air-hit"?"lemon":result.kind);audio.play();}rig.shake=Math.max(rig.shake,.10);});
+  const abilities=new AbilitySystem(inventory,world,player,abilityActors,id=>!!train?.has(id)||!!train?.isJoining(id),id=>{match?.rivalTrain.releaseFrom(id,"ability-bomb");fleet?.releaseFrom(id,"ability-bomb");},result=>{tell(COMBO_LABELS[result.kind]+(result.count>1?" ×"+result.count:""));if(result.kind!=="blast"){effects.burst(result.position,result.kind==="air-hit"?"lemon":result.kind);audio.play();}rig.shake=Math.max(rig.shake,.10);});
   if(standardMode)powerPanel=new PowerPanel(inventory,()=>!paused()&&!player.controlsLocked);
   const events = new R.EventQueue(true);
   const portraitCanvas =

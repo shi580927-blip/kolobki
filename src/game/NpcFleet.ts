@@ -31,5 +31,6 @@ export class NpcFleet {
    a.physics.collider.setCollisionGroups(member===1?0x0001ffff:group(member));
   });
  }
+ releaseFrom(id:number,reason:string){this.trains.forEach(t=>t.releaseFrom(id,reason));}
  snapshot(){return this.enabled?this.trains.map((t,i)=>({head:this.heads[i],...t.snapshot()})):[];}
 }

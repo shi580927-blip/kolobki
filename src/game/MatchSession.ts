@@ -107,6 +107,7 @@ export class MatchSession {
   if(!this.active)return;
   const s=this.rules.snapshot();this.label.hidden=false;this.route.update(this.rules);
   this.raceHud.hidden=s.phase==='finished';document.querySelector<HTMLElement>('#hud')!.dataset.racing=String(s.phase!=='finished');
+  const berries=document.querySelector<HTMLElement>('#berry-count');if(berries)berries.dataset.raceBerries=berries.textContent?.split(' · ')[0]??'';
   const lap=(index:number)=>Math.min(s.laps,Math.floor(s.progress[index]/s.checkpoints)+1);
   const ahead=s.progress[0]===s.progress[1]?0:s.progress[0]>s.progress[1]?1:2;
   this.raceHud.querySelector('.race-place')!.textContent=ahead===0?'Старт на равных':ahead+'-е место';
