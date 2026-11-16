@@ -1,3 +1,4 @@
+import {GARDENS} from './game/FruitGardens';
 import {browStyleForSeed} from './face/BrowStyle';
 import {GOODS,Wardrobe,readOutfit} from './game/Wardrobe';
 import "./style.css";
@@ -140,7 +141,7 @@ async function start() {
   const tell=(text:string)=>{feedback.textContent=text;feedback.hidden=false;feedbackLife=2;};
   const abilityRoster:AbilityActor[]=npcs?.actors.map(a=>({id:a.entry.id,physics:a.physics,hit:()=>{a.brain.hit();a.visual.face.play("dazed");}}))??[];
   const abilityActors=()=>abilityRoster;
-  const abilities=new AbilitySystem(inventory,world,player,abilityActors,id=>!!train?.has(id)||!!train?.isJoining(id),id=>{match?.rivalTrain.releaseFrom(id,"ability-bomb");},result=>{tell(COMBO_LABELS[result.kind]+(result.count>1?" ×"+result.count:""));if(result.kind!=="blast"){effects.burst(result.position,result.kind==="air-hit"?"lemon":result.kind);audio.play();}rig.shake=Math.max(rig.shake,.10);});
+  const abilities=new AbilitySystem(inventory,world,player,abilityActors,id=>!!train?.has(id)||!!train?.isJoining(id),id=>{match?.rivalTrain.releaseFrom(id,"ability-bomb");},result=>{tell(COMBO_LABELS[result.kind]+(result.count>1?" ×"+result.count:""));if(result.kind!=="blast"){effects.burst(result.position,result.kind==="air-hit"?"lemon":result.kind,Math.max(1,result.count));audio.play();}rig.shake=Math.max(rig.shake,.10);});
   if(standardMode)powerPanel=new PowerPanel(inventory,()=>!paused()&&!player.controlsLocked);
   const events = new R.EventQueue(true);
   const portraitCanvas =
@@ -332,7 +333,7 @@ async function start() {
       abilities.step(dt);berries.step(dt);
       if(powerPanel?.takeRequest()){const kind=inventory.selected,result=abilities.activate(kind);if(result.ok){effects.power(kind,player.current);if(kind==='pepper')audio.dash();else if(kind==='bomb')audio.play();react(kind==='bomb'?'fury':'happy');}else tell(result.message);}
       player.step(dt, input, direction);
-      npcs?.step(dt,player,id=>(train?.has(id)||train?.isJoining(id)||match?.controlled(id))??false);
+      npcs?.step(dt,player,id=>(train?.has(id)||train?.isJoining(id)||match?.controlled(id))??false,berries.snackTargets(),id=>berries.nibble(id),!match?.active);
       train?.step(dt);
       match?.stepTrain(dt);
       player.applySandDrag(dt);
@@ -444,7 +445,7 @@ async function start() {
       browStyle:currentBrow,portraitBrowStyle:portraitVisual.face.experimentalFace?.browStyle,
       faceVisibility: Object.entries(visual.face.rig.poses).filter(([,g])=>g.visible).map(([name,g])=>({name,rotation:g.rotation.toArray(),opacity:(g.children.find(o=>o.name.startsWith('study-')) as T.Mesh<T.BufferGeometry,T.ShaderMaterial>).material.uniforms.opacity.value})),
       wetSand:{wetness:player.coating.wetness,sand:player.coating.sand},waterSubmersion:pondSubmersion(player.current),waterSafety:waterSafety.snapshot(-1),waterWaves:wake.count,waterSplashes:wake.splashCount,dustCount:dust.count, physicsTime,impactCharge:impactMeter.value,train:train?.snapshot(),match:match?.snapshot(),audio:audio.snapshot(),fullscreen:!!document.fullscreenElement,
-      npcs:npcs?.snapshot().map(a=>({...a,state:train?.has(a.id)?"wagon":train?.isJoining(a.id)?"joining":match?.controlled(a.id)?a.id===0?"rival":"rival-wagon":a.state}))??[],npcContacts:npcs?.collisionsWithPlayer??0,npcSeed:npcs?.seed,npcTrains:[],
+      npcs:npcs?.snapshot().map(a=>({...a,state:train?.has(a.id)?"wagon":train?.isJoining(a.id)?"joining":match?.controlled(a.id)?a.id===0?"rival":"rival-wagon":a.state}))??[],npcContacts:npcs?.collisionsWithPlayer??0,npcSeed:npcs?.seed,npcTrains:[],gardens:GARDENS,
       buildVersion,worldSize:WORLD_SIZE,worldArt:"sunny-valley-gardens-v2",environmentArt:groundLighting.art,valleyFeatures:groundLighting.features.snapshot(),skyArt:skyState,cloudCount:sky?.clouds.length??0,cameraFov:camera.fov,
       duo:duo?.snapshot(),abilities:abilities.snapshot(),powerDrops:berries.powers.map(p=>({kind:p.kind,position:p.mesh.position.toArray(),available:p.respawn===0})),menu:menu?.open,decorations:visual.decorations.style,effectParticles:effects.count,
       berryDetail,
@@ -463,7 +464,7 @@ async function start() {
       fps,
       stun: visual.face.immobilized?1:0,
       phase: visual.face.rig.clock.phase,
-      berries: {count:berries.count,total:berries.total,positions:berries.items.filter(i=>!i.collected).map(i=>i.mesh.position.toArray())},
+      berries: {count:berries.count,total:berries.total,nibbles:berries.nibbles,positions:berries.items.filter(i=>!i.collected&&i.regrow===0).map(i=>i.mesh.position.toArray())},
       input: { x: input.x, z: input.z, touchDrive:input.touchDrive },
       controlHand:hud.dataset.stickHand??"left",
     }),

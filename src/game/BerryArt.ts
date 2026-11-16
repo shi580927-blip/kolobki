@@ -1,3 +1,4 @@
+import {gardenPoint} from './FruitGardens';
 import * as T from 'three';
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
 import {heightAt,POND,pondDistance,pondRadius,pondClearance} from '../core/terrain';
@@ -17,7 +18,8 @@ export function makeLeafGeometry(n=14,m=6){
 export interface BerryPlacement {x:number;z:number;centerY:number;onPlant:boolean}
 export function berryPlacement(i:number):BerryPlacement {
  const points=[[0,5],[-8,18],[9,26],[-18,34],[30,12],[14,52],[19,56],[-32,-12],[18,-24],[-16,-28],[38,-4],[-40,15]];
- const point=points[i%points.length];let x=point[0],z=point[1];
+ const garden=i>=12?gardenPoint(Math.floor((i-12)/8),(i-12)%8):undefined;
+ const point=garden?[garden.x,garden.z]:points[i%points.length];let x=point[0],z=point[1];
  // Find a nearby dry, gentle patch rather than placing fruit on a cliff.
  for(let attempt=0;attempt<32;attempt++){
   const slope=Math.hypot(heightAt(x+.5,z)-heightAt(x-.5,z),heightAt(x,z+.5)-heightAt(x,z-.5));
