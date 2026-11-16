@@ -31,7 +31,8 @@ export class NpcSystem {
    if(isAttached(a.entry.id)){a.pastime.interrupt();a.visual.face.rig.forcedBlink=false;a.visual.face.rig.base=a.base;continue;}
    const v=a.physics.body.linvel(),ray=new R.Ray(a.physics.body.translation(),{x:Math.sin(a.physics.heading),y:0,z:Math.cos(a.physics.heading)}),hit=this.world.castRay(ray,4,true,undefined,undefined,a.physics.collider,a.physics.body,collider=>collider.shapeType()!==R.ShapeType.TriMesh);
    const blocked=!!hit&&!(a.entry.kind==='bully'&&hit.collider.handle===player.collider.handle);
-   const intent=a.brain.step(dt,{x:a.physics.current.x,z:a.physics.current.z,vx:v.x,vz:v.z,playerX:player.current.x,playerZ:player.current.z,neighbors:this.actors.filter(b=>b!==a).map(b=>({x:b.physics.current.x,z:b.physics.current.z})),blocked});
+   const held=leisure&&['sleep','dance','eat'].includes(a.pastime.activity);
+   const intent=held?{x:0,z:0,jump:false,dash:false}:a.brain.step(dt,{x:a.physics.current.x,z:a.physics.current.z,vx:v.x,vz:v.z,playerX:player.current.x,playerZ:player.current.z,neighbors:this.actors.filter(b=>b!==a).map(b=>({x:b.physics.current.x,z:b.physics.current.z})),blocked});
    if(a.brain.state!==a.lastState){if(a.brain.state==='flee'&&(a.visual.face.rig.target!=='scared'||a.visual.face.rig.clock.phase==='IDLE'))a.visual.face.play('scared');if(a.brain.state==='rest')a.visual.face.play('sleepy');a.lastState=a.brain.state;}
    if(!leisure||a.brain.state==='recover'||a.physics.controlsLocked||!a.physics.hasSurfaceSupport())a.pastime.interrupt();
    else{
