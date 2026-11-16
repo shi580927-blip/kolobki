@@ -56,3 +56,19 @@
 #game-menu[data-screen=home] button:disabled{opacity:.8}
 #game-menu[data-screen=home] button:hover:not(:disabled){filter:brightness(1.09)}
 #game-menu[data-screen=map]{background:linear-gradient(145deg,#7546b7f5,#33236af7)}
+/* Fitting room: live hero above a podium, item rail along the bottom. */
+#game-menu[data-screen=profile]{inset:0;width:1280px;height:720px;max-height:none;border:0;border-radius:0;overflow:hidden;background:linear-gradient(#84d0f566,#bee58e33 55%,#d7ac77dd);padding:25px 35px;text-align:left}
+#game-menu[data-screen=profile] h2{display:inline-block;font-size:40px;border:3px solid #dfb9ff;border-radius:30px;background:linear-gradient(#9d68e4,#59328f);padding:12px 30px;color:#fff5de;margin:0}
+#game-menu[data-screen=profile] p{position:absolute;right:38px;top:26px;padding:15px 22px;border-radius:28px;background:#4b2d83;border:2px solid #cda5f5;font-size:18px}
+#game-menu[data-screen=profile] .menu-actions{position:absolute;inset:110px 30px 20px}
+#game-menu[data-screen=profile] .wardrobe-stage{position:absolute;left:365px;top:0;width:490px;height:350px;pointer-events:none}
+.wardrobe-podium{position:absolute;left:45px;bottom:0;width:400px;height:84px;border-radius:50%;border:8px solid #bb88e9;background:radial-gradient(ellipse,#ffe8a3 10%,#ffe943 46%,#a96bd0 50%,#5a318c 70%);box-shadow:0 14px 0 #4d2d7b,0 23px 18px #5c453855}
+#hud:has(#game-menu[data-screen=profile]:not([hidden])) #portrait{visibility:visible;z-index:9;right:auto;left:445px;top:102px;width:390px;height:390px;pointer-events:none}
+#game-menu[data-screen=profile] .wardrobe-card{display:inline-flex;vertical-align:top;flex-direction:column;align-items:center;justify-content:flex-start;position:relative;top:355px;width:210px;height:195px;margin:0 12px 0 0;padding:10px;border:3px solid #f9dfae;border-radius:23px;background:linear-gradient(#fff4e2,#efd8fa);color:#30184f;text-shadow:none;font-size:17px;line-height:1.25;box-shadow:0 5px 0 #58378d}
+#game-menu[data-screen=profile] .wardrobe-card img{height:125px;width:150px;object-fit:contain;margin-bottom:5px}
+#game-menu[data-screen=profile] .wardrobe-card[aria-pressed=true]{border:4px solid #ffe249;box-shadow:0 0 0 3px #f7b41c,0 6px 0 #7e4c92}
+#game-menu[data-screen=profile] .wardrobe-card:disabled{opacity:.78}
+#game-menu[data-screen=profile] #wardrobe-tab{position:absolute;left:0;top:280px;width:300px;min-height:58px;font-size:21px;margin:0}
+#game-menu[data-screen=profile] #menu-back{position:absolute;right:0;top:280px;width:220px;min-height:58px;font-size:23px;margin:0;background:linear-gradient(#ffe85c,#ffb316);color:#50256e}
+#game-menu[data-screen=profile] .fitting-turn{position:absolute;top:140px;width:66px;height:70px;min-height:0;margin:0;font-size:40px;background:linear-gradient(#ffe759,#ffb31f);color:#542275;border:3px solid #fff3ba;border-radius:36px}
+#game-menu[data-screen=profile] #fitting-turn-\-1{left:315px}#game-menu[data-screen=profile] #fitting-turn-1{left:855px}

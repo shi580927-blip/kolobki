@@ -57,6 +57,18 @@ async function review() {
     assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('sharobesy.wardrobe.v1')).skull),true);
     await page.keyboard.press('Digit4');
     await page.screenshot({path:'dist/tattoo-review/skull-game.png'});
+    await page.locator('#menu-open').click();
+    await page.locator('#menu-profile').click();
+    await page.locator('.wardrobe-card img').first().waitFor();
+    assert.ok(await page.locator('.wardrobe-card img').evaluateAll(images=>images.every(img=>img.complete&&img.naturalWidth>0)),'item previews must render');
+    const portrait=await page.locator('#portrait').boundingBox();
+    assert.ok(portrait&&portrait.width>300,'fitting room has a large live hero');
+    await page.getByRole('button',{name:'Повернуть вправо',exact:true}).click();
+    await page.screenshot({path:'dist/tattoo-review/fitting-room.png'});
+    await page.locator('#wardrobe-tab').click();
+    assert.equal(await page.locator('.wardrobe-card').count(),4);
+    await page.locator('#menu-back').click();
+
   } finally {
     await browser.close();
   }

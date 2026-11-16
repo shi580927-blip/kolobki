@@ -1,4 +1,4 @@
-import {Wardrobe,readOutfit} from './game/Wardrobe';
+import {GOODS,Wardrobe,readOutfit} from './game/Wardrobe';
 import "./style.css";
 import {version as buildVersion} from "../package.json";
 import {RoomEnvironment} from "three/addons/environments/RoomEnvironment.js";
@@ -248,6 +248,8 @@ async function start() {
   document.querySelector<HTMLButtonElement>("#reset")!.onclick=()=>{match?.exit();match?.hideChoice();resetGame();};
   if(npcs&&train)match=new MatchSession(world,scene,player,npcs,train,trainOptions,resetGame,bus);
   if(standardMode){document.querySelector<HTMLElement>('#help')!.hidden=true;match?.hideChoice();if(hadDuoLink)tell('Сетевой тест отложен. Сейчас доступна одиночная долина.');menu=new GameMenu(()=>match?.showChoice(),()=>{match?.exit();match?.hideChoice();},()=>{powerPanel?.takeRequest();},wardrobe,wear,experimentalFace?{current:()=>currentBrow,select:(style:string)=>{if(!browStyles.some(x=>x===style))return;applyBrows(style as BrowStyle);storage.setItem('sharobesy.browStyle',style);}}:undefined);}
+  let fittingAngle=0;addEventListener('sharobesy-fitting-turn',e=>{fittingAngle+=(e as CustomEvent<number>).detail*Math.PI/6;});
+  if(menu)menu.preview=(id:string)=>{const outfit={...wardrobe.outfit};const item=GOODS.find(g=>g.id===id);if(item){if(item.slot==='head')outfit.head=item.id;else outfit.mark=item.id;}portraitVisual.setOutfit(outfit);portraitVisual.setSkull(id==='skull');portraitRenderer.render(portraitScene,portraitCamera);const url=portraitCanvas.toDataURL('image/png');wear();return url;};
   if(appearanceTest){const button=document.createElement('button');button.textContent='Проба комбо';button.onclick=()=>bus.emit('combo',{count:3});document.querySelector('#tools')!.appendChild(button);}
   if(npcs)contactPositions.push(...npcs.actors.map(a=>a.visual.position));
   const resize = () => {
@@ -391,6 +393,7 @@ async function start() {
     if(berryDetail){const ground=heightAt(0,5);camera.position.set(-2.8,ground+1.7,2.7);camera.lookAt(0,ground+.5,5);}
     sky?.update(elapsed,camera);
     renderer.render(scene, camera);
+    const fitting=!!document.querySelector('#game-menu[data-screen=profile]:not([hidden])');portraitVisual.rotation.y=fitting?fittingAngle:0;const previewSize=fitting?600:150;if(portraitCanvas.width!==previewSize)portraitRenderer.setSize(previewSize,previewSize,false);
     portraitRenderer.render(portraitScene, portraitCamera);
     if(firstFrame&&!renderer.getContext().isContextLost()){
       firstFrame=false;notice.hidden=true;bootReady();
