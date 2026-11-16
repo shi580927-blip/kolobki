@@ -5,7 +5,7 @@ import {heightAt} from '../core/terrain';
 import {PhysicsPlayer} from './PhysicsPlayer';
 import {NpcSystem} from './NpcSystem';
 import {TrainSystem,type TrainOptions} from './TrainSystem';
-import {RouteMatch} from './RouteMatch';
+import {RouteMatch,MATCH_RULES} from './RouteMatch';
 import {MEADOW_TRACK,VALLEY_TRACKS,type ValleyTrack} from '../core/valleyRoute';
 import {MatchRouteVisual} from './MatchRouteVisual';
 
@@ -20,7 +20,7 @@ export class MatchSession {
   this.rivalTrain=new TrainSystem(world,npcs.actors[0].physics,actors,new EventBus(),{manageGroups:false,breakOnContact:false,canRecruit:id=>!train.has(id)&&!train.isJoining(id)});
   this.route=new MatchRouteVisual(scene,this.rules.track);
   this.label=document.createElement('div');this.label.id='match-status';this.label.setAttribute('role','status');document.querySelector('#hud')!.appendChild(this.label);
-  this.result=document.createElement('div');this.result.id='match-result';this.result.hidden=true;document.querySelector('#hud')!.appendChild(this.result);
+  this.result=document.createElement('div');this.result.id='match-result';this.result.hidden=true;this.result.setAttribute('role','dialog');this.result.setAttribute('aria-modal','true');this.result.setAttribute('aria-labelledby','result-title');this.result.innerHTML='<div class="result-emblem" aria-hidden="true">★</div><h2 id="result-title"></h2><p class="result-subtitle"></p><div class="result-scores"><section><span>Твой результат</span><strong id="result-player"></strong><small>контрольных точек</small></section><section><span>Соперник</span><strong id="result-rival"></strong><small>контрольных точек</small></section></div><p class="result-time"></p>';document.querySelector('#hud')!.appendChild(this.result);
   this.entry=document.createElement('div');this.entry.id='match-entry';
   const heading=document.createElement('h2');heading.textContent='Матч с соперником';
   const instructions=document.createElement('p');instructions.textContent='Выберите трассу. Светящийся маршрут появится на время матча. Два круга, старт без запаса — собирайте поезд и предметы по дороге!';
@@ -40,6 +40,7 @@ export class MatchSession {
   this.entry.append(heading,instructions,choices,more,this.button,sandbox);document.querySelector('#hud')!.appendChild(this.entry);
   const replay=document.createElement('button');replay.id='result-replay';replay.textContent='Ещё раз';replay.onclick=()=>this.start();this.result.appendChild(replay);
   const home=document.createElement('button');home.id='result-home';home.textContent='В меню';home.onclick=()=>{this.exit();this.hideChoice();document.querySelector<HTMLButtonElement>('#menu-open')?.click();};this.result.appendChild(home);
+  const moment=document.createElement('button');moment.id='result-moment';moment.textContent='Сохранить момент';moment.onclick=()=>document.querySelector<HTMLButtonElement>('#snapshot')?.click();this.result.appendChild(moment);
   const exit=document.createElement('button');exit.id='match-exit';exit.textContent='В песочницу';exit.onclick=()=>{this.exit();this.hideChoice();};this.result.appendChild(exit);
  }
  get choosing(){return !this.entry.hidden;}
@@ -110,9 +111,15 @@ export class MatchSession {
   this.button.textContent='Матч заново';
   if(s.phase==='finished'){
    this.result.hidden=false;
-   let title=this.result.querySelector('p');if(!title){title=document.createElement('p');this.result.prepend(title);}
+   this.result.dataset.outcome=s.winner??'draw';
+   this.result.querySelector('#result-title')!.textContent=s.winner==='player'?'Победа!':s.winner==='rival'?'Хороший заезд!':'Ничья!';
    const complete=s.progress.some(p=>p>=s.laps*s.checkpoints);
-   title.textContent=(complete?'Маршрут завершён. ':'Время вышло. ')+(s.winner==='player'?'Вы победили!':s.winner==='rival'?'Соперник победил!':'Ничья!')+` Вы: ${s.progress[0]} точек · Соперник: ${s.progress[1]}. Награды в этой пробе не начисляются.`;
+   this.result.querySelector('.result-subtitle')!.textContent=s.trackName+' · '+(complete?'Маршрут завершён':'Время вышло');
+   this.result.querySelector('#result-player')!.textContent=s.progress[0]+' / '+s.laps*s.checkpoints;
+   this.result.querySelector('#result-rival')!.textContent=s.progress[1]+' / '+s.laps*s.checkpoints;
+   const elapsed=Math.max(0,Math.ceil(MATCH_RULES.duration-s.remaining));
+   this.result.querySelector('.result-time')!.textContent='Время заезда: '+Math.floor(elapsed/60)+':'+String(elapsed%60).padStart(2,'0')+' · Два круга';
+
   }
  }
  snapshot(){return {...this.rules.snapshot(),rivalId:0,rivalTrain:this.rivalTrain.snapshot(),contactBreaks:false,route:this.rules.track.points,visual:this.route.snapshot()};}

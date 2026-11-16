@@ -109,3 +109,24 @@
 /* Menu screens own their full 16:9 surface; gameplay controls stay underneath. */
 #hud:has(#game-menu:not([hidden])) > :not(#game-menu):not(#portrait){visibility:hidden}
 #game-menu[data-screen=profile]{background:linear-gradient(#a7d9f588,#bddc9d88 50%,#e0bd8de8)}
+/* Mode selection and race results complete the same golden/violet screen family. */
+#game-menu[data-screen=modes]{left:100px;top:70px;width:1080px;height:580px;max-height:none;overflow:hidden;padding:25px 36px;background:linear-gradient(#8c55cbeF,#452576f5);border:4px solid #d8b5ff}
+#game-menu[data-screen=modes] h2{font-size:44px;color:#ffe35d;margin:0 0 8px}
+#game-menu[data-screen=modes] p{font-size:22px;margin:0 0 23px}
+#game-menu[data-screen=modes] .menu-actions{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+#game-menu[data-screen=modes] #menu-free,#game-menu[data-screen=modes] #menu-match{height:300px;min-height:0;display:flex;align-items:flex-end;justify-content:center;padding:20px;margin:0;border:4px solid #ffeaa2;border-radius:28px;box-shadow:inset 0 -85px 38px #40225be6,0 7px 0 #34205e;background-size:cover;background-position:center;color:white;font-size:26px;text-shadow:0 2px 4px #341947}
+#game-menu[data-screen=modes] #menu-free{background-image:linear-gradient(#ffffff00 45%,#43256a),url('./assets/world-map.webp');background-position:left center}
+#game-menu[data-screen=modes] #menu-match{background-image:linear-gradient(#ffffff00 45%,#43256a),url('./assets/menu-valley.webp')}
+#game-menu[data-screen=modes] #menu-back{grid-column:1/3;justify-self:center;width:280px;min-height:62px;font-size:24px;margin:0}
+#match-result{left:190px;top:55px;width:900px;min-height:600px;padding:25px 40px 30px;border:4px solid #dfb8ff;border-radius:38px;background:linear-gradient(145deg,#8b51c9fa,#452575fa);box-shadow:inset 0 5px 3px #fff5,0 9px 0 #2e1854,0 18px 70px #18202b88;text-align:center}
+.result-emblem{width:92px;height:92px;margin:0 auto 8px;display:grid;place-items:center;border-radius:50%;border:4px solid #fff4b6;background:linear-gradient(#fff075,#ffb51c);color:#ad5721;font-size:65px;text-shadow:0 2px #fff4a3;box-shadow:0 5px 0 #b76a26,0 0 35px #ffe56366}
+#match-result h2{margin:10px 0 8px;font-size:48px;color:#ffe35d;text-shadow:0 3px 0 #5a245f}
+#match-result .result-subtitle{font-size:23px;margin:0 0 20px;color:#fff1d7}
+.result-scores{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin:0 50px}
+.result-scores section{display:flex;flex-direction:column;gap:6px;padding:15px;border:3px solid #ffedb2;border-radius:24px;background:linear-gradient(#fff5df,#ead6f5);color:#49225e}
+.result-scores span{font-size:23px;font-weight:bold}.result-scores strong{font-size:40px;color:#68419a}.result-scores small{font-size:16px}
+#match-result .result-time{margin:18px 0;font-size:19px;color:#f0dffb}
+#match-result button{min-height:58px;font-size:20px;margin:7px;padding:10px 20px}
+#match-result #result-replay{display:block;width:420px;margin:15px auto 14px;font-size:30px;min-height:70px}
+
+#hud:has(#match-result:not([hidden])) > :not(#match-result):not(#game-menu){visibility:hidden}

@@ -86,6 +86,18 @@ async function review() {
     await page.screenshot({path:'dist/tattoo-review/world-map.png'});
     await page.locator('#map-explore').click();
     assert.equal(await page.locator('#game-menu').isVisible(),false);
+    await page.locator('#menu-open').click();
+    await page.locator('#menu-play').click();
+    assert.equal(await page.locator('#menu-free').isVisible(),true);
+    assert.equal(await page.locator('#menu-match').isVisible(),true);
+    await page.screenshot({path:'dist/tattoo-review/mode-selection.png'});
+    await page.locator('#menu-match').click();
+    await page.locator('#match-start').click();
+    await page.waitForFunction(()=>window.__SHAROBESY__.match.phase==='running');
+    assert.equal(await page.locator('#match-result').isVisible(),false);
+    await page.locator('#reset').click();
+    assert.equal(await page.locator('#match-result').isVisible(),false);
+
 
 
   } finally {
