@@ -61,20 +61,20 @@ async function start() {
     antialias: true,
     preserveDrawingBuffer: true,
   });
-  renderer.toneMapping = T.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1;
+  renderer.toneMapping = T.NeutralToneMapping;
+  renderer.toneMappingExposure = 1.02;
   renderer.setPixelRatio(Math.min(devicePixelRatio, 1.75));
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = T.PCFSoftShadowMap;
   renderer.domElement.addEventListener("webglcontextlost",event=>{event.preventDefault();bootFail("Не удалось продолжить отображение игры. Повторите загрузку.");});
   stage.appendChild(renderer.domElement);
   const scene = new T.Scene();
-  scene.background = new T.Color(0x91cbed);
-  scene.fog = new T.Fog(0xbad9e5, 145, 640);
+  scene.background = new T.Color(0x74c4ed);
+  scene.fog = new T.Fog(0xb7ddec, 190, 640);
   let sky:ReturnType<typeof import("./game/CloudSky").addCloudSky>|undefined;
   let skyState="pending";
-  scene.add(new T.HemisphereLight(0xfff2dc, 0x72905e, 1.55));
-  const sun = new T.DirectionalLight(0xfff1de, 2.65);
+  scene.add(new T.HemisphereLight(0xf0f7ff, 0x68865a, 1.75));
+  const sun = new T.DirectionalLight(0xfff3df, 2.25);
   sun.position.set(-25, 45, 20);
   sun.castShadow = true;
   sun.shadow.mapSize.set(2048, 2048);
@@ -150,7 +150,7 @@ async function start() {
     alpha: true,
     antialias: true,
   });
-  portraitRenderer.toneMapping = T.ACESFilmicToneMapping;
+  portraitRenderer.toneMapping = T.NeutralToneMapping;
   portraitRenderer.toneMappingExposure = 1;
   portraitRenderer.setSize(150, 150, false);
   const portraitScene = new T.Scene();

@@ -6,7 +6,7 @@ export function makeGroundLighting(){
  const material=new T.MeshStandardMaterial({vertexColors:true,roughness:1});
  material.onBeforeCompile=shader=>{
   shader.uniforms.groundContacts={value:contacts};
-  shader.uniforms.beachColor={value:new T.Color('#e5c891')};
+  shader.uniforms.beachColor={value:new T.Color('#e7c18c')};
   shader.uniforms.mountainStone={value:new T.Color('#cbbca4')};
   shader.vertexShader=shader.vertexShader.replace('#include <common>','#include <common>\nvarying vec3 contactWorld;').replace('#include <project_vertex>','contactWorld=(modelMatrix*vec4(transformed,1.)).xyz;\n#include <project_vertex>');
   shader.fragmentShader=shader.fragmentShader.replace('#include <common>','#include <common>\nvarying vec3 contactWorld;uniform vec4 groundContacts[11];uniform vec3 beachColor;uniform vec3 mountainStone;\n'+shoreSandGLSL).replace('#include <color_fragment>',`#include <color_fragment>
@@ -32,7 +32,7 @@ export function makeGroundLighting(){
    diffuseColor.rgb=mix(diffuseColor.rgb,cliffColor,exposed);
    float sand=shoreSand(contactWorld.xz);
    float sandMottle=sin(contactWorld.x*.65+sin(contactWorld.z*.42))*sin(contactWorld.z*.83);
-   diffuseColor.rgb=mix(diffuseColor.rgb,beachColor*(1.+sandMottle*.045),sand);
+   diffuseColor.rgb=mix(diffuseColor.rgb,beachColor*(1.+sandMottle*.012),sand);
    // Subtle broad mottling and fine grain; derivatives suppress distant shimmer.
    vec3 surface=contactWorld*38.;
    float grainX=fract(sin(dot(floor(surface.yz),vec2(12.9898,78.233)))*43758.5453);
@@ -44,7 +44,7 @@ export function makeGroundLighting(){
    float detail=1.-smoothstep(.02,.10,footprint);
    float flecks=sin(contactWorld.x*.91+sin(contactWorld.z*.63))*sin(contactWorld.z*1.13+cos(contactWorld.x*.52));
    float broad=sin(contactWorld.x*1.7+sin(contactWorld.z*.8))*sin(contactWorld.z*2.1+sin(contactWorld.x*.6));
-   diffuseColor.rgb*=.94+grain*.10*detail+flecks*.045+broad*.035;
+   diffuseColor.rgb*=.94+grain*.10*detail+flecks*.012+broad*.008;
    float contactShade=0.;
    for(int i=0;i<11;i++){
     vec4 c=groundContacts[i];
@@ -56,6 +56,6 @@ export function makeGroundLighting(){
    diffuseColor.rgb*=1.-contactShade;
   `);
  };
- material.customProgramCacheKey=()=> 'valley-ground-meadow-v8';
+ material.customProgramCacheKey=()=> 'valley-ground-meadow-v9';
  return {material,setContacts(positions:readonly T.Vector3[]){contacts.forEach((c,i)=>{const p=positions[i];if(p)c.set(p.x,p.y,p.z,1);else c.w=0;});}};
 }

@@ -15,11 +15,11 @@ export function stoneColors(g:T.BufferGeometry,top?:number){
  const p=g.getAttribute('position'),n=g.getAttribute('normal'),colors:number[]=[],coords:number[]=[];
  for(let i=0;i<p.count;i++){
   const x=p.getX(i),y=p.getY(i),z=p.getZ(i),m=.5+.5*Math.sin(x*1.9+Math.sin(z*2.1)+y*.8);
-  const c=new T.Color('#b29e87').lerp(new T.Color('#ebd9be'),m*.45+.35);
+  const c=new T.Color('#9a9993').lerp(new T.Color('#ded5c3'),m*.45+.35);
   // Warm feet and lighter upper planes give each stone a readable grounded mass.
   c.multiplyScalar(.91+.09*Math.max(0,n.getY(i)));
   if(top!==undefined&&(n.getY(i)>.72||y>top-.11+.035*Math.sin(x*7+z*5))){
-   c.copy(new T.Color('#5c9a2e').lerp(new T.Color('#b3cf4a'),.3+.5*Math.max(0,n.getY(i))));
+   c.copy(new T.Color('#4d9143').lerp(new T.Color('#91bd56'),.3+.5*Math.max(0,n.getY(i))));
   }
   colors.push(c.r,c.g,c.b);coords.push((x-center.x)/span.x*2,(y-center.y)/span.y*2,(z-center.z)/span.z*2);
  }

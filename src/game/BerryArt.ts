@@ -33,7 +33,7 @@ export class BerryArt {
  private drupeGeometry=new T.SphereGeometry(1,16,12);
  private stemMaterial=new T.MeshStandardMaterial({color:'#56813a',roughness:.78});
  constructor(environment?:T.Texture){
-  this.fruitMaterial=new T.MeshPhysicalMaterial({color:'#d73250',roughness:.48,metalness:0,clearcoat:.18,clearcoatRoughness:.55,transmission:0,thickness:.24,ior:1.36,attenuationColor:new T.Color('#ff3150'),attenuationDistance:.65,envMap:environment,envMapIntensity:.28});
+  this.fruitMaterial=new T.MeshPhysicalMaterial({color:'#ed5570',roughness:.62,metalness:0,clearcoat:.06,clearcoatRoughness:.7,transmission:0,thickness:.24,ior:1.36,attenuationColor:new T.Color('#ff3150'),attenuationDistance:.65,envMap:environment,envMapIntensity:.16});
   // A thin flesh glow gives fruit-like translucency without a second scene/refraction pass.
   this.fruitMaterial.onBeforeCompile=shader=>{shader.fragmentShader=shader.fragmentShader.replace('#include <opaque_fragment>',`float fleshRim=pow(1.-abs(dot(normal,normalize(vViewPosition))),2.);
    float fleshBack=0.;
@@ -49,8 +49,8 @@ export class BerryArt {
   const drupes=new T.InstancedMesh(this.drupeGeometry,this.fruitMaterial,counts.reduce((a,b)=>a+b,0)),dummy=new T.Object3D();let index=0;
   counts.forEach((count,row)=>{for(let j=0;j<count;j++){
    const a=j/count*Math.PI*2+row*.43,r=.19+random()*.025;
-   dummy.position.set(Math.cos(a)*radii[row],.26-row*.26+(random()-.5)*.015,Math.sin(a)*radii[row]);dummy.scale.set(r,r*.94,r);dummy.updateMatrix();drupes.setMatrixAt(index,dummy.matrix);
-   drupes.setColorAt(index,new T.Color().setHSL(.965+random()*.02,.91,.47+random()*.09));index++;
+   dummy.position.set(Math.cos(a)*radii[row],.26-row*.26+(random()-.5)*.015,Math.sin(a)*radii[row]);dummy.scale.set(r,r*(.89+random()*.1),r);dummy.updateMatrix();drupes.setMatrixAt(index,dummy.matrix);
+   drupes.setColorAt(index,new T.Color().setHSL(.965+random()*.02,.78,.53+random()*.055));index++;
   }});
   drupes.name='raspberry-flesh';drupes.castShadow=true;drupes.receiveShadow=true;group.add(drupes);
   const calyx=new T.InstancedMesh(this.leafGeometry,this.leafMaterial,5);
