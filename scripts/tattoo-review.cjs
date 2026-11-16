@@ -61,12 +61,20 @@ async function review() {
     if(!await page.locator('#game-menu').isVisible())await page.locator('#menu-open').click();
     await page.locator('#menu-profile').click();
     await page.locator('.wardrobe-card img').first().waitFor();
+    assert.equal(await page.locator('.outfit-summary').isVisible(),true);
+    assert.equal(await page.locator('#game-menu-title').textContent(),'Примерка образа');
+    const backdrop=await page.locator('#game-menu').evaluate(async element=>{
+      const url=getComputedStyle(element).backgroundImage.match(/url\([\"']?(.*?)[\"']?\)/)?.[1];
+      if(!url)return {loaded:false,url:''};
+      const image=new Image();image.src=url;try{await image.decode();return {loaded:image.naturalWidth>1000,url};}catch{return {loaded:false,url};}
+    });
+    assert.match(backdrop.url,/fitting-clearing/);assert.equal(backdrop.loaded,true,'new illustrated backdrop must load');
     assert.ok(await page.locator('.wardrobe-card img').evaluateAll(images=>images.every(img=>img.complete&&img.naturalWidth>0)),'item previews must render');
     const portrait=await page.locator('#portrait').boundingBox();
     assert.ok(portrait&&portrait.width>300,'fitting room has a large live hero');
     await page.getByRole('button',{name:'Повернуть вправо',exact:true}).click();
     await page.screenshot({path:'dist/tattoo-review/fitting-room.png'});
-    await page.locator('#wardrobe-tab').click();
+    await page.getByRole('button',{name:'ϟ Рисунки',exact:true}).click();
     assert.equal(await page.locator('.wardrobe-card').count(),4);
     await page.locator('#menu-back').click();
     await page.locator('#menu-help').click();
