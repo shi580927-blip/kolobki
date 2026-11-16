@@ -57,7 +57,7 @@ async function review() {
     assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('sharobesy.wardrobe.v1')).skull),true);
     await page.keyboard.press('Digit4');
     await page.screenshot({path:'dist/tattoo-review/skull-game.png'});
-    await page.locator('#menu-open').click();
+    if(!await page.locator('#game-menu').isVisible())await page.locator('#menu-open').click();
     await page.locator('#menu-profile').click();
     await page.locator('.wardrobe-card img').first().waitFor();
     assert.ok(await page.locator('.wardrobe-card img').evaluateAll(images=>images.every(img=>img.complete&&img.naturalWidth>0)),'item previews must render');
@@ -68,6 +68,15 @@ async function review() {
     await page.locator('#wardrobe-tab').click();
     assert.equal(await page.locator('.wardrobe-card').count(),4);
     await page.locator('#menu-back').click();
+    await page.locator('#menu-map').click();
+    await page.locator('[data-location=winter]').click();
+    assert.match(await page.locator('.world-map-details').textContent(),/ещё создаётся/);
+    assert.equal(await page.locator('#map-match').count(),0);
+    await page.locator('[data-location=sunny]').click();
+    await page.screenshot({path:'dist/tattoo-review/world-map.png'});
+    await page.locator('#map-explore').click();
+    assert.equal(await page.locator('#game-menu').isVisible(),false);
+
 
   } finally {
     await browser.close();

@@ -72,3 +72,18 @@
 #game-menu[data-screen=profile] #menu-back{position:absolute;right:0;top:280px;width:220px;min-height:58px;font-size:23px;margin:0;background:linear-gradient(#ffe85c,#ffb316);color:#50256e}
 #game-menu[data-screen=profile] .fitting-turn{position:absolute;top:140px;width:66px;height:70px;min-height:0;margin:0;font-size:40px;background:linear-gradient(#ffe759,#ffb31f);color:#542275;border:3px solid #fff3ba;border-radius:36px}
 #game-menu[data-screen=profile] #fitting-turn-\-1{left:315px}#game-menu[data-screen=profile] #fitting-turn-1{left:855px}
+/* World map follows the reference: islands left, selected location panel right. */
+#game-menu[data-screen=map]{inset:0;width:1280px;height:720px;max-height:none;overflow:hidden;border:0;border-radius:0;padding:0;background:#31b9dc url('./assets/world-map.webp') center/cover no-repeat;box-shadow:none}
+#game-menu[data-screen=map]>h2{position:absolute;left:35px;top:23px;margin:0;padding:12px 30px;border:3px solid #ffe9a4;border-radius:30px;background:linear-gradient(#ffea53,#ffb31e);color:#54206d;font-size:39px}
+#game-menu[data-screen=map]>p{display:none}
+#game-menu[data-screen=map] .menu-actions{position:absolute;inset:0}
+.world-map-board{position:absolute;left:0;top:105px;width:940px;height:555px}
+#game-menu[data-screen=map] .world-map-pin{position:absolute;width:285px;min-height:66px;margin:0;padding:10px 15px;font-size:23px;border:3px solid #e0c5ff;border-radius:30px;background:linear-gradient(#a069df,#5b328e);box-shadow:0 5px 0 #41206c,0 8px 20px #214a6066}
+#game-menu[data-screen=map] .world-map-pin[aria-pressed=true]{background:linear-gradient(#fff06a,#ffbd22);color:#4e1d60;border-color:#fff9c5;text-shadow:0 1px #fff8c7;box-shadow:0 5px 0 #a36736,0 0 22px #fff39b}
+.world-map-pin[data-location=sunny]{left:65px;top:135px}.world-map-pin[data-location=canyon]{left:495px;top:35px}.world-map-pin[data-location=islands]{left:630px;top:255px}.world-map-pin[data-location=winter]{left:45px;top:415px}.world-map-pin[data-location=arena]{left:420px;top:435px}
+.world-map-details{position:absolute;right:18px;top:98px;width:315px;height:562px;padding:18px;border:4px solid #d3a3ff;border-radius:32px;background:linear-gradient(#fff7e4,#efdcfa);box-shadow:0 7px 0 #573183,0 10px 30px #34426466;color:#381956;text-shadow:none}
+.world-map-details h3{margin:0 -12px 28px;padding:17px 8px;text-align:center;font-size:28px;line-height:1.1;border-radius:25px;background:linear-gradient(#ffe863,#ffbb22);border:2px solid #fff5bf;color:#572067}
+#game-menu[data-screen=map] .world-map-details p{font-size:21px;line-height:1.5;color:#452052;margin:20px 0 36px}
+#game-menu[data-screen=map] .world-map-details button{width:100%;font-size:24px;min-height:68px;margin:14px 0}
+#game-menu[data-screen=map] #map-match{background:linear-gradient(#ffec57,#ffb119);border-color:#fff5ac;color:#4e1a67;font-size:33px;text-shadow:none}
+#game-menu[data-screen=map] #menu-back{position:absolute;left:24px;bottom:21px;width:210px;margin:0;min-height:58px;font-size:25px}
