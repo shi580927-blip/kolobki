@@ -38,6 +38,8 @@ export class MatchSession {
   this.button=document.createElement('button');this.button.id='match-start';this.button.textContent='Начать матч';this.button.onclick=()=>this.start();
   const sandbox=document.createElement('button');sandbox.id='sandbox-choice';sandbox.textContent='Пока свободное катание';sandbox.onclick=()=>{this.entry.hidden=true;document.querySelector('#tools')!.appendChild(this.button);};
   this.entry.append(heading,instructions,choices,more,this.button,sandbox);document.querySelector('#hud')!.appendChild(this.entry);
+  const replay=document.createElement('button');replay.id='result-replay';replay.textContent='Ещё раз';replay.onclick=()=>this.start();this.result.appendChild(replay);
+  const home=document.createElement('button');home.id='result-home';home.textContent='В меню';home.onclick=()=>{this.exit();this.hideChoice();document.querySelector<HTMLButtonElement>('#menu-open')?.click();};this.result.appendChild(home);
   const exit=document.createElement('button');exit.id='match-exit';exit.textContent='В песочницу';exit.onclick=()=>{this.exit();this.hideChoice();};this.result.appendChild(exit);
  }
  get choosing(){return !this.entry.hidden;}

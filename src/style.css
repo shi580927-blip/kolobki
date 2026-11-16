@@ -23,3 +23,25 @@
 #power-panel{width:366px;min-height:149px}#power-name{font-size:20px}#power-use{height:78px}#power-prev,#power-next{width:82px;height:78px}#camera-pad{height:190px}#game-menu{top:70px;padding-top:22px;padding-bottom:22px}#game-menu button{min-height:78px;font-size:23px}#game-menu #menu-help,#game-menu #menu-profile{display:inline-block;width:calc(50% - 6px);font-size:20px}#game-menu #menu-help{margin-right:12px}#hud:has(#game-menu:not([hidden])) #camera-pad,#hud:has(#game-menu:not([hidden])) #tools button{pointer-events:none;opacity:.4}
 #device-hint{z-index:8}
 .skin-panel .fitting{margin:14px 0 18px;padding:8px 14px 12px;border:1px solid #71b5ad;border-radius:12px;background:#102e36}.skin-panel .fitting legend{color:#ffe394;font-weight:800;padding:0 6px}
+
+/* Shared landscape UI: live valley backdrop, violet panels and golden actions. */
+#game-menu{left:280px;top:100px;width:720px;max-height:570px;overflow:auto;padding:28px 40px;border:3px solid #d6b4ff;background:linear-gradient(145deg,#7546b7f5,#33236af7);box-shadow:0 8px 0 #25124e,0 16px 65px #17233780,inset 0 3px 3px #ffffff70;border-radius:32px}
+#game-menu h2{font-size:42px;font-weight:900;color:#ffdc45;text-shadow:0 3px 0 #8b3b2f,2px 0 #55225d,-2px 0 #55225d}
+#game-menu p{color:#fff6e4;font-size:20px}
+#game-menu button,#match-entry button,#match-result button{border:2px solid #c7a2ff;background:linear-gradient(#9861df,#51318d 70%,#3e286f);box-shadow:inset 0 3px 3px #ffffff55,0 4px 0 #2c1857;border-radius:24px;min-height:56px;color:#fff9ef;text-shadow:0 2px 2px #35134a}
+#game-menu #menu-play,#game-menu #menu-resume,#match-entry #match-start,#match-result #result-replay{background:linear-gradient(#fff36c,#ffd327 45%,#ffad16);color:#4a1a62;border-color:#fff4ab;text-shadow:0 1px #fff3b8;font-size:29px;box-shadow:inset 0 3px 3px #fff8d2,0 5px 0 #b86a25}
+#game-menu[data-screen=home]{top:170px;background:linear-gradient(145deg,#7546b7e8,#33236af0)}
+#game-menu[data-screen=home] h2{font-size:64px;margin-bottom:4px;text-transform:uppercase;letter-spacing:2px}
+#game-menu[data-screen=home] #menu-play{height:94px;margin:25px 0 18px;font-size:40px}
+#game-menu[data-screen=home] #menu-settings,#game-menu[data-screen=home] #menu-help,#game-menu[data-screen=home] #menu-profile{display:inline-block;width:calc(33.333% - 8px);margin:4px;min-height:70px;font-size:18px}
+#game-menu[data-screen=modes] #menu-free,#game-menu[data-screen=modes] #menu-match{height:100px;font-size:24px;background:linear-gradient(#a16ce1,#5a3694)}
+#game-menu[data-screen=profile] button{min-height:54px;font-size:18px}
+#match-entry,#match-result{border:3px solid #d5b3ff;background:linear-gradient(145deg,#7546b7f5,#33236af7);border-radius:30px;box-shadow:0 7px 0 #2e1759,0 18px 60px #15232a77;color:#fff9ef;text-shadow:none;z-index:6}
+#match-entry{left:330px;top:130px;width:620px;padding:28px}
+#match-entry h2{font-size:32px;color:#ffdf56}
+#match-entry p{font-size:19px}
+#match-result{left:300px;top:200px;width:680px;pointer-events:auto;padding:30px}
+#match-result p{font-size:25px;line-height:1.5;margin:0 0 24px}
+#match-result button{margin:6px;font-size:21px;padding:14px 22px}
+#hud:has(#game-menu:not([hidden])) #portrait,#hud:has(#game-menu:not([hidden])) #berry-count,#hud:has(#game-menu:not([hidden])) .brand,#hud:has(#game-menu:not([hidden])) #device-tools,#hud:has(#game-menu:not([hidden])) #match-status{visibility:hidden}
+#jump,#dash,#menu-open{background:linear-gradient(#9861df,#51318d);border:2px solid #e3c4ff;box-shadow:inset 0 3px 3px #fff5,0 4px 0 #34205a}
