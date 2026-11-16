@@ -17,10 +17,18 @@ const fs=require('node:fs/promises');
   assert.match(background,/fitting-clearing/);
   await fs.mkdir('dist/deploy-review',{recursive:true});
   await page.screenshot({path:'dist/deploy-review/fitting.png'});
+  await page.getByRole('button',{name:'Повернуть вправо',exact:true}).click({clickCount:3});
   await page.getByRole('button',{name:'ϟ Рисунки',exact:true}).click();
   assert.equal(await page.locator('.wardrobe-card').count(),4);
   await page.locator('#fitting-shop').click();
   assert.equal(await page.locator('.shop-card').count(),6);
+  assert.equal(await page.locator('.shop-detail>img').evaluate(im=>im.naturalWidth),384);
+  const bannerClear=await page.locator('.shop-showcase').evaluate(el=>{
+    const text=el.querySelector('h3').getBoundingClientRect();
+    return [...el.querySelectorAll('img')].every(im=>im.getBoundingClientRect().left>=text.right);
+  });
+  assert.equal(bannerClear,true,'banner artwork must not cover its heading');
+  await page.screenshot({path:'dist/deploy-review/shop.png'});
   await page.locator('#menu-back').click();
   await page.locator('#menu-play').click();await page.locator('#menu-free').click();
   assert.equal(await page.locator('#game-menu').isVisible(),false);

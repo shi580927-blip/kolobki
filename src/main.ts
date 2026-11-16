@@ -251,7 +251,24 @@ async function start() {
   if(npcs&&train)match=new MatchSession(world,scene,player,npcs,train,trainOptions,resetGame,bus);
   if(standardMode){document.querySelector<HTMLElement>('#help')!.hidden=true;match?.hideChoice();if(hadDuoLink)tell('Сетевой тест отложен. Сейчас доступна одиночная долина.');menu=new GameMenu(()=>match?.showChoice(),()=>{match?.exit();match?.hideChoice();},()=>{powerPanel?.takeRequest();},wardrobe,wear,experimentalFace?{current:()=>currentBrow,select:(style:string)=>{if(!browStyles.some(x=>x===style))return;applyBrows(style as BrowStyle);storage.setItem('sharobesy.browStyle',style);}}:undefined);}
   let fittingAngle=0;addEventListener('sharobesy-fitting-turn',e=>{fittingAngle+=(e as CustomEvent<number>).detail*Math.PI/6;});
-  if(menu)menu.preview=(id:string)=>{const outfit={...wardrobe.outfit};const item=GOODS.find(g=>g.id===id);if(item){if(item.slot==='head')outfit.head=item.id;else outfit.mark=item.id;}portraitVisual.setOutfit(outfit);portraitVisual.setSkull(id==='skull');portraitRenderer.render(portraitScene,portraitCamera);const url=portraitCanvas.toDataURL('image/png');wear();return url;};
+  if(menu)menu.preview=(id:string)=>{
+    const outfit={...wardrobe.outfit},rotation=portraitVisual.quaternion.clone(),faceRotation=portraitVisual.face.quaternion.clone();
+    const size=portraitRenderer.getSize(new T.Vector2());
+    try{
+      const item=GOODS.find(g=>g.id===id);
+      if(item){if(item.slot==='head')outfit.head=item.id;else outfit.mark=item.id;}
+      portraitVisual.setOutfit(outfit);portraitVisual.setSkull(id==='skull');
+      // Catalogue views face forward, regardless of fitting-room rotation.
+      portraitVisual.rotation.set(0,0,0);portraitVisual.face.rotation.set(0,0,0);
+      portraitVisual.updateDecorations();portraitRenderer.setSize(384,384,false);
+      portraitRenderer.render(portraitScene,portraitCamera);
+      return portraitCanvas.toDataURL('image/png');
+    }finally{
+      wear();portraitVisual.quaternion.copy(rotation);portraitVisual.face.quaternion.copy(faceRotation);
+      portraitVisual.updateDecorations();portraitRenderer.setSize(size.x,size.y,false);
+      portraitRenderer.render(portraitScene,portraitCamera);
+    }
+  };
   if(appearanceTest){const button=document.createElement('button');button.textContent='Проба комбо';button.onclick=()=>bus.emit('combo',{count:3});document.querySelector('#tools')!.appendChild(button);}
   if(npcs)contactPositions.push(...npcs.actors.map(a=>a.visual.position));
   const resize = () => {
