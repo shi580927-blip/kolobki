@@ -17,7 +17,7 @@ export class NpcBrain {
   if(this.time>=this.grace){
    if(this.kind==='bully'&&distance<23){this.state='chase';dx=pdx;dz=pdz;speed=4.6;if(distance>3.5&&distance<11&&this.dashTime<=0){dash=true;this.dashTime=3.2+this.random()*2;}}
    if(this.kind==='coward'&&distance<12){this.state='flee';dx=-pdx;dz=-pdz;speed=5.5;}
-   if(this.kind==='sly'&&distance<19){this.state='flank';dx=c.playerX+this.side*7-c.x;dz=c.playerZ+5-c.z;speed=3.5;}
+   if(this.kind==='sly'&&distance<19){this.state='flank';dx=c.playerX+this.side*7-c.x;dz=c.playerZ+5-c.z;const remaining=Math.hypot(dx,dz);speed=remaining<.35?0:Math.min(3.5,(remaining-.35)*2);}
    if(this.kind==='chaotic'){speed=5.8;if(this.jumpTime<=0){jump=true;this.jumpTime=1.8+this.random()*2.5;}if(this.dashTime<=0){dash=true;this.dashTime=3.5+this.random()*3;}}
   }else if(distance<6){dx=-pdx;dz=-pdz;speed=3;}
   if(Math.hypot(c.x,c.z)>52){this.state='return';dx=-c.x;dz=-c.z;speed=4;dash=false;}

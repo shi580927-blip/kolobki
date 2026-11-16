@@ -8,6 +8,20 @@ import {EventBus} from '../src/core/events';
 import {heightAt} from '../src/core/terrain';
 const context:NpcContext={x:0,z:0,vx:0,vz:0,playerX:8,playerZ:0,neighbors:[],blocked:false};
 
+test('flanking NPC brakes at its goal and stays settled beside a stationary player',()=>{
+ const brain=new NpcBrain('sly',12,0);
+ // Determine the chosen flank from a neutral position below the player.
+ const probe=new NpcBrain('sly',12,0),direction=probe.step(1/60,{...context,x:8,z:0});
+ const x=8+Math.sign(direction.x)*7,z=5;
+ for(let i=0;i<240;i++){
+  const intent=brain.step(1/60,{...context,x:x+.05*Math.sin(i),z,vx:0,vz:0});
+  assert.ok(Math.hypot(intent.x,intent.z)<.001,'no alternating full-speed commands at the goal');
+  assert.equal(brain.state,'flank','resting at goal must not trigger stuck escape');
+ }
+ const moving=brain.step(1/60,{...context,x,z,playerX:12});
+ assert.ok(Math.hypot(moving.x,moving.z)>.1,'follows when player moves');
+});
+
 test('a stuck NPC near the player tries to move away instead of pursuing forever',()=>{
  const brain=new NpcBrain('bully',9,0);let intent={x:0,z:0,jump:false,dash:false};
  for(let i=0;i<125;i++)intent=brain.step(1/60,{...context,playerX:1,playerZ:0});
