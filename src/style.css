@@ -106,3 +106,6 @@
 #game-menu[data-screen=shop] .shop-detail .shop-hint{font-size:14px;margin-top:12px}
 #game-menu[data-screen=shop] #menu-back,#game-menu[data-screen=shop] #shop-wardrobe{position:absolute;bottom:14px;margin:0;width:250px;min-height:60px;font-size:23px;border-radius:30px;background:linear-gradient(#9967da,#59338c);border:2px solid #d5b0ff}
 #game-menu[data-screen=shop] #menu-back{left:20px}#game-menu[data-screen=shop] #shop-wardrobe{right:20px;background:linear-gradient(#ffe95a,#ffb51b);color:#4c2168;text-shadow:none;border-color:#fff1b1}
+/* Menu screens own their full 16:9 surface; gameplay controls stay underneath. */
+#hud:has(#game-menu:not([hidden])) > :not(#game-menu):not(#portrait){visibility:hidden}
+#game-menu[data-screen=profile]{background:linear-gradient(#a7d9f588,#bddc9d88 50%,#e0bd8de8)}
