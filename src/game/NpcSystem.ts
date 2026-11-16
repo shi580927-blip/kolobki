@@ -11,12 +11,11 @@ export class NpcSystem {
  readonly actors:ReturnType<NpcSystem['createActor']>[]=[];
  collisionsWithPlayer=0;private playerHandle=-1;
  private worldForward=new T.Vector3(0,0,1);private byCollider=new Map<number,number>();
- constructor(private scene:T.Scene,private world:R.World,private events:EventBus,private atlas:AnimationAtlas,private textures:T.Texture[],private environment:T.Texture|undefined,readonly seed:number,private experimentalFace=false){
+ constructor(private scene:T.Scene,private world:R.World,private events:EventBus,private atlas:AnimationAtlas,private textures:T.Texture[],private environment:T.Texture|undefined,readonly seed:number,private experimentalFace=true){
   for(const entry of npcRoster(seed)){const actor=this.createActor(entry);this.byCollider.set(actor.physics.collider.handle,entry.id);this.actors.push(actor);}
  }
  private createActor(entry:ReturnType<typeof npcRoster>[number]){
   const bus=new EventBus(),physics=new PhysicsPlayer(this.world,bus,{x:entry.x,z:entry.z}),brain=new NpcBrain(entry.kind,entry.behaviorSeed),skin=skinFrom(entry.appearanceSeed),visual=new RuntimeVisual(designForGame(skin),this.atlas,this.textures,skin.mood,this.environment,this.experimentalFace),input:DriveInput={x:0,z:0,jump:false,dash:false};
-  if(visual.face.experimentalFace){const styles=['classic','elegant','rounded','bold_short'] as const;visual.face.experimentalFace.browStyle=styles[(entry.behaviorSeed>>>4)%styles.length];}
   visual.position.copy(physics.current);visual.name='npc-'+entry.id;this.scene.add(visual);
   let lastState=brain.state;
   bus.on('player_jump',()=>visual.face.play('happy'));bus.on('player_dash',()=>visual.face.play('fury'));
@@ -41,5 +40,5 @@ export class NpcSystem {
  a.physics.contact(strength,other,otherHandle===player?.collider.handle?player.impactVelocity:otherActor?.physics.impactVelocity,internal);}}}
  update(dt:number,alpha:number){for(const a of this.actors){a.visual.position.lerpVectors(a.physics.previous,a.physics.current,alpha);a.visual.rollingBody.quaternion.slerpQuaternions(a.physics.prevRotation,a.physics.rotation,alpha);a.visual.face.update(dt,a.physics.heading);a.visual.updateDecorations();}}
  reset(){this.collisionsWithPlayer=0;for(const a of this.actors){a.physics.reset();a.brain.reset();a.lastState=a.brain.state;a.visual.face.rig.reset();a.input.x=a.input.z=0;a.input.jump=a.input.dash=false;}}
- snapshot(){return this.actors.map(a=>({id:a.entry.id,kind:a.entry.kind,appearanceSeed:a.entry.appearanceSeed,state:a.brain.state,position:a.physics.current.toArray(),heading:a.physics.heading,rotation:a.physics.rotation.toArray(),facePose:a.visual.face.expression()}));}
+ snapshot(){return this.actors.map(a=>({id:a.entry.id,kind:a.entry.kind,appearanceSeed:a.entry.appearanceSeed,state:a.brain.state,position:a.physics.current.toArray(),heading:a.physics.heading,rotation:a.physics.rotation.toArray(),facePose:a.visual.face.expression(),browStyle:a.visual.face.experimentalFace?.browStyle,faceArt:a.visual.face.experimentalFace?.visible?'v5':'legacy'}));}
 }

@@ -7,6 +7,7 @@ import {SkinSample} from '../skin/SkinSample';
 import {limitProtrusions,type SkinDesign} from '../skin/SkinDesign';
 import type {Mood} from '../face/FaceState';
 import {clipFaceToWater} from './WaterFaceClip';
+import {browStyleForSeed} from '../face/BrowStyle';
 import {SketchFace} from '../face/SketchFace';
 export class RuntimeFace extends T.Group {
  readonly rig:AnimatedAtlasRig;
@@ -36,7 +37,7 @@ export class RuntimeFace extends T.Group {
 export class RuntimeVisual extends T.Group {
  readonly sandCoat=new SandCoat();decorations:HeadDecor;
  readonly rollingBody:T.Group;readonly face:RuntimeFace;private sample:SkinSample;private clearanceOrientation=new T.Quaternion();
- constructor(readonly design:SkinDesign,atlas:AnimationAtlas,textures:T.Texture[],mood:Mood,environment?:T.Texture,experimentalFace=false){super();this.decorations=new HeadDecor(design.seed,design.base);this.add(this.decorations);this.design=limitProtrusions(design);design=this.design;this.sample=new SkinSample(textures[0],'sly',environment);this.sample.face.visible=false;this.sample.apply(design);this.rollingBody=this.sample.rollingBody;this.face=new RuntimeFace(atlas,textures,mood,design.base,environment,experimentalFace);this.add(this.sample,this.face,this.sandCoat);clipFaceToWater(this.face);}
+ constructor(readonly design:SkinDesign,atlas:AnimationAtlas,textures:T.Texture[],mood:Mood,environment?:T.Texture,experimentalFace=true){super();this.decorations=new HeadDecor(design.seed,design.base);this.add(this.decorations);this.design=limitProtrusions(design);design=this.design;this.sample=new SkinSample(textures[0],'sly',environment);this.sample.face.visible=false;this.sample.apply(design);this.rollingBody=this.sample.rollingBody;this.face=new RuntimeFace(atlas,textures,mood,design.base,environment,experimentalFace);if(this.face.experimentalFace)this.face.experimentalFace.browStyle=browStyleForSeed(design.seed);this.add(this.sample,this.face,this.sandCoat);clipFaceToWater(this.face);}
  private skullPaint?:BodyDecoration;
  setSkull(enabled:boolean){
   this.face.setSkull(enabled);

@@ -1,3 +1,4 @@
+import {browStyleForSeed} from './face/BrowStyle';
 import {GOODS,Wardrobe,readOutfit} from './game/Wardrobe';
 import "./style.css";
 import {version as buildVersion} from "../package.json";
@@ -45,7 +46,7 @@ async function start() {
   bootProgress("Загружаем персонажа…");
   const resources=await loadAnimationAtlas(),atlas=gameplayAtlas(resources.data);
   const appearanceTest=new URLSearchParams(location.search).has("skin-test");
-  const experimentalFace=new URLSearchParams(location.search).has("face-v5-game");
+  const experimentalFace=true;
   const valleyStudy=new URLSearchParams(location.search).has("valley-study");
   const duoInvite=readDuoInvite(location.hash),hadDuoLink=new URLSearchParams(location.search).has('duo')||!!duoInvite;
   // Network trial is parked while the local gameplay is being completed.
@@ -163,10 +164,11 @@ async function start() {
   const portraitVisual=new RuntimeVisual({...design,furCount:Math.min(design.furCount,24)},atlas,resources.textures,skin.mood,environmentFor(portraitRenderer),experimentalFace);
   type BrowStyle=SketchFace['browStyle'];
   const browStyles=['classic','elegant','rounded','bold_short'] as const;
-  let currentBrow:BrowStyle='classic';
+  let currentBrow:BrowStyle=browStyleForSeed(skin.seed);
   const applyBrows=(style:BrowStyle)=>{currentBrow=style;for(const face of [visual.face.experimentalFace,portraitVisual.face.experimentalFace])if(face)face.browStyle=style;};
   const savedBrow=storage.getItem('sharobesy.browStyle');
   if(browStyles.some(style=>style===savedBrow))applyBrows(savedBrow as BrowStyle);
+  else {applyBrows(currentBrow);storage.setItem('sharobesy.browStyle',currentBrow);}
   function wear(){const outfit=appearanceTest?authorOutfit:wardrobe.outfit;for(const model of [visual,portraitVisual]){model.setOutfit(outfit);model.setSkull(appearanceTest?skullLink:wardrobe.skull);}}
   wear();
   portraitScene.add(portraitVisual);
@@ -421,7 +423,8 @@ async function start() {
       facePose: visual.face.expression(),
       portraitPose: portraitVisual.face.expression(),
       faceEyes: visual.face.eyes.map(e => e.visible),
-      faceArt: "animated-atlas-v03",
+      faceArt: visual.face.experimentalFace?.visible?"v5":"animated-atlas-v03",
+      browStyle:currentBrow,portraitBrowStyle:portraitVisual.face.experimentalFace?.browStyle,
       faceVisibility: Object.entries(visual.face.rig.poses).filter(([,g])=>g.visible).map(([name,g])=>({name,rotation:g.rotation.toArray(),opacity:(g.children.find(o=>o.name.startsWith('study-')) as T.Mesh<T.BufferGeometry,T.ShaderMaterial>).material.uniforms.opacity.value})),
       wetSand:{wetness:player.coating.wetness,sand:player.coating.sand},waterSubmersion:pondSubmersion(player.current),waterSafety:waterSafety.snapshot(-1),waterWaves:wake.count,waterSplashes:wake.splashCount,dustCount:dust.count, physicsTime,impactCharge:impactMeter.value,train:train?.snapshot(),match:match?.snapshot(),audio:audio.snapshot(),fullscreen:!!document.fullscreenElement,
       npcs:npcs?.snapshot().map(a=>({...a,state:train?.has(a.id)?"wagon":train?.isJoining(a.id)?"joining":match?.controlled(a.id)?a.id===0?"rival":"rival-wagon":a.state}))??[],npcContacts:npcs?.collisionsWithPlayer??0,npcSeed:npcs?.seed,
