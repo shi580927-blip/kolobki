@@ -68,6 +68,16 @@ async function review() {
     await page.locator('#wardrobe-tab').click();
     assert.equal(await page.locator('.wardrobe-card').count(),4);
     await page.locator('#menu-back').click();
+    await page.locator('#menu-help').click();
+    assert.equal(await page.locator('.shop-card').count(),6);
+    const balance=await page.evaluate(()=>JSON.parse(localStorage.getItem('sharobesy.wardrobe.v1')).coins??0);
+    await page.locator('.shop-card[data-item=crown]').click();
+    assert.match(await page.locator('.shop-detail').textContent(),/Королевская корона/);
+    assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('sharobesy.wardrobe.v1')).coins??0),balance,'preview must not spend coins');
+    await page.screenshot({path:'dist/tattoo-review/shop.png'});
+    await page.getByRole('button',{name:'Головные уборы',exact:true}).click();
+    assert.equal(await page.locator('.shop-card').count(),3);
+    await page.locator('#menu-back').click();
     await page.locator('#menu-map').click();
     await page.locator('[data-location=winter]').click();
     assert.match(await page.locator('.world-map-details').textContent(),/ещё создаётся/);
