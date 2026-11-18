@@ -28,6 +28,11 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - run: node scripts/deploy-smoke.cjs
       - run: node scripts/character-studio-review.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: visual-review
+          path: dist/deploy-review
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

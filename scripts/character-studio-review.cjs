@@ -46,12 +46,14 @@ const fs=require('node:fs/promises');
   await page.screenshot({path:'dist/deploy-review/character-editor-mobile.png'});
   await page.setViewportSize({width:1280,height:720});
   await page.goto('http://game.local/?character-editor&design-study');
-  await page.waitForFunction(()=>window.__CHARACTER_STUDIO__?.study);
+  await page.waitForFunction(()=>window.__CHARACTER_STUDIO__?.study&&window.__CHARACTER_STUDIO__.renderedFrames>=3);
+  await page.screenshot({path:'dist/deploy-review/design-initial.png'});
   assert.equal(await page.evaluate(()=>window.__CHARACTER_STUDIO__.look.accessory),'headphones');
   const fixed=await page.evaluate(()=>{const s=window.__CHARACTER_STUDIO__;return {face:s.faceRotation,tattoo:s.tattooRotation,accessory:s.accessoryRotation};});
   await page.locator('#studio-roll').click();
   await page.waitForFunction(()=>window.__CHARACTER_STUDIO__.bodyRotation>.65);
-  assert.deepEqual(await page.evaluate(()=>{const s=window.__CHARACTER_STUDIO__;return {face:s.faceRotation,tattoo:s.tattooRotation,accessory:s.accessoryRotation};}),fixed,'cosmetics and accessories stay in the face frame while the body rolls');
+  const afterRoll=await page.evaluate(()=>{const s=window.__CHARACTER_STUDIO__;return {face:s.faceRotation,tattoo:s.tattooRotation,accessory:s.accessoryRotation};});
+  assert.deepEqual(afterRoll,fixed,'fixed frames: '+JSON.stringify({before:fixed,after:afterRoll}));
   await page.locator('#studio-roll').click();
   for(const name of ['Алый хищник','Лаймовый бунт','Северный разряд','Черепушка · маска']){
    await page.getByRole('button',{name,exact:true}).click();
