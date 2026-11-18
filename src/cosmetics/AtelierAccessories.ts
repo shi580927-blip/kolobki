@@ -1,6 +1,6 @@
 import * as T from 'three';
 
-export const atelierAccessories={none:'Без украшения',headphones:'Наушники',glasses:'Очки',viking:'Шлем викинга',horns:'Рожки'} as const;
+export const atelierAccessories={none:'Без украшения',cap:'Кепка вперёд',roundGlasses:'Круглые очки',goggles:'Стимпанк-очки',catEars:'Кошачьи ушки',headphones:'Наушники',viking:'Шлем викинга',horns:'Светлые рожки',zorro:'Маска Зорро'} as const;
 export type AtelierAccessory=keyof typeof atelierAccessories;
 
 /** Author prototypes. No collider, no roll: the whole rig belongs to the face frame. */
@@ -25,8 +25,8 @@ export class AtelierAccessories extends T.Group {
    if(cream)for(let k=1;k<5;k++){const t=k*.13,c=curve.getPointAt(t),q=new T.Quaternion().setFromUnitVectors(new T.Vector3(0,0,1),curve.getTangentAt(t));const groove=new T.TorusGeometry(.16*Math.pow(1-t,.72),.0035,6,32).applyQuaternion(q).translate(c.x,c.y,c.z);add(groove,material('#b39369',0,.65));}
   };
   if(kind==='headphones'){
-   const arch=[[-1.02,.10,-.04],[-.98,.73,-.06],[-.62,1.09,-.07],[0,1.22,-.07],[.62,1.09,-.07],[.98,.73,-.06],[1.02,.10,-.04]];
-   tube(arch,.105,rubber);tube(arch.map(([x,y,z])=>[x,y+.075,z]),.06,purple);
+   const arch=[[-1.02,.10,-.04],[-.96,.60,-.06],[-.62,.91,-.07],[0,1.055,-.07],[.62,.91,-.07],[.96,.60,-.06],[1.02,.10,-.04]];
+   tube(arch,.075,rubber);tube(arch.map(([x,y,z])=>[x,y+.045,z]),.045,purple);
    for(const sign of [-1,1]){
     tube([[sign*.98,.58,-.02],[sign*1.05,.35,-.02],[sign*1.07,.12,-.02]],.045,gold);
     ball(sign*1.045,.06,-.015,1,purple,.19,.345,.29);
@@ -56,21 +56,80 @@ export class AtelierAccessories extends T.Group {
   }
   if(kind==='horns'){
    tube([[-.70,.73,-.02],[-.46,.94,-.06],[0,1.045,-.08],[.46,.94,-.06],[.70,.73,-.02]],.055,rubber);
-   horn(-1,.81,.62,false);horn(1,.81,.62,false);
+   horn(-1,.81,.62,true);horn(1,.81,.62,true);
   }
-  if(kind==='glasses'){
-   const rounded=(x:number,y:number,w:number,h:number,r:number)=>{const s=new T.Shape();s.moveTo(x+r,y);s.lineTo(x+w-r,y);s.quadraticCurveTo(x+w,y,x+w,y+r);s.lineTo(x+w,y+h-r);s.quadraticCurveTo(x+w,y+h,x+w-r,y+h);s.lineTo(x+r,y+h);s.quadraticCurveTo(x,y+h,x,y+h-r);s.lineTo(x,y+r);s.quadraticCurveTo(x,y,x+r,y);return s;};
-   const follow=(g:T.BufferGeometry,offset:number)=>{const p=g.attributes.position;for(let i=0;i<p.count;i++){const x=p.getX(i),y=p.getY(i);p.setZ(i,Math.sqrt(Math.max(.12,1-x*x-y*y))+offset+p.getZ(i));}g.computeVertexNormals();return g;};
-   const lens=material('#282a48',.2,.13);lens.transparent=true;lens.opacity=.76;lens.depthWrite=false;
+  const conform=(g:T.BufferGeometry,offset:number)=>{const p=g.attributes.position;for(let i=0;i<p.count;i++){const x=p.getX(i),y=p.getY(i);p.setZ(i,Math.sqrt(Math.max(.09,1-x*x-y*y))+offset+p.getZ(i));}g.computeVertexNormals();return g;};
+  const rounded=(x:number,y:number,w:number,h:number,r:number)=>{const s=new T.Shape();s.moveTo(x+r,y);s.lineTo(x+w-r,y);s.quadraticCurveTo(x+w,y,x+w,y+r);s.lineTo(x+w,y+h-r);s.quadraticCurveTo(x+w,y+h,x+w-r,y+h);s.lineTo(x+r,y+h);s.quadraticCurveTo(x,y+h,x,y+h-r);s.lineTo(x,y+r);s.quadraticCurveTo(x,y,x+r,y);return s;};
+  const star=(x:number,y:number,z:number,r:number)=>{const shape=new T.Shape();for(let i=0;i<10;i++){const a=Math.PI/2+i*Math.PI/5,rr=i%2?r*.44:r;const px=x+Math.cos(a)*rr,py=y+Math.sin(a)*rr;i?shape.lineTo(px,py):shape.moveTo(px,py);}shape.closePath();add(new T.ExtrudeGeometry(shape,{depth:.025,bevelEnabled:true,bevelSegments:3,steps:1,bevelSize:.007,bevelThickness:.008}).translate(0,0,z),gold);};
+  const reflect=(g:T.BufferGeometry,sign:number)=>{if(sign>0)return g;g.scale(-1,1,1);if(g.index){for(let i=0;i<g.index.count;i+=3){const t=g.index.getX(i+1);g.index.setX(i+1,g.index.getX(i+2));g.index.setX(i+2,t);}}else{for(const a of Object.values(g.attributes)){for(let i=0;i<a.count;i+=3)for(let k=0;k<a.itemSize;k++){const t=a.array[(i+1)*a.itemSize+k];a.array[(i+1)*a.itemSize+k]=a.array[(i+2)*a.itemSize+k];a.array[(i+2)*a.itemSize+k]=t;}}}return g;};
+  const cloth=material('#653caf',0,.76);cloth.clearcoat=.05;
+  if(kind==='cap'){
+   add(new T.SphereGeometry(1.055,64,24,0,Math.PI*2,0,.82),cloth);
+   const panel=material('#f3e9df',0,.68);panel.clearcoat=.04;
+   add(new T.SphereGeometry(1.060,28,18,Math.PI/2-.56,1.12,.025,.79),panel);
+   const height=1.055*Math.cos(.82),radius=1.055*Math.sin(.82);
+   ring(0,height,0,radius,.025,cloth);
+   for(let i=0;i<6;i++){const a=i/6*Math.PI*2,pts=[];for(let j=0;j<=15;j++){const t=.06+j/15*.73;pts.push([-Math.cos(a)*Math.sin(t)*1.066,Math.cos(t)*1.066,Math.sin(a)*Math.sin(t)*1.066]);}tube(pts,.006,material('#b096cb',0,.8),24);}
+   ball(0,1.062,0,.055,cloth,1,.5,1);
+   const visor=new T.Shape();visor.moveTo(-.72,.30);visor.bezierCurveTo(-.95,.82,-.72,1.40,0,1.43);visor.bezierCurveTo(.72,1.40,.95,.82,.72,.30);visor.quadraticCurveTo(0,.89,-.72,.30);visor.closePath();
+   const g=new T.ExtrudeGeometry(visor,{depth:.042,bevelEnabled:true,bevelSize:.025,bevelThickness:.014,bevelSegments:4,curveSegments:28});g.rotateX(Math.PI/2);
+   const p=g.attributes.position;for(let i=0;i<p.count;i++)p.setY(i,p.getY(i)+height-.02-.09*Math.max(0,p.getZ(i)-.45));g.computeVertexNormals();add(g,cloth);
+   tube([[-.74,height-.06,.57],[-.73,height-.095,1.02],[0,height-.12,1.425],[.73,height-.095,1.02],[.74,height-.06,.57]],.009,material('#d1b9e6',0,.6));
+   star(0,.86,.66,.115);
+   for(let i=-2;i<=2;i++)ball(i*.075,height+.018,-radius-.005,.013,gold,.6,.7,1);
+  }
+  if(kind==='roundGlasses'){
+   const lens=material('#b4e7f6',.02,.08);lens.transparent=true;lens.opacity=.18;lens.depthWrite=false;lens.clearcoat=1;
    for(const sign of [-1,1]){
-    const x=sign<0?-.84:.075,shape=rounded(x,-.12,.765,.48,.13),hole=rounded(x+.046,-.074,.673,.388,.10);shape.holes.push(new T.Path(hole.getPoints(36).reverse()));
-    const g=new T.ExtrudeGeometry(shape,{depth:.035,bevelEnabled:true,bevelSegments:4,bevelSize:.018,bevelThickness:.014,curveSegments:16});add(follow(g,.078),rubber);
-    add(follow(new T.ShapeGeometry(rounded(x+.049,-.071,.667,.382,.095),24),.083),lens);
-    tube([[sign*.83,.24,.59],[sign*.98,.20,.29],[sign*.99,.12,-.27],[sign*.88,.02,-.49]],.029,rubber);
-    ball(sign*.85,.205,.622,.034,gold,.6,1,1);
-    tube([[sign*.24,.275,.999],[sign*.42,.275,.966],[sign*.53,.265,.90]],.009,gold);
+    add(conform(new T.TorusGeometry(.292,.025,12,64).translate(sign*.365,.075,0),.09),gold);
+    add(conform(new T.CircleGeometry(.269,64).translate(sign*.365,.075,0),.084),lens);
+    tube([[sign*.67,.13,.80],[sign*.93,.13,.44],[sign*.99,.08,-.19],[sign*.91,-.03,-.38]],.022,gold);
+    ball(sign*.68,.125,.82,.036,rubber,.5,.8,.8);
    }
-   tube([[-.09,.20,1.09],[0,.235,1.11],[.09,.20,1.09]],.027,gold);
+   tube([[-.073,.14,1.09],[0,.18,1.108],[.073,.14,1.09]],.022,gold);
+   for(const sign of [-1,1])ball(sign*.075,.02,1.087,.026,material('#d6c9c3',0,.6),.6,1,.5);
+  }
+  if(kind==='goggles'){
+   const leather=material('#74432b',0,.68);leather.clearcoat=.12;
+   ring(0,.65,0,.805,.052,leather);
+   const glass=material('#1c87ca',.28,.12);glass.clearcoat=1;glass.transparent=true;glass.opacity=.79;
+   for(const sign of [-1,1]){
+    const x=sign*.31,y=.72;
+    add(conform(new T.TorusGeometry(.237,.058,16,56).translate(x,y,0),.08),leather);
+    add(conform(new T.TorusGeometry(.221,.026,12,56).translate(x,y,0),.15),gold);
+    add(conform(new T.CircleGeometry(.197,56).translate(x,y,0),.147),glass);
+    for(let k=0;k<10;k++){const a=k/10*Math.PI*2,px=x+Math.cos(a)*.244,py=y+Math.sin(a)*.244;stud(px,py,Math.sqrt(Math.max(.09,1-px*px-py*py))+.16,.012);}
+    ball(sign*.67,.67,.47,.052,gold,.5,1,1);
+   }
+   tube([[-.095,.73,.81],[0,.76,.82],[.095,.73,.81]],.033,leather);
+   const buckle=rounded(-.11,.59,.22,.14,.025);buckle.holes.push(new T.Path(rounded(-.075,.62,.15,.08,.01).getPoints().reverse()));
+   add(new T.ExtrudeGeometry(buckle,{depth:.025,bevelEnabled:true,bevelSize:.007,bevelThickness:.005,bevelSegments:2}).rotateY(Math.PI).translate(0,0,-.86),gold);
+   for(const sign of [-1,1])for(let i=0;i<3;i++)stud(sign*.73,.65,-.25-i*.07,.013);
+  }
+  if(kind==='catEars'){
+   tube([[-.76,.68,-.04],[-.51,.96,-.035],[0,1.045,-.035],[.51,.96,-.035],[.76,.68,-.04]],.055,purple);
+   const inner=material('#e86baf',0,.48);inner.clearcoat=.22;
+   for(const sign of [-1,1]){
+    const shape=new T.Shape();shape.moveTo(.31,.91);shape.quadraticCurveTo(.48,1.23,.85,1.48);shape.quadraticCurveTo(1.00,1.02,.81,.78);shape.quadraticCurveTo(.51,.80,.31,.91);shape.closePath();
+    const ear=new T.ExtrudeGeometry(shape,{depth:.13,bevelEnabled:true,bevelSize:.045,bevelThickness:.045,bevelSegments:5,curveSegments:20});reflect(ear,sign).translate(0,0,-.01);add(ear,purple);
+    const inset=new T.Shape();inset.moveTo(.43,.94);inset.quadraticCurveTo(.55,1.19,.82,1.37);inset.quadraticCurveTo(.90,1.04,.75,.87);inset.quadraticCurveTo(.56,.89,.43,.94);inset.closePath();
+    const g=new T.ExtrudeGeometry(inset,{depth:.012,bevelEnabled:true,bevelSize:.02,bevelThickness:.02,bevelSegments:4,curveSegments:20});reflect(g,sign).translate(0,0,.154);add(g,inner);
+   }
+  }
+  if(kind==='zorro'){
+   const mask=new T.Shape();mask.moveTo(-.83,.28);mask.bezierCurveTo(-.50,.44,-.23,.35,0,.28);mask.bezierCurveTo(.23,.35,.50,.44,.83,.28);mask.quadraticCurveTo(.81,-.12,.50,-.19);mask.quadraticCurveTo(.20,-.20,0,-.03);mask.quadraticCurveTo(-.20,-.20,-.50,-.19);mask.quadraticCurveTo(-.81,-.12,-.83,.28);
+   for(const sign of [-1,1]){const hole=new T.Path();hole.absellipse(sign*.365,.075,.235,.18,0,Math.PI*2,true,sign*.14);mask.holes.push(hole);}
+   add(conform(new T.ExtrudeGeometry(mask,{depth:.016,bevelEnabled:true,bevelSize:.012,bevelThickness:.012,bevelSegments:3,curveSegments:24}),.08),rubber);
+   for(const sign of [-1,1])tube([[sign*.79,.16,.65],[sign*.98,.15,.28],[sign*.95,.14,-.37],[sign*.51,.13,-.90]],.025,rubber);
+   // A shaped, shallow crown and curved broad brim form the Zorro set.
+   const felt=material('#292230',0,.78);felt.clearcoat=.05;
+   const profile=[new T.Vector2(0,1.39),new T.Vector2(.39,1.39),new T.Vector2(.46,1.33),new T.Vector2(.48,.99),new T.Vector2(.56,.92)];
+   add(new T.LatheGeometry(profile.reverse(),64),felt);
+   add(new T.CylinderGeometry(.493,.514,.085,64,1,true).translate(0,1.035,0),red);
+   const brim=new T.BufferGeometry(),positions:number[]=[],indices:number[]=[];
+   for(let j=0;j<=6;j++)for(let i=0;i<=96;i++){const a=i/96*Math.PI*2,r=.47+j/6*.69;positions.push(Math.cos(a)*r,.94+.06*Math.pow(j/6,2)*Math.cos(a*2),Math.sin(a)*r*.87);}
+   for(let j=0;j<6;j++)for(let i=0;i<96;i++){const a=j*97+i,b=a+97;indices.push(a,b,a+1,b,b+1,a+1);}brim.setAttribute('position',new T.Float32BufferAttribute(positions,3));brim.setIndex(indices);brim.computeVertexNormals();const fabric=felt.clone();fabric.side=T.DoubleSide;add(brim,fabric);
+   const edge=[];for(let i=0;i<=64;i++){const a=i/64*Math.PI*2;edge.push([Math.cos(a)*1.16,.94+.06*Math.cos(a*2),Math.sin(a)*1.16*.87]);}tube(edge,.014,red,96);
   }
   // Unused materials have no GPU allocation; all instantiated ones are released below.
  }

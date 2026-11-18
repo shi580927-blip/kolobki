@@ -66,9 +66,37 @@ const fs=require('node:fs/promises');
    await page.getByRole('button',{name:'Повернуть вправо',exact:true}).click({clickCount:2});
    await page.screenshot({path:'dist/deploy-review/design-side-'+['Алый хищник','Лаймовый бунт','Северный разряд','Черепушка · маска'].indexOf(name)+'.png'});
   }
+  await page.getByRole('button',{name:'Повернуть влево',exact:true}).click({clickCount:2});
+  await page.getByRole('button',{name:'Без рисунка',exact:true}).click();
+  await page.getByRole('button',{name:'Цвет #29c7bf',exact:true}).click();
+  await page.getByRole('button',{name:'Без узора',exact:true}).click();
+  const catalog=await page.evaluate(()=>Object.entries(window.__CHARACTER_STUDIO__.accessories).filter(([id])=>id!=='none'));
+  assert.equal(catalog.length,8,'the reference set contains eight distinct accessories');
+  async function captureAccessory(id,view){
+   const before=await page.evaluate(()=>window.__CHARACTER_STUDIO__.renderedFrames);
+   await page.waitForFunction(n=>window.__CHARACTER_STUDIO__.renderedFrames>n,before);
+   const png=await page.locator('.studio-view canvas').evaluate(c=>c.toDataURL('image/png'));
+   await fs.writeFile('dist/deploy-review/accessory-'+id+'-'+view+'.png',Buffer.from(png.split(',')[1],'base64'));
+  }
+  for(const [id,name]of catalog){
+   await page.getByRole('button',{name,exact:true}).click();
+   assert.equal(await page.evaluate(()=>window.__CHARACTER_STUDIO__.look.accessory),id);
+   await captureAccessory(id,'front');
+   await page.getByRole('button',{name:'Повернуть вправо',exact:true}).click({clickCount:2});
+   await captureAccessory(id,'side');
+   await page.getByRole('button',{name:'Повернуть вправо',exact:true}).click({clickCount:4});
+   await captureAccessory(id,'back');
+   await page.getByRole('button',{name:'Повернуть влево',exact:true}).click({clickCount:6});
+  }
   await page.locator('#studio-save').click();
   assert.equal(await page.evaluate(()=>localStorage.getItem('sharobesy.skin.v1')),'4321');
   assert.equal(await page.evaluate(()=>localStorage.getItem('sharobesy.author.character-studio.v1')),saved,'new study does not overwrite the approved editor save');
-  assert.deepEqual(errors,[]);console.log('Character studio: reference proportions, author storage, independent body roll and accessory study PASS');
+  await page.goto('http://game.local/accessory-gallery.html');
+  await page.waitForFunction(()=>document.querySelectorAll('article img').length===8&&[...document.querySelectorAll('article img')].every(im=>im.complete&&im.naturalWidth>600));
+  await page.screenshot({path:'dist/deploy-review/accessory-gallery.png',fullPage:true});
+  await page.getByRole('button',{name:'Сзади',exact:true}).click();
+  await page.waitForFunction(()=>[...document.querySelectorAll('article img')].every(im=>im.complete&&im.naturalWidth>600));
+  await page.screenshot({path:'dist/deploy-review/accessory-gallery-back.png',fullPage:true});
+  assert.deepEqual(errors,[]);console.log('Character studio: reference proportions, author storage, independent body roll and eight accessories in three views PASS');
  }finally{await browser.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});
