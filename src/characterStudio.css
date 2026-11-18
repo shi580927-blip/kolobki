@@ -1,4 +1,4 @@
-#character-studio{position:absolute;inset:0;width:1280px;height:720px;background-position:center;background-size:cover;pointer-events:auto;overflow:hidden;color:#34204f;text-shadow:none;font-family:Arial,sans-serif;--rim:#e4baff;--purple:#713ab1}
+#character-studio{position:absolute;inset:0;width:1280px;height:720px;background-position:center;background-size:cover;pointer-events:auto;overflow:hidden;color:#34204f;text-shadow:none;font-family:'Arial Rounded MT Bold','Trebuchet MS',Arial,sans-serif;--rim:#e4baff;--purple:#713ab1}
 #character-studio *{box-sizing:border-box}
 #character-studio .studio-logo{position:absolute;left:39px;top:9px;font-family:'Arial Black',Arial,sans-serif;font-weight:1000;font-size:57px;letter-spacing:-3px;transform:rotate(-3deg);color:#ffe12d;-webkit-text-stroke:1px #fff09a;paint-order:stroke fill;text-shadow:0 3px #f58a10,0 6px #bb4f21,3px 8px #4b1865,-3px -2px #5f207c,4px 10px #fff9}
 #character-studio h1{position:absolute;top:77px;left:395px;width:494px;height:59px;display:flex;align-items:center;justify-content:center;margin:0;border:3px solid #f0ceff;border-radius:34px;background:linear-gradient(#b86bed,#8645c0 35%,#663295 72%,#482579);box-shadow:inset 0 3px 3px #fff8,0 5px #57216f,0 0 0 2px #ab6cda;color:#fff5e6;font-weight:1000;font-size:35px;text-shadow:0 3px #4e1e59}
@@ -51,3 +51,14 @@
 #character-studio footer button{height:68px;min-width:0;font-size:30px;padding:6px 16px}
 #character-studio #studio-save{height:80px;font-size:38px;padding:4px 12px}
 .studio-presets img{width:116px;height:100px;max-width:none}
+
+#character-studio .studio-left h2{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+#character-studio .studio-left section+section{margin-top:12px}
+#character-studio .studio-tabs button{padding-inline:7px;gap:7px}
+#character-studio .studio-ink{margin:0;padding:0;gap:7px;font-size:11px;font-weight:normal}
+
+#character-studio footer button{display:flex;align-items:center;justify-content:center;gap:12px}
+#character-studio footer .studio-action-icon{font-size:48px;line-height:1;color:#ffe344;text-shadow:0 2px #fff4,0 4px #733c68}
+#character-studio #studio-reset .studio-action-icon{color:#fff5ff}
+#character-studio #studio-save .studio-action-icon{font-size:56px;color:#75db15;-webkit-text-stroke:1.5px #398616;paint-order:stroke fill;text-shadow:0 2px #edffb9,0 4px #4b711a}
+#character-studio .studio-presets button{height:72px}
