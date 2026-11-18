@@ -1,0 +1,43 @@
+{
+  "pickup": {
+    "selected": "pepper",
+    "charges": {
+      "pepper": 1,
+      "lemon": 1,
+      "bomb": 1
+    },
+    "cooldown": 0,
+    "pepper": 0
+  },
+  "lemon": {
+    "start": 3.2806174755096436,
+    "high": 5.778517246246338
+  },
+  "pepper": {
+    "selected": "pepper",
+    "charges": {
+      "pepper": 0,
+      "lemon": 0,
+      "bomb": 1
+    },
+    "cooldown": 3.3333333333333357,
+    "pepper": 2.316666666666669
+  },
+  "bomb": {
+    "selected": "bomb",
+    "charges": {
+      "pepper": 0,
+      "lemon": 0,
+      "bomb": 0
+    },
+    "cooldown": 4.150000000000003,
+    "pepper": 0
+  },
+  "menuPause": true,
+  "manualRoutes": true,
+  "touchSwipe": true,
+  "seedAndDecorations": true,
+  "fixed16by9": true,
+  "errors": [],
+  "externalRequests": []
+}

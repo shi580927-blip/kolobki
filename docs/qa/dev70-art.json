@@ -1,0 +1,26 @@
+{
+  "views": [
+    {
+      "name": "free-valley",
+      "drawCalls": 70,
+      "triangles": 848172
+    },
+    {
+      "name": "meadow-match",
+      "drawCalls": 79,
+      "triangles": 865124
+    },
+    {
+      "name": "hill-match",
+      "drawCalls": 79,
+      "triangles": 860204
+    },
+    {
+      "name": "meadow-detail",
+      "drawCalls": 60,
+      "triangles": 839844
+    }
+  ],
+  "errors": [],
+  "mode": "actual World geometry; review cameras; Chromium SwiftShader"
+}

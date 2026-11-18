@@ -1,0 +1,1754 @@
+{
+  "version": "face-animation-atlas-1",
+  "format": "modular-rgba-keyframes",
+  "status": "alpha animation review",
+  "pages": [
+    {
+      "image": "../study/three-expressions.webp",
+      "width": 1536,
+      "height": 1024
+    },
+    {
+      "image": "expressions-nine.webp",
+      "width": 887,
+      "height": 1774
+    },
+    {
+      "image": "eye-variants.webp",
+      "width": 1536,
+      "height": 1024
+    }
+  ],
+  "poses": {
+    "neutral": {
+      "label": "Спокойный",
+      "page": 1,
+      "parts": [
+        {
+          "id": "study-brow-0",
+          "rect": [
+            25,
+            89,
+            124,
+            75
+          ],
+          "layout": {
+            "x": -0.41,
+            "y": 0.4,
+            "width": 0.8,
+            "height": 0.43,
+            "angle": 0
+          },
+          "layer": 30,
+          "channel": "brow"
+        },
+        {
+          "id": "study-brow-1",
+          "rect": [
+            156,
+            88,
+            125,
+            75
+          ],
+          "layout": {
+            "x": 0.41,
+            "y": 0.4,
+            "width": 0.8,
+            "height": 0.43,
+            "angle": 0
+          },
+          "layer": 30,
+          "channel": "brow"
+        },
+        {
+          "id": "study-eye-0",
+          "rect": [
+            20,
+            226,
+            129,
+            122
+          ],
+          "layout": {
+            "x": -0.36,
+            "y": 0.065,
+            "width": 0.65,
+            "height": 0.6,
+            "angle": 0
+          },
+          "layer": 10,
+          "channel": "eye"
+        },
+        {
+          "id": "study-eye-1",
+          "rect": [
+            157,
+            226,
+            130,
+            123
+          ],
+          "layout": {
+            "x": 0.36,
+            "y": 0.065,
+            "width": 0.65,
+            "height": 0.6,
+            "angle": 0
+          },
+          "layer": 10,
+          "channel": "eye"
+        },
+        {
+          "id": "study-mouth",
+          "rect": [
+            80,
+            421,
+            147,
+            47
+          ],
+          "layout": {
+            "x": 0,
+            "y": -0.41198666666666667,
+            "width": 0.6699999999999999,
+            "height": 0.20993333333333333,
+            "angle": 0
+          },
+          "layer": 5,
+          "channel": "mouth"
+        }
+      ],
+      "blink": true
+    },
+    "sly": {
+      "label": "Хитрый",
+      "page": 0,
+      "parts": [
+        {
+          "id": "study-brow-0",
+          "rect": [
+            30,
+            168,
+            284,
+            184
+          ],
+          "layout": {
+            "x": -0.361512773745464,
+            "y": 0.3607310169563966,
+            "width": 0.7798939090095212,
+            "height": 0.49233296793702946,
+            "angle": 0
+          },
+          "layer": 30,
+          "channel": "brow"
+        },
+        {
+          "id": "study-brow-1",
+          "rect": [
+            320,
+            199,
+            200,
+            160
+          ],
+          "layout": {
+            "x": 0.3894466711382122,
+            "y": 0.3117397478892044,
+            "width": 0.7241872012231267,
+            "height": 0.46279298986080747,
+            "angle": 0
+          },
+          "layer": 30,
+          "channel": "brow"
+        },
+        {
+          "id": "study-eye-0",
+          "rect": [
+            17,
+            406,
+            265,
+            220
+          ],
+          "layout": {
+            "x": -0.38110687563510554,
+            "y": 0.08158627665541147,
+            "width": 0.6045769336639776,
+            "height": 0.5612595834482128,
+            "angle": 0
+          },
+          "layer": 10,
+          "channel": "eye"
+        },
+        {
+          "id": "study-eye-1",
+          "rect": [
+            306,
+            437,
+            208,
+            214
+          ],
+          "layout": {
+            "x": 0.3337179644203926,
+            "y": 0.006318391850197502,
+            "width": 0.5855105027123405,
+            "height": 0.5535580496015852,
+            "angle": 0
+          },
+          "layer": 10,
+          "channel": "eye"
+        },
+        {
+          "id": "study-mouth",
+          "rect": [
+            103,
+            710,
+            360,
+            162
+          ],
+          "layout": {
+            "x": -0.014742737757610327,
+            "y": -0.340632619655869,
+            "width": 0.5593610961598302,
+            "height": 0.3249397588384393,
+            "angle": 0
+          },
+          "layer": 5,
+          "channel": "mouth"
+        }
+      ],
+      "blink": true
+    },
+    "grumpy": {
+      "label": "Хмурый",
+      "page": 0,
+      "parts": [
+        {
+          "id": "study-brow-0",
+          "rect": [
+            1024,
+            169,
+            248,
+            194
+          ],
+          "layout": {
+            "x": -0.4155045565185683,
+            "y": 0.21878791835629247,
+            "width": 0.8164949444895633,
+            "height": 0.5628401690625002,
+            "angle": 0
+          },
+          "layer": 30,
+          "channel": "brow"
+        },
+        {
+          "id": "study-brow-1",
+          "rect": [
+            1275,
+            174,
+            235,
+            190
+          ],
+          "layout": {
+            "x": 0.40480462352928126,
+            "y": 0.22312109935123164,
+            "width": 0.8028866954147371,
+            "height": 0.5628401690625001,
+            "angle": 0
+          },
+          "layer": 30,
+          "channel": "brow"
+        },
+        {
+          "id": "study-eye-0",
+          "rect": [
+            1023,
+            429,
+            243,
+            214
+          ],
+          "layout": {
+            "x": -0.39225968786630716,
+            "y": -0.0225502898056599,
+            "width": 0.5974911603133904,
+            "height": 0.58,
+            "angle": 0
+          },
+          "layer": 10,
+          "channel": "eye"
+        },
+        {
+          "id": "study-eye-1",
+          "rect": [
+            1286,
+            428,
+            235,
+            214
+          ],
+          "layout": {
+            "x": 0.37100801275415035,
+            "y": -0.03988301378541584,
+            "width": 0.5763761177652785,
+            "height": 0.57855,
+            "angle": 0
+          },
+          "layer": 10,
+          "channel": "eye"
+        },
+        {
+          "id": "study-mouth",
+          "rect": [
+            1135,
+            768,
+            276,
+            82
+          ],
+          "layout": {
+            "x": -0.014556971307107026,
+            "y": -0.4152221359777356,
+            "width": 0.6078351253422303,
+            "height": 0.17920069429347826,
+            "angle": 0
+          },
+          "layer": 5,
+          "channel": "mouth"
+        }
+      ],
+      "blink": true
+    },
+    "fury": {
+      "label": "Ярость",
+      "page": 1,
+      "parts": [
+        {
+          "id": "study-brow-0",
+          "rect": [
+            315,
+            76,
+            130,
+            102
+          ],
+          "layout": {
+            "x": -0.41,
+            "y": 0.28,
+            "width": 0.8,
+            "height": 0.48,
+            "angle": 0
+          },
+          "layer": 30,
+          "channel": "brow"
+        },
+        {
+          "id": "study-brow-1",
+          "rect": [
+            444,
+            75,
+            131,
+            102
+          ],
+          "layout": {
+            "x": 0.41,
+            "y": 0.28,
+            "width": 0.8,
+            "height": 0.48,
+            "angle": 0
+          },
+          "layer": 30,
+          "channel": "brow"
+        },
+        {
+          "id": "study-eye-0",
+          "rect": [
+            316,
+            226,
+            124,
+            108
+          ],
+          "layout": {
+            "x": -0.36,
+            "y": 0.065,
+            "width": 0.65,
+            "height": 0.5145833333333333,
+            "angle": 0
+          },
+          "layer": 10,
+          "channel": "eye"
+        },
+        {
+          "id": "study-eye-1",
+          "rect": [
+            449,
+            226,
+            122,
+            108
+          ],
+          "layout": {
+            "x": 0.36,
+            "y": 0.065,
+            "width": 0.65,
+            "height": 0.5239393939393939,
+            "angle": 0
+          },
+          "layer": 10,
+          "channel": "eye"
+        },
+        {
+          "id": "study-mouth",
+          "rect": [
+            328,
+            382,
+            223,
+            107
+          ],
+          "layout": {
+            "x": 0,
+            "y": -0.442,
+            "width": 0.7548387096774193,
+            "height": 0.36,
+            "angle": 0
+          },
+          "layer": 5,
+          "channel": "mouth"
+        }
+      ],
+      "blink": true
+    },
+    "happy": {
+      "label": "Восторг",
+      "page": 0,
+      "parts": [
+        {
+          "id": "study-brow-0",
+          "rect": [
+            544,
+            167,
+            212,
+            166
+          ],
+          "layout": {
+            "x": -0.4592174474208678,
+            "y": 0.4617578520770008,
+            "width": 0.7382308963268692,
+            "height": 0.47250000000000003,
+            "angle": 0
+          },
+          "layer": 30,
+          "channel": "brow"
+        },
+        {
+          "id": "study-brow-1",
+          "rect": [
+            790,
+            165,
+            207,
+            164
+          ],
+          "layout": {
+            "x": 0.4636381102683398,
+            "y": 0.4682421479229987,
+            "width": 0.7296102755287591,
+            "height": 0.47250000000000003,
+            "angle": 0
+          },
+          "layer": 30,
+          "channel": "brow"
+        },
+        {
+          "id": "study-eye-0",
+          "rect": [
+            546,
+            408,
+            212,
+            220
+          ],
+          "layout": {
+            "x": -0.3712500269833225,
+            "y": 0.08972644376899669,
+            "width": 0.6775768088868138,
+            "height": 0.63490875,
+            "angle": 0
+          },
+          "layer": 10,
+          "channel": "eye"
+        },
+        {
+          "id": "study-eye-1",
+          "rect": [
+            781,
+            408,
+            210,
+            220
+          ],
+          "layout": {
+            "x": 0.3843692811529152,
+            "y": 0.08972644376899669,
+            "width": 0.671184574840711,
+            "height": 0.63490875,
+            "angle": 0
+          },
+          "layer": 10,
+          "channel": "eye"
+        },
+        {
+          "id": "study-mouth",
+          "rect": [
+            588,
+            715,
+            378,
+            148
+          ],
+          "layout": {
+            "x": -0.029179331306990353,
+            "y": -0.3594934143870318,
+            "width": 0.7249105624999997,
+            "height": 0.283827416005291,
+            "angle": 0
+          },
+          "layer": 5,
+          "channel": "mouth"
+        }
+      ],
+      "blink": true
+    },
+    "scared": {
+      "label": "Испуг",
+      "page": 1,
+      "parts": [
+        {
+          "id": "study-brow-0",
+          "rect": [
+            608,
+            63,
+            122,
+            86
+          ],
+          "layout": {
+            "x": -0.41,
+            "y": 0.4,
+            "width": 0.8,
+            "height": 0.43,
+            "angle": 0
+          },
+          "layer": 30,
+          "channel": "brow"
+        },
+        {
+          "id": "study-brow-1",
+          "rect": [
+            745,
+            63,
+            117,
+            85
+          ],
+          "layout": {
+            "x": 0.41,
+            "y": 0.4,
+            "width": 0.8,
+            "height": 0.43,
+            "angle": 0
+          },
+          "layer": 30,
+          "channel": "brow"
+        },
+        {
+          "id": "study-eye-0",
+          "rect": [
+            43,
+            411,
+            208,
+            218
+          ],
+          "layout": {
+            "x": -0.36,
+            "y": 0.065,
+            "width": 0.65,
+            "height": 0.6,
+            "angle": 0
+          },
+          "layer": 10,
+          "channel": "eye",
+          "page": 2,
+          "variants": {
+            "center": [
+              43,
+              411,
+              208,
+              218
+            ],
+            "left": [
+              557,
+              410,
+              206,
+              220
+            ],
+            "right": [
+              1068,
+              410,
+              208,
+              220
+            ]
+          }
+        },
+        {
+          "id": "study-eye-1",
+          "rect": [
+            260,
+            411,
+            207,
+            218
+          ],
+          "layout": {
+            "x": 0.36,
+            "y": 0.065,
+            "width": 0.65,
+            "height": 0.6,
+            "angle": 0
+          },
+          "layer": 10,
+          "channel": "eye",
+          "page": 2,
+          "variants": {
+            "center": [
+              260,
+              411,
+              207,
+              218
+            ],
+            "left": [
+              770,
+              410,
+              210,
+              219
+            ],
+            "right": [
+              1283,
+              409,
+              210,
+              220
+            ]
+          }
+        },
+        {
+          "id": "study-mouth",
+          "rect": [
+            633,
+            392,
+            198,
+            106
+          ],
+          "layout": {
+            "x": 0,
+            "y": -0.442,
+            "width": 0.6927731092436975,
+            "height": 0.36,
+            "angle": 0
+          },
+          "layer": 5,
+          "channel": "mouth"
+        }
+      ],
+      "blink": true,
+      "eyeReference": "shocked: open eyes, small pupils; 25.10.2026 user reference"
+    },
+    "shocked": {
+      "label": "Удивление",
+      "page": 1,
+      "parts": [
+        {
+          "id": "study-brow-0",
+          "rect": [
+            23,
+            592,
+            124,
+            92
+          ],
+          "layout": {
+            "x": -0.41,
+            "y": 0.4,
+            "width": 0.8,
+            "height": 0.43,
+            "angle": 0
+          },
+          "layer": 30,
+          "channel": "brow"
+        },
+        {
+          "id": "study-brow-1",
+          "rect": [
+            163,
+            591,
+            119,
+            93
+          ],
+          "layout": {
+            "x": 0.41,
+            "y": 0.4,
+            "width": 0.8,
+            "height": 0.43,
+            "angle": 0
+          },
+          "layer": 30,
+          "channel": "brow"
+        },
+        {
+          "id": "study-eye-0",
+          "rect": [
+            43,
+            411,
+            208,
+            218
+          ],
+          "layout": {
+            "x": -0.36,
+            "y": 0.065,
+            "width": 0.65,
+            "height": 0.6,
+            "angle": 0
+          },
+          "layer": 10,
+          "channel": "eye",
+          "page": 2,
+          "variants": {
+            "center": [
+              43,
+              411,
+              208,
+              218
+            ],
+            "left": [
+              557,
+              410,
+              206,
+              220
+            ],
+            "right": [
+              1068,
+              410,
+              208,
+              220
+            ]
+          }
+        },
+        {
+          "id": "study-eye-1",
+          "rect": [
+            260,
+            411,
+            207,
+            218
+          ],
+          "layout": {
+            "x": 0.36,
+            "y": 0.065,
+            "width": 0.65,
+            "height": 0.6,
+            "angle": 0
+          },
+          "layer": 10,
+          "channel": "eye",
+          "page": 2,
+          "variants": {
+            "center": [
+              260,
+              411,
+              207,
+              218
+            ],
+            "left": [
+              770,
+              410,
+              210,
+              219
+            ],
+            "right": [
+              1283,
+              409,
+              210,
+              220
+            ]
+          }
+        },
+        {
+          "id": "study-mouth",
+          "rect": [
+            101,
+            937,
+            97,
+            110
+          ],
+          "layout": {
+            "x": 0,
+            "y": -0.442,
+            "width": 0.32,
+            "height": 0.36,
+            "angle": 0
+          },
+          "layer": 5,
+          "channel": "mouth"
+        }
+      ],
+      "blink": true
+    },
+    "proud": {
+      "label": "Гордость",
+      "page": 1,
+      "parts": [
+        {
+          "id": "study-brow-0",
+          "rect": [
+            308,
+            613,
+            137,
+            83
+          ],
+          "layout": {
+            "x": -0.41,
+            "y": 0.4,
+            "width": 0.8,
+            "height": 0.43,
+            "angle": 0
+          },
+          "layer": 30,
+          "channel": "brow"
+        },
+        {
+          "id": "study-brow-1",
+          "rect": [
+            437,
+            645,
+            148,
+            71
+          ],
+          "layout": {
+            "x": 0.41,
+            "y": 0.4,
+            "width": 0.8,
+            "height": 0.43,
+            "angle": 0
+          },
+          "layer": 30,
+          "channel": "brow"
+        },
+        {
+          "id": "study-eye-0",
+          "rect": [
+            311,
+            766,
+            134,
+            121
+          ],
+          "layout": {
+            "x": -0.36,
+            "y": 0.065,
+            "width": 0.65,
+            "height": 0.5571428571428572,
+            "angle": 0
+          },
+          "layer": 10,
+          "channel": "eye"
+        },
+        {
+          "id": "study-eye-1",
+          "rect": [
+            451,
+            779,
+            130,
+            109
+          ],
+          "layout": {
+            "x": 0.36,
+            "y": 0.065,
+            "width": 0.65,
+            "height": 0.45499999999999996,
+            "angle": 0
+          },
+          "layer": 10,
+          "channel": "eye"
+        },
+        {
+          "id": "study-mouth",
+          "rect": [
+            373,
+            950,
+            140,
+            48
+          ],
+          "layout": {
+            "x": 0,
+            "y": -0.41193197278911564,
+            "width": 0.6699999999999999,
+            "height": 0.20965986394557823,
+            "angle": 0
+          },
+          "layer": 5,
+          "channel": "mouth"
+        }
+      ],
+      "blink": true
+    },
+    "dizzy": {
+      "label": "Головокружение",
+      "page": 1,
+      "parts": [
+        {
+          "id": "study-brow-0",
+          "rect": [
+            603,
+            599,
+            131,
+            78
+          ],
+          "layout": {
+            "x": -0.41,
+            "y": 0.4,
+            "width": 0.8,
+            "height": 0.43,
+            "angle": 0
+          },
+          "layer": 30,
+          "channel": "brow"
+        },
+        {
+          "id": "study-brow-1",
+          "rect": [
+            740,
+            600,
+            126,
+            86
+          ],
+          "layout": {
+            "x": 0.41,
+            "y": 0.4,
+            "width": 0.8,
+            "height": 0.43,
+            "angle": 0
+          },
+          "layer": 30,
+          "channel": "brow"
+        },
+        {
+          "id": "study-eye-0",
+          "rect": [
+            595,
+            750,
+            139,
+            140
+          ],
+          "layout": {
+            "x": -0.36,
+            "y": 0.065,
+            "width": 0.65,
+            "height": 0.55,
+            "angle": 0
+          },
+          "layer": 10,
+          "channel": "eye"
+        },
+        {
+          "id": "study-eye-1",
+          "rect": [
+            738,
+            750,
+            131,
+            140
+          ],
+          "layout": {
+            "x": 0.36,
+            "y": 0.065,
+            "width": 0.65,
+            "height": 0.55,
+            "angle": 0
+          },
+          "layer": 10,
+          "channel": "eye"
+        },
+        {
+          "id": "study-mouth",
+          "rect": [
+            635,
+            933,
+            196,
+            95
+          ],
+          "layout": {
+            "x": 0,
+            "y": -0.4328727272727273,
+            "width": 0.76,
+            "height": 0.31436363636363635,
+            "angle": 0
+          },
+          "layer": 5,
+          "channel": "mouth"
+        }
+      ],
+      "blink": false
+    },
+    "knockout": {
+      "label": "Отключка",
+      "page": 1,
+      "parts": [
+        {
+          "id": "study-brow-0",
+          "rect": [
+            16,
+            1152,
+            130,
+            88
+          ],
+          "layout": {
+            "x": -0.41,
+            "y": 0.4,
+            "width": 0.8,
+            "height": 0.43,
+            "angle": 0
+          },
+          "layer": 30,
+          "channel": "brow"
+        },
+        {
+          "id": "study-brow-1",
+          "rect": [
+            158,
+            1166,
+            132,
+            81
+          ],
+          "layout": {
+            "x": 0.41,
+            "y": 0.4,
+            "width": 0.8,
+            "height": 0.43,
+            "angle": 0
+          },
+          "layer": 30,
+          "channel": "brow"
+        },
+        {
+          "id": "study-eye-0",
+          "rect": [
+            15,
+            1309,
+            138,
+            136
+          ],
+          "layout": {
+            "x": -0.36,
+            "y": 0.065,
+            "width": 0.65,
+            "height": 0.55,
+            "angle": 0
+          },
+          "layer": 10,
+          "channel": "eye"
+        },
+        {
+          "id": "study-eye-1",
+          "rect": [
+            153,
+            1309,
+            137,
+            136
+          ],
+          "layout": {
+            "x": 0.36,
+            "y": 0.065,
+            "width": 0.65,
+            "height": 0.55,
+            "angle": 0
+          },
+          "layer": 10,
+          "channel": "eye"
+        },
+        {
+          "id": "study-mouth",
+          "rect": [
+            61,
+            1534,
+            190,
+            98
+          ],
+          "layout": {
+            "x": 0,
+            "y": -0.442,
+            "width": 0.7124210526315788,
+            "height": 0.36,
+            "angle": 0
+          },
+          "layer": 5,
+          "channel": "mouth"
+        }
+      ],
+      "blink": false,
+      "mouthStatus": "temporary: redraw as a crooked broken line per user; no smiling/open mouth in final"
+    },
+    "unhinged": {
+      "label": "Безумная реакция",
+      "page": 1,
+      "parts": [
+        {
+          "id": "study-brow-0",
+          "rect": [
+            311,
+            1137,
+            130,
+            90
+          ],
+          "layout": {
+            "x": -0.41,
+            "y": 0.4,
+            "width": 0.8,
+            "height": 0.43,
+            "angle": 0
+          },
+          "layer": 30,
+          "channel": "brow"
+        },
+        {
+          "id": "study-brow-1",
+          "rect": [
+            430,
+            1184,
+            147,
+            78
+          ],
+          "layout": {
+            "x": 0.41,
+            "y": 0.4,
+            "width": 0.8,
+            "height": 0.43,
+            "angle": 0
+          },
+          "layer": 30,
+          "channel": "brow"
+        },
+        {
+          "id": "study-eye-0",
+          "rect": [
+            299,
+            1296,
+            140,
+            137
+          ],
+          "layout": {
+            "x": -0.36,
+            "y": 0.065,
+            "width": 0.65,
+            "height": 0.5361581920903955,
+            "angle": 0
+          },
+          "layer": 10,
+          "channel": "eye"
+        },
+        {
+          "id": "study-eye-1",
+          "rect": [
+            449,
+            1327,
+            134,
+            113
+          ],
+          "layout": {
+            "x": 0.36,
+            "y": 0.065,
+            "width": 0.65,
+            "height": 0.48251533742331293,
+            "angle": 0
+          },
+          "layer": 10,
+          "channel": "eye"
+        },
+        {
+          "id": "study-mouth",
+          "rect": [
+            311,
+            1484,
+            257,
+            157
+          ],
+          "layout": {
+            "x": 0,
+            "y": -0.442,
+            "width": 0.6025668449197861,
+            "height": 0.36,
+            "angle": 0
+          },
+          "layer": 5,
+          "channel": "mouth"
+        }
+      ],
+      "blink": true
+    },
+    "sleepy": {
+      "label": "Сонный",
+      "page": 1,
+      "parts": [
+        {
+          "id": "study-brow-0",
+          "rect": [
+            601,
+            1176,
+            134,
+            93
+          ],
+          "layout": {
+            "x": -0.41,
+            "y": 0.4,
+            "width": 0.8,
+            "height": 0.43,
+            "angle": 0
+          },
+          "layer": 30,
+          "channel": "brow"
+        },
+        {
+          "id": "study-brow-1",
+          "rect": [
+            743,
+            1177,
+            129,
+            93
+          ],
+          "layout": {
+            "x": 0.41,
+            "y": 0.4,
+            "width": 0.8,
+            "height": 0.43,
+            "angle": 0
+          },
+          "layer": 30,
+          "channel": "brow"
+        },
+        {
+          "id": "study-eye-0",
+          "rect": [
+            596,
+            1318,
+            136,
+            133
+          ],
+          "layout": {
+            "x": -0.36,
+            "y": 0.065,
+            "width": 0.65,
+            "height": 0.5765536723163842,
+            "angle": 0
+          },
+          "layer": 10,
+          "channel": "eye"
+        },
+        {
+          "id": "study-eye-1",
+          "rect": [
+            740,
+            1321,
+            137,
+            131
+          ],
+          "layout": {
+            "x": 0.36,
+            "y": 0.065,
+            "width": 0.65,
+            "height": 0.6,
+            "angle": 0
+          },
+          "layer": 10,
+          "channel": "eye"
+        },
+        {
+          "id": "study-mouth",
+          "rect": [
+            694,
+            1527,
+            89,
+            115
+          ],
+          "layout": {
+            "x": 0,
+            "y": -0.442,
+            "width": 0.29647058823529415,
+            "height": 0.36,
+            "angle": 0
+          },
+          "layer": 5,
+          "channel": "mouth"
+        }
+      ],
+      "blink": true
+    },
+    "dazed": {
+      "label": "Оглушённый",
+      "page": 1,
+      "parts": [
+        {
+          "id": "study-brow-0",
+          "rect": [
+            603,
+            599,
+            131,
+            78
+          ],
+          "layout": {
+            "x": -0.41,
+            "y": 0.4,
+            "width": 0.8,
+            "height": 0.43,
+            "angle": 0
+          },
+          "layer": 30,
+          "channel": "brow"
+        },
+        {
+          "id": "study-brow-1",
+          "rect": [
+            740,
+            600,
+            126,
+            86
+          ],
+          "layout": {
+            "x": 0.41,
+            "y": 0.4,
+            "width": 0.8,
+            "height": 0.43,
+            "angle": 0
+          },
+          "layer": 30,
+          "channel": "brow"
+        },
+        {
+          "id": "study-eye-0",
+          "rect": [
+            43,
+            411,
+            208,
+            218
+          ],
+          "layout": {
+            "x": -0.36,
+            "y": 0.065,
+            "width": 0.65,
+            "height": 0.6,
+            "angle": 0
+          },
+          "layer": 10,
+          "channel": "eye",
+          "page": 2,
+          "variants": {
+            "center": [
+              43,
+              411,
+              208,
+              218
+            ],
+            "left": [
+              557,
+              410,
+              206,
+              220
+            ],
+            "right": [
+              1068,
+              410,
+              208,
+              220
+            ]
+          }
+        },
+        {
+          "id": "study-eye-1",
+          "rect": [
+            260,
+            411,
+            207,
+            218
+          ],
+          "layout": {
+            "x": 0.36,
+            "y": 0.065,
+            "width": 0.65,
+            "height": 0.6,
+            "angle": 0
+          },
+          "layer": 10,
+          "channel": "eye",
+          "page": 2,
+          "variants": {
+            "center": [
+              260,
+              411,
+              207,
+              218
+            ],
+            "left": [
+              770,
+              410,
+              210,
+              219
+            ],
+            "right": [
+              1283,
+              409,
+              210,
+              220
+            ]
+          }
+        },
+        {
+          "id": "study-mouth",
+          "rect": [
+            635,
+            933,
+            196,
+            95
+          ],
+          "layout": {
+            "x": 0,
+            "y": -0.4328727272727273,
+            "width": 0.76,
+            "height": 0.31436363636363635,
+            "angle": 0
+          },
+          "layer": 5,
+          "channel": "mouth"
+        }
+      ],
+      "blink": true,
+      "eyeReference": "shocked: open eyes, small pupils; 25.10.2026 user reference"
+    }
+  },
+  "clips": {
+    "neutral": {
+      "in": 0.2,
+      "hold": 2,
+      "out": 0.3,
+      "loop": false,
+      "tracks": {
+        "browLift": [
+          0,
+          0.018,
+          0
+        ],
+        "eyeSquash": [
+          0.96,
+          1,
+          0.98
+        ],
+        "mouthPulse": [
+          0.96,
+          1,
+          0.98
+        ]
+      }
+    },
+    "sly": {
+      "in": 0.2,
+      "hold": 2.2,
+      "out": 0.3,
+      "loop": false,
+      "tracks": {
+        "browLift": [
+          0,
+          0.018,
+          0
+        ],
+        "eyeSquash": [
+          0.96,
+          1,
+          0.98
+        ],
+        "mouthPulse": [
+          0.96,
+          1,
+          0.98
+        ]
+      }
+    },
+    "grumpy": {
+      "in": 0.2,
+      "hold": 2,
+      "out": 0.3,
+      "loop": false,
+      "tracks": {
+        "browLift": [
+          0,
+          0.018,
+          0
+        ],
+        "eyeSquash": [
+          0.96,
+          1,
+          0.98
+        ],
+        "mouthPulse": [
+          0.96,
+          1,
+          0.98
+        ]
+      }
+    },
+    "fury": {
+      "in": 0.2,
+      "hold": 2.2,
+      "out": 0.3,
+      "loop": false,
+      "tracks": {
+        "browLift": [
+          0,
+          0.018,
+          0
+        ],
+        "eyeSquash": [
+          0.96,
+          1,
+          0.98
+        ],
+        "mouthPulse": [
+          0.96,
+          1,
+          0.98
+        ]
+      }
+    },
+    "happy": {
+      "in": 0.2,
+      "hold": 2,
+      "out": 0.3,
+      "loop": false,
+      "tracks": {
+        "browLift": [
+          0,
+          0.018,
+          0
+        ],
+        "eyeSquash": [
+          0.96,
+          1,
+          0.98
+        ],
+        "mouthPulse": [
+          0.96,
+          1,
+          0.98
+        ]
+      }
+    },
+    "scared": {
+      "in": 0.2,
+      "hold": 2,
+      "out": 0.3,
+      "loop": false,
+      "tracks": {
+        "browLift": [
+          0,
+          0.018,
+          0
+        ],
+        "eyeSquash": [
+          0.96,
+          1,
+          0.98
+        ],
+        "mouthPulse": [
+          0.96,
+          1,
+          0.98
+        ]
+      }
+    },
+    "shocked": {
+      "in": 0.2,
+      "hold": 1.6,
+      "out": 0.3,
+      "loop": false,
+      "tracks": {
+        "browLift": [
+          0,
+          0.018,
+          0
+        ],
+        "eyeSquash": [
+          0.96,
+          1,
+          0.98
+        ],
+        "mouthPulse": [
+          0.96,
+          1,
+          0.98
+        ]
+      }
+    },
+    "proud": {
+      "in": 0.2,
+      "hold": 2.8,
+      "out": 0.3,
+      "loop": false,
+      "tracks": {
+        "browLift": [
+          0,
+          0.018,
+          0
+        ],
+        "eyeSquash": [
+          0.96,
+          1,
+          0.98
+        ],
+        "mouthPulse": [
+          0.96,
+          1,
+          0.98
+        ]
+      }
+    },
+    "dizzy": {
+      "in": 0.2,
+      "hold": 2.1,
+      "out": 0.3,
+      "loop": false,
+      "tracks": {
+        "browLift": [
+          0,
+          0.018,
+          0
+        ],
+        "eyeSquash": [
+          0.96,
+          1,
+          0.98
+        ],
+        "mouthPulse": [
+          0.96,
+          1,
+          0.98
+        ]
+      }
+    },
+    "knockout": {
+      "in": 0.2,
+      "hold": 1.8,
+      "out": 0.3,
+      "loop": false,
+      "tracks": {
+        "browLift": [
+          0,
+          0.018,
+          0
+        ],
+        "eyeSquash": [
+          0.96,
+          1,
+          0.98
+        ],
+        "mouthPulse": [
+          0.96,
+          1,
+          0.98
+        ]
+      }
+    },
+    "unhinged": {
+      "in": 0.2,
+      "hold": 1.8,
+      "out": 0.3,
+      "loop": false,
+      "tracks": {
+        "browLift": [
+          0,
+          0.018,
+          0
+        ],
+        "eyeSquash": [
+          0.96,
+          1,
+          0.98
+        ],
+        "mouthPulse": [
+          0.96,
+          1,
+          0.98
+        ]
+      }
+    },
+    "sleepy": {
+      "in": 0.2,
+      "hold": 2.5,
+      "out": 0.3,
+      "loop": false,
+      "tracks": {
+        "browLift": [
+          0,
+          0.018,
+          0
+        ],
+        "eyeSquash": [
+          0.96,
+          1,
+          0.98
+        ],
+        "mouthPulse": [
+          0.96,
+          1,
+          0.98
+        ]
+      }
+    },
+    "dazed": {
+      "in": 0.2,
+      "hold": 1.8,
+      "out": 0.3,
+      "loop": false,
+      "tracks": {
+        "browLift": [
+          0,
+          0.018,
+          0
+        ],
+        "eyeSquash": [
+          0.96,
+          1,
+          0.98
+        ],
+        "mouthPulse": [
+          0.96,
+          1,
+          0.98
+        ]
+      }
+    }
+  },
+  "blink": {
+    "close": 0.15,
+    "closed": 0.1,
+    "open": 0.15,
+    "pause": [
+      2,
+      6
+    ]
+  },
+  "combo": {
+    "orbitSeconds": 0.7,
+    "turns": 3,
+    "trailCopies": 3,
+    "dizzySeconds": 2.1,
+    "recoverSeconds": 0.35,
+    "stopDuringDizzy": true,
+    "axis": "x",
+    "plane": "vertical"
+  },
+  "unhingedIris": {
+    "eye": "viewer-left",
+    "requestedDiameterScale": 0.35,
+    "method": "imagegen edit of iris+pupil; sclera size unchanged"
+  },
+  "eyesVariants": {
+    "poses": [
+      "scared",
+      "shocked",
+      "dazed"
+    ],
+    "directions": [
+      "center",
+      "left",
+      "right"
+    ],
+    "pupils": "small amber iris plus black pupil; normal sclera size",
+    "note": "dazed is conscious; knockout uses crosses and has no pupils"
+  },
+  "sourceStatus": "Separated organ sheet; alpha-edge filtering required; visual review pending. Existing three calibrated poses retained exactly."
+}

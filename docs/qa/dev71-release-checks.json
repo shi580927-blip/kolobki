@@ -1,0 +1,39 @@
+{
+  "implementationCommit": "4733329a700a6ec480320c6f383be94bb9414af4",
+  "nodeTests": {
+    "passed": 166,
+    "failed": 0
+  },
+  "productionBuild": true,
+  "githubActions": {
+    "Clean core checks push": "success",
+    "Clean core checks PR": "success",
+    "Alpha Pages deploy": "success"
+  },
+  "publishedAssets": {
+    "assets/index-C2QgW31t.js": {
+      "sha256": "cf65d07d0ddbd0e9a2c64997d960b99116a281cbb08f018b3c378dc6cf76a09d",
+      "matchesLocalDist": true
+    },
+    "assets/index-_BBS2LOJ.css": {
+      "sha256": "669817378a99bb7e342624ef0d46a1d50898d01a4f59d71d96465c3b38529403",
+      "matchesLocalDist": true
+    }
+  },
+  "localProductionUI": {
+    "initialVisibleTracks": 1,
+    "manuallyExpandedTracks": 2,
+    "duoIdleWorld": {
+      "npcs": 0,
+      "berries": 0,
+      "match": false
+    }
+  },
+  "realNetworkPairVerified": false,
+  "verificationLimits": [
+    "Container browser did not open RTC DataChannel",
+    "Cloud browser has WebGL disabled and cannot start the 3D game",
+    "Two physical devices/networks not tested"
+  ],
+  "status": "experimental two-player mode; actual device pairing remains to be verified"
+}

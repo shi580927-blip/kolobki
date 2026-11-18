@@ -1,0 +1,36 @@
+{
+  "views": [
+    {
+      "name": "island",
+      "drawCalls": 76,
+      "triangles": 908206
+    },
+    {
+      "name": "valley",
+      "drawCalls": 68,
+      "triangles": 895382
+    },
+    {
+      "name": "lagoon",
+      "drawCalls": 64,
+      "triangles": 891386
+    },
+    {
+      "name": "north",
+      "drawCalls": 29,
+      "triangles": 807604
+    },
+    {
+      "name": "arches",
+      "drawCalls": 65,
+      "triangles": 890050
+    },
+    {
+      "name": "windmill",
+      "drawCalls": 26,
+      "triangles": 802276
+    }
+  ],
+  "errors": [],
+  "mode": "actual World geometry; review cameras; Chromium SwiftShader"
+}
