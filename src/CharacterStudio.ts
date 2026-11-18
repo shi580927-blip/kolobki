@@ -61,9 +61,9 @@ export async function startCharacterStudio(){
   const pattern=section(left,'Узор'),pg=grid(pattern);pg.classList.add('studio-patterns');pattern.querySelector('h2')!.append(accent);
   for(const [id,name]of Object.entries(patterns)){button(pg,name.replace(/^\d+ · /,''),look.design.pattern===id,()=>{look.design.surface='smooth';look.design.pattern=id as Pattern;},orb(id as Pattern));}
   const makeup=section(right,'◉ Макияж'),mg=grid(makeup);mg.classList.add('studio-options');
-  button(mg,'Без макияжа',look.makeup.length===0,()=>{look.makeup=[];});for(const [id,label,icon]of [['liner','Стрелки','⌁'],['blush','Румянец','❥'],['freckles','Веснушки','∴']] as const){const b=button(mg,label,look.makeup.includes(id),()=>{look.makeup=look.makeup.includes(id)?look.makeup.filter(x=>x!==id):[...look.makeup,id];});b.textContent=icon;}
+  button(mg,'Без макияжа',look.makeup.length===0,()=>{look.makeup=[];}).textContent='⊘';for(const [id,label,icon]of [['liner','Стрелки','⌁'],['blush','Румянец','❥'],['freckles','Веснушки','∴']] as const){const b=button(mg,label,look.makeup.includes(id),()=>{look.makeup=look.makeup.includes(id)?look.makeup.filter(x=>x!==id):[...look.makeup,id];});b.textContent=icon;}
   const tattoo=section(right,'ϟ Скин и тату'),tg=grid(tattoo);tg.classList.add('studio-options');
-  button(tg,'Без рисунка',!look.skull&&look.outfit.mark==='none',()=>{look.skull=false;look.outfit.mark='none';});
+  button(tg,'Без рисунка',!look.skull&&look.outfit.mark==='none',()=>{look.skull=false;look.outfit.mark='none';}).textContent='⊘';
   button(tg,'Черепушка',look.skull,()=>{look.skull=!look.skull;}).textContent='☠';
   for(const [id,name,icon]of [['stripes','Шрамы','╱╱'],['star','Звёзды','★'],['bolt','Молния','ϟ']] as const){button(tg,name,look.outfit.mark===id,()=>{look.outfit.mark=id;}).textContent=icon;}
   const equipment=section(right,'♛ Украшения'),eg=grid(equipment);eg.classList.add('studio-options');

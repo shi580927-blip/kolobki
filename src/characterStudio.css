@@ -62,3 +62,5 @@
 #character-studio #studio-reset .studio-action-icon{color:#fff5ff}
 #character-studio #studio-save .studio-action-icon{font-size:56px;color:#75db15;-webkit-text-stroke:1.5px #398616;paint-order:stroke fill;text-shadow:0 2px #edffb9,0 4px #4b711a}
 #character-studio .studio-presets button{height:72px}
+
+#character-studio .studio-options button:first-child{font-size:29px;line-height:1}
