@@ -7,6 +7,7 @@ const fs=require('node:fs/promises');
  try{
   const page=await browser.newPage({viewport:{width:1280,height:720}}),errors=[];
   page.setDefaultTimeout(90000);page.on('pageerror',e=>errors.push(e.message));
+  page.on('console',m=>{if(m.type()==='error'&&/Shader Error|VALIDATE_STATUS|WebGL.*INVALID/.test(m.text()))errors.push(m.text());});
   await page.route('http://game.local/**',route=>{const file=new URL(route.request().url()).pathname.replace(/^\/kolobki\//,'/');return route.fulfill({path:path.join('dist',file==='/'?'index.html':file)});});
   await page.addInitScript(()=>{if(!localStorage.getItem('sharobesy.skin.v1'))localStorage.setItem('sharobesy.skin.v1','4321');});
   await page.goto('http://game.local/?character-editor');
@@ -43,6 +44,29 @@ const fs=require('node:fs/promises');
   await page.waitForFunction(()=>document.querySelector('#stage').clientWidth===960);
   assert.equal(await page.locator('#studio-save').evaluate(e=>Math.round(e.getBoundingClientRect().width)),266);
   await page.screenshot({path:'dist/deploy-review/character-editor-mobile.png'});
-  assert.deepEqual(errors,[]);console.log('Character studio: reference proportions, author storage, real previews and uniform 16:9 PASS');
+  await page.setViewportSize({width:1280,height:720});
+  await page.goto('http://game.local/?character-editor&design-study');
+  await page.waitForFunction(()=>window.__CHARACTER_STUDIO__?.study);
+  assert.equal(await page.evaluate(()=>window.__CHARACTER_STUDIO__.look.accessory),'headphones');
+  const fixed=await page.evaluate(()=>{const s=window.__CHARACTER_STUDIO__;return {face:s.faceRotation,tattoo:s.tattooRotation,accessory:s.accessoryRotation};});
+  await page.locator('#studio-roll').click();
+  await page.waitForFunction(()=>window.__CHARACTER_STUDIO__.bodyRotation>.65);
+  assert.deepEqual(await page.evaluate(()=>{const s=window.__CHARACTER_STUDIO__;return {face:s.faceRotation,tattoo:s.tattooRotation,accessory:s.accessoryRotation};}),fixed,'cosmetics and accessories stay in the face frame while the body rolls');
+  await page.locator('#studio-roll').click();
+  for(const name of ['Алый хищник','Лаймовый бунт','Северный разряд','Черепушка · маска']){
+   await page.getByRole('button',{name,exact:true}).click();
+   if(name==='Черепушка · маска'){
+    // Texture loading is asynchronous; wait for the image, rather than taking an empty-overlay screenshot.
+    await page.evaluate(async()=>{const im=new Image();im.src='/assets/cosmetics/skull.webp';await im.decode();});
+    assert.equal(await page.evaluate(()=>window.__CHARACTER_STUDIO__.look.skullTreatment),'open-mask');
+   }
+   await page.screenshot({path:'dist/deploy-review/design-'+['Алый хищник','Лаймовый бунт','Северный разряд','Черепушка · маска'].indexOf(name)+'.png'});
+   await page.getByRole('button',{name:'Повернуть вправо',exact:true}).click({clickCount:2});
+   await page.screenshot({path:'dist/deploy-review/design-side-'+['Алый хищник','Лаймовый бунт','Северный разряд','Черепушка · маска'].indexOf(name)+'.png'});
+  }
+  await page.locator('#studio-save').click();
+  assert.equal(await page.evaluate(()=>localStorage.getItem('sharobesy.skin.v1')),'4321');
+  assert.equal(await page.evaluate(()=>localStorage.getItem('sharobesy.author.character-studio.v1')),saved,'new study does not overwrite the approved editor save');
+  assert.deepEqual(errors,[]);console.log('Character studio: reference proportions, author storage, independent body roll and accessory study PASS');
  }finally{await browser.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});

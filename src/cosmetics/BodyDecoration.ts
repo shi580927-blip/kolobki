@@ -3,24 +3,26 @@ import {wrapU,type TattooId,type TattooPlacement} from './CosmeticCatalog';
 /** Experimental UV overlay follows the face heading, independently of the physical roll. */
 export class BodyDecoration extends T.Group {
  private skullTexture?:T.Texture;
+ ready:Promise<void>=Promise.resolve();
  private readonly canvas=document.createElement('canvas');
  private readonly texture:T.CanvasTexture;
  private readonly mesh:T.Mesh<T.SphereGeometry,T.MeshStandardMaterial>;
  private readonly faceInverse={value:new T.Matrix4()};
  private readonly maskEnabled={value:0};
  private readonly partialSkull={value:0};
- constructor(){super();this.name='body-decoration';this.canvas.width=1024;this.canvas.height=1024;this.texture=new T.CanvasTexture(this.canvas);this.texture.colorSpace=T.SRGBColorSpace;this.texture.wrapS=T.RepeatWrapping;this.texture.anisotropy=4;this.mesh=new T.Mesh(new T.SphereGeometry(1.004,64,48),new T.MeshStandardMaterial({map:this.texture,transparent:true,depthWrite:false,roughness:.55,polygonOffset:true,polygonOffsetFactor:-1}));const mat=this.mesh.material;mat.onBeforeCompile=shader=>{shader.uniforms.cosmeticFaceInverse=this.faceInverse;shader.uniforms.cosmeticMaskEnabled=this.maskEnabled;shader.uniforms.cosmeticPartialSkull=this.partialSkull;shader.vertexShader=shader.vertexShader.replace('#include <common>','#include <common>\nvarying vec3 cosmeticWorld; varying vec3 cosmeticLocal;').replace('#include <worldpos_vertex>','#include <worldpos_vertex>\ncosmeticWorld=(modelMatrix*vec4(transformed,1.0)).xyz; cosmeticLocal=transformed;');shader.fragmentShader=shader.fragmentShader.replace('#include <common>','#include <common>\nvarying vec3 cosmeticWorld; varying vec3 cosmeticLocal; uniform mat4 cosmeticFaceInverse; uniform float cosmeticMaskEnabled; uniform float cosmeticPartialSkull;').replace('#include <map_fragment>','#include <map_fragment>\nif(cosmeticPartialSkull>.5){ vec3 p=normalize(cosmeticLocal); float crown=smoothstep(.50,.79,p.y); float front=smoothstep(-.12,.16,p.z + .045*sin(8.0*atan(p.x,p.z))*(1.0-abs(p.y))); diffuseColor.a *= max(crown,front); }').replace('#include <clipping_planes_fragment>','#include <clipping_planes_fragment>\nvec3 f=(cosmeticFaceInverse*vec4(cosmeticWorld,1.0)).xyz; vec2 e1=(f.xy-vec2(-.36,.035))/vec2(.33,.34); vec2 e2=(f.xy-vec2(.36,.035))/vec2(.33,.34); vec2 m=(f.xy-vec2(0.,-.43))/vec2(.44,.18); if(cosmeticMaskEnabled>.5 && f.z>0. && (dot(e1,e1)<1. || dot(e2,e2)<1. || dot(m,m)<1.)) discard;');};mat.customProgramCacheKey=()=> 'body-face-exclusion-v2';this.add(this.mesh);this.mesh.visible=false;}
+ private readonly skullTreatment={value:0};
+ constructor(){super();this.name='body-decoration';this.canvas.width=1024;this.canvas.height=1024;this.texture=new T.CanvasTexture(this.canvas);this.texture.colorSpace=T.SRGBColorSpace;this.texture.wrapS=T.RepeatWrapping;this.texture.anisotropy=4;this.mesh=new T.Mesh(new T.SphereGeometry(1.004,64,48),new T.MeshStandardMaterial({map:this.texture,transparent:true,depthWrite:false,roughness:.55,polygonOffset:true,polygonOffsetFactor:-1}));const mat=this.mesh.material;mat.onBeforeCompile=shader=>{shader.uniforms.cosmeticFaceInverse=this.faceInverse;shader.uniforms.cosmeticMaskEnabled=this.maskEnabled;shader.uniforms.cosmeticPartialSkull=this.partialSkull;shader.uniforms.cosmeticSkullTreatment=this.skullTreatment;shader.vertexShader=shader.vertexShader.replace('#include <common>','#include <common>\nvarying vec3 cosmeticWorld; varying vec3 cosmeticLocal;').replace('#include <worldpos_vertex>','#include <worldpos_vertex>\ncosmeticWorld=(modelMatrix*vec4(transformed,1.0)).xyz; cosmeticLocal=transformed;');shader.fragmentShader=shader.fragmentShader.replace('#include <common>','#include <common>\nvarying vec3 cosmeticWorld; varying vec3 cosmeticLocal; uniform mat4 cosmeticFaceInverse; uniform float cosmeticMaskEnabled; uniform float cosmeticPartialSkull; uniform float cosmeticSkullTreatment;').replace('#include <map_fragment>','#include <map_fragment>\nif(cosmeticPartialSkull>.5){ vec3 p=normalize(cosmeticLocal); float crown=smoothstep(.50,.79,p.y); float front=smoothstep(-.12,.16,p.z + .045*sin(8.0*atan(p.x,p.z))*(1.0-abs(p.y))); diffuseColor.a *= max(crown,front); }\nif(cosmeticSkullTreatment>.5){\n vec3 p=normalize(cosmeticLocal);\n // Keep bone/red pigment, reveal the rotating native surface through dark ink.\n float pigment=smoothstep(.09,.31,max(diffuseColor.r,max(diffuseColor.g,diffuseColor.b)));\n diffuseColor.a*=pigment;\n if(cosmeticSkullTreatment>1.5){\n  float mask=smoothstep(.36,.62,p.z)*(1.0-smoothstep(.56,.76,abs(p.x)))*(1.0-smoothstep(.54,.78,abs(p.y+.03)));\n  float side=smoothstep(.44,.65,abs(p.x))*(1.0-smoothstep(.89,.99,abs(p.x)))*smoothstep(.02,.22,p.z);\n  float slash1=1.0-smoothstep(.035,.085,abs(p.y-.30+.36*abs(p.x)));\n  float slash2=1.0-smoothstep(.03,.075,abs(p.y-.04+.36*abs(p.x)));\n  diffuseColor.a*=max(mask,side*max(slash1,slash2));\n }\n}').replace('#include <clipping_planes_fragment>','#include <clipping_planes_fragment>\nvec3 f=(cosmeticFaceInverse*vec4(cosmeticWorld,1.0)).xyz; vec2 e1=(f.xy-vec2(-.36,.035))/vec2(.33,.34); vec2 e2=(f.xy-vec2(.36,.035))/vec2(.33,.34); vec2 m=(f.xy-vec2(0.,-.43))/vec2(.44,.18); if(cosmeticMaskEnabled>.5 && f.z>0. && (dot(e1,e1)<1. || dot(e2,e2)<1. || dot(m,m)<1.)) discard;');};mat.customProgramCacheKey=()=> 'body-face-exclusion-v3';this.add(this.mesh);this.mesh.visible=false;}
+ setSkullTreatment(mode:'original'|'native-color'|'open-mask'){this.skullTreatment.value=mode==='original'?0:mode==='native-color'?1:2;}
  setPartialSkull(enabled:boolean){this.partialSkull.value=enabled?1:0;}
  setFaceFrame(face:T.Object3D){face.updateWorldMatrix(true,false);this.faceInverse.value.copy(face.matrixWorld).invert();}
  setTattoo(placement:TattooPlacement|null){if(placement?.id==='skull'){
    if(!this.skullTexture){
-    const map=new T.TextureLoader().load(import.meta.env.BASE_URL+'assets/cosmetics/skull.webp');
-    map.colorSpace=T.SRGBColorSpace;
-    map.wrapS=T.RepeatWrapping;
-    map.offset.x=.25;
-    this.skullTexture=map;
+    this.ready=new Promise<void>(resolve=>{
+     const map=new T.TextureLoader().load(import.meta.env.BASE_URL+'assets/cosmetics/skull.webp',()=>resolve(),undefined,()=>resolve());
+     map.colorSpace=T.SRGBColorSpace;map.wrapS=T.RepeatWrapping;map.offset.x=.25;this.skullTexture=map;
+    });
    }
-   this.mesh.material.map=this.skullTexture;
+   this.mesh.material.map=this.skullTexture??null;
    this.maskEnabled.value=0;
    this.mesh.visible=true;
    return;
