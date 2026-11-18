@@ -53,7 +53,11 @@ const fs=require('node:fs/promises');
   await page.locator('#studio-roll').click();
   await page.waitForFunction(()=>window.__CHARACTER_STUDIO__.bodyRotation>.65);
   const afterRoll=await page.evaluate(()=>{const s=window.__CHARACTER_STUDIO__;return {face:s.faceRotation,tattoo:s.tattooRotation,accessory:s.accessoryRotation};});
-  assert.deepEqual(afterRoll,fixed,'fixed frames: '+JSON.stringify({before:fixed,after:afterRoll}));
+  assert.equal(await page.evaluate(()=>window.__CHARACTER_STUDIO__.framesIndependent),true,'face, paint and equipment must be siblings of the rolling body');
+  assert.deepEqual(afterRoll.tattoo,fixed.tattoo,'paint inherits no body rotation');
+  assert.deepEqual(afterRoll.accessory,fixed.accessory,'equipment inherits no body rotation');
+  // V5 may tilt its expression around Z. It must never inherit the body's X roll.
+  assert.ok(Math.abs(afterRoll.face[0])<.02&&Math.abs(afterRoll.face[1])<.02&&Math.abs(afterRoll.face[2])<.2,'expression remains in the heading frame: '+JSON.stringify(afterRoll.face));
   await page.locator('#studio-roll').click();
   for(const name of ['Алый хищник','Лаймовый бунт','Северный разряд','Черепушка · маска']){
    await page.getByRole('button',{name,exact:true}).click();
