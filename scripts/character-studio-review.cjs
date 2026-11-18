@@ -82,9 +82,9 @@ const fs=require('node:fs/promises');
    await page.getByRole('button',{name,exact:true}).click();
    assert.equal(await page.evaluate(()=>window.__CHARACTER_STUDIO__.look.accessory),id);
    await captureAccessory(id,'front');
-   await page.getByRole('button',{name:'Повернуть вправо',exact:true}).click({clickCount:2});
+   await page.getByRole('button',{name:'Повернуть вправо',exact:true}).click({clickCount:3});
    await captureAccessory(id,'side');
-   await page.getByRole('button',{name:'Повернуть вправо',exact:true}).click({clickCount:4});
+   await page.getByRole('button',{name:'Повернуть вправо',exact:true}).click({clickCount:3});
    await captureAccessory(id,'back');
    await page.getByRole('button',{name:'Повернуть влево',exact:true}).click({clickCount:6});
   }

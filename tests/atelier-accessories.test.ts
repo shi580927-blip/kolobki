@@ -15,6 +15,12 @@ test('accessory prototypes have finite surfaces, bounded geometry and share the 
   assert.deepEqual(rig.quaternion.toArray(),[0,0,0,1]);
   const bounds=new T.Box3().setFromObject(rig);
   if(kind!=='none'){assert.ok(bounds.max.y<1.7);assert.ok(bounds.min.x>-1.4&&bounds.max.x<1.4);}
+  if(['cap','viking','zorro'].includes(kind)){
+   let contact=Infinity;const point=new T.Vector3();
+   rig.updateMatrixWorld(true);
+   rig.traverse(o=>{if(o instanceof T.Mesh){const p=o.geometry.attributes.position;for(let i=0;i<p.count;i++)contact=Math.min(contact,point.fromBufferAttribute(p,i).applyMatrix4(o.matrixWorld).length());}});
+   assert.ok(contact<=1.005,kind+' floats above the unit sphere: minimum radius '+contact);
+  }
   rig.dispose();
  }
  env.dispose();

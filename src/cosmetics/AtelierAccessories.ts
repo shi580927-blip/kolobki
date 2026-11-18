@@ -43,15 +43,15 @@ export class AtelierAccessories extends T.Group {
   }
   if(kind==='viking'){
    // Rounded steel shell, rolled bronze lip, raised seams and individual rivets.
-   add(new T.SphereGeometry(1.075,64,28,0,Math.PI*2,0,.80),steel);
-   const radius=1.075*Math.sin(.80),height=1.075*Math.cos(.80);
+   add(new T.SphereGeometry(1.035,64,28,0,Math.PI*2,0,.82),steel);
+   const radius=1.035*Math.sin(.82),height=1.035*Math.cos(.82);
    ring(0,height,0,radius,.052,gold);
    ring(0,height+.065,0,radius*.95,.018,gold);
    for(let i=0;i<16;i++){const a=i/16*Math.PI*2;stud(Math.sin(a)*(radius+.025),height+.012,Math.cos(a)*(radius+.025),.026);}
    for(const a of [0,Math.PI/2,Math.PI,Math.PI*1.5]){
-    const pts=[];for(let j=0;j<=12;j++){const t=.04+j/12*.73;pts.push([Math.sin(a)*Math.sin(t)*1.085,Math.cos(t)*1.085,Math.cos(a)*Math.sin(t)*1.085]);}tube(pts,.026,gold,24);
+    const pts=[];for(let j=0;j<=12;j++){const t=.04+j/12*.73;pts.push([Math.sin(a)*Math.sin(t)*1.045,Math.cos(t)*1.045,Math.cos(a)*Math.sin(t)*1.045]);}tube(pts,.026,gold,24);
    }
-   ball(0,1.085,0,.075,gold,1,.45,1);
+   ball(0,1.045,0,.075,gold,1,.45,1);
    horn(-1,.87,.66,true);horn(1,.87,.66,true);
   }
   if(kind==='horns'){
@@ -64,18 +64,18 @@ export class AtelierAccessories extends T.Group {
   const reflect=(g:T.BufferGeometry,sign:number)=>{if(sign>0)return g;g.scale(-1,1,1);if(g.index){for(let i=0;i<g.index.count;i+=3){const t=g.index.getX(i+1);g.index.setX(i+1,g.index.getX(i+2));g.index.setX(i+2,t);}}else{for(const a of Object.values(g.attributes)){for(let i=0;i<a.count;i+=3)for(let k=0;k<a.itemSize;k++){const t=a.array[(i+1)*a.itemSize+k];a.array[(i+1)*a.itemSize+k]=a.array[(i+2)*a.itemSize+k];a.array[(i+2)*a.itemSize+k]=t;}}}return g;};
   const cloth=material('#653caf',0,.76);cloth.clearcoat=.05;
   if(kind==='cap'){
-   add(new T.SphereGeometry(1.055,64,24,0,Math.PI*2,0,.82),cloth);
+   add(new T.SphereGeometry(1.025,64,24,0,Math.PI*2,0,.90),cloth);
    const panel=material('#f3e9df',0,.68);panel.clearcoat=.04;
-   add(new T.SphereGeometry(1.060,28,18,Math.PI/2-.56,1.12,.025,.79),panel);
-   const height=1.055*Math.cos(.82),radius=1.055*Math.sin(.82);
+   add(new T.SphereGeometry(1.030,28,18,Math.PI/2-.56,1.12,.025,.875),panel);
+   const height=1.025*Math.cos(.90),radius=1.025*Math.sin(.90);
    ring(0,height,0,radius,.025,cloth);
-   for(let i=0;i<6;i++){const a=i/6*Math.PI*2,pts=[];for(let j=0;j<=15;j++){const t=.06+j/15*.73;pts.push([-Math.cos(a)*Math.sin(t)*1.066,Math.cos(t)*1.066,Math.sin(a)*Math.sin(t)*1.066]);}tube(pts,.006,material('#b096cb',0,.8),24);}
-   ball(0,1.062,0,.055,cloth,1,.5,1);
+   for(let i=0;i<6;i++){const a=i/6*Math.PI*2,pts=[];for(let j=0;j<=15;j++){const t=.06+j/15*.83;pts.push([-Math.cos(a)*Math.sin(t)*1.036,Math.cos(t)*1.036,Math.sin(a)*Math.sin(t)*1.036]);}tube(pts,.006,material('#b096cb',0,.8),24);}
+   ball(0,1.032,0,.055,cloth,1,.5,1);
    const visor=new T.Shape();visor.moveTo(-.72,.30);visor.bezierCurveTo(-.95,.82,-.72,1.40,0,1.43);visor.bezierCurveTo(.72,1.40,.95,.82,.72,.30);visor.quadraticCurveTo(0,.89,-.72,.30);visor.closePath();
    const g=new T.ExtrudeGeometry(visor,{depth:.042,bevelEnabled:true,bevelSize:.025,bevelThickness:.014,bevelSegments:4,curveSegments:28});g.rotateX(Math.PI/2);
    const p=g.attributes.position;for(let i=0;i<p.count;i++)p.setY(i,p.getY(i)+height-.02-.09*Math.max(0,p.getZ(i)-.45));g.computeVertexNormals();add(g,cloth);
    tube([[-.74,height-.06,.57],[-.73,height-.095,1.02],[0,height-.12,1.425],[.73,height-.095,1.02],[.74,height-.06,.57]],.009,material('#d1b9e6',0,.6));
-   star(0,.86,.66,.115);
+   star(0,.82,.64,.115);
    for(let i=-2;i<=2;i++)ball(i*.075,height+.018,-radius-.005,.013,gold,.6,.7,1);
   }
   if(kind==='roundGlasses'){
@@ -124,12 +124,12 @@ export class AtelierAccessories extends T.Group {
    // A shaped, shallow crown and curved broad brim form the Zorro set.
    const felt=material('#292230',0,.78);felt.clearcoat=.05;
    const profile=[new T.Vector2(0,1.39),new T.Vector2(.39,1.39),new T.Vector2(.46,1.33),new T.Vector2(.48,.99),new T.Vector2(.56,.92)];
-   add(new T.LatheGeometry(profile.reverse(),64),felt);
-   add(new T.CylinderGeometry(.493,.514,.085,64,1,true).translate(0,1.035,0),red);
+   add(new T.LatheGeometry(profile.reverse(),64).translate(0,-.13,0),felt);
+   add(new T.CylinderGeometry(.493,.514,.085,64,1,true).translate(0,.905,0),red);
    const brim=new T.BufferGeometry(),positions:number[]=[],indices:number[]=[];
-   for(let j=0;j<=6;j++)for(let i=0;i<=96;i++){const a=i/96*Math.PI*2,r=.47+j/6*.69;positions.push(Math.cos(a)*r,.94+.06*Math.pow(j/6,2)*Math.cos(a*2),Math.sin(a)*r*.87);}
+   for(let j=0;j<=6;j++)for(let i=0;i<=96;i++){const a=i/96*Math.PI*2,r=.47+j/6*.69;positions.push(Math.cos(a)*r,.81+.06*Math.pow(j/6,2)*Math.cos(a*2),Math.sin(a)*r*.87);}
    for(let j=0;j<6;j++)for(let i=0;i<96;i++){const a=j*97+i,b=a+97;indices.push(a,b,a+1,b,b+1,a+1);}brim.setAttribute('position',new T.Float32BufferAttribute(positions,3));brim.setIndex(indices);brim.computeVertexNormals();const fabric=felt.clone();fabric.side=T.DoubleSide;add(brim,fabric);
-   const edge=[];for(let i=0;i<=64;i++){const a=i/64*Math.PI*2;edge.push([Math.cos(a)*1.16,.94+.06*Math.cos(a*2),Math.sin(a)*1.16*.87]);}tube(edge,.014,red,96);
+   const edge=[];for(let i=0;i<=64;i++){const a=i/64*Math.PI*2;edge.push([Math.cos(a)*1.16,.81+.06*Math.cos(a*2),Math.sin(a)*1.16*.87]);}tube(edge,.014,red,96);
   }
   // Unused materials have no GPU allocation; all instantiated ones are released below.
  }
