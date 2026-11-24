@@ -28,3 +28,31 @@ test('accessory prototypes have finite surfaces, bounded geometry and share the 
 test('curated bold looks retain the canonical saved-design format',()=>{
  for(const look of atelierLooks){assert.deepEqual(validateDesign(look.design),look.design);assert.ok(look.design.gloss>=.6);assert.equal(look.design.surface,'smooth');}
 });
+test('headwear has a tall independent crown instead of a thin spherical coating',()=>{
+ const env=new T.Texture();
+ for(const [kind,name]of [['cap','cap-crown'],['viking','helmet-shell'],['zorro','hat-crown']] as const){
+  const rig=new AtelierAccessories(kind,env),crown=rig.getObjectByName(name);
+  assert.ok(crown,kind+' needs a separate crown');
+  const box=new T.Box3().setFromObject(crown);
+  assert.ok(box.max.y-box.min.y>=.60,kind+' crown is too shallow');
+  assert.ok(box.max.y>=1.30,kind+' crown must rise above the native sphere');
+  const bounds=new T.Box3().setFromObject(rig);assert.ok(Math.abs(bounds.min.x+bounds.max.x)<.015,kind+' silhouette must be symmetric');
+  rig.dispose();
+ }
+ env.dispose();
+});
+test('optical rims remain circular and planar after fitting to the character',()=>{
+ const env=new T.Texture();
+ for(const kind of ['roundGlasses','goggles'] as const){
+  const rig=new AtelierAccessories(kind,env);let count=0;
+  rig.traverse(o=>{if(!(o instanceof T.Mesh)||o.name!=='optical-rim')return;count++;
+   const g=o.geometry as T.TorusGeometry,{radialSegments:r,tubularSegments:t}=g.parameters,p=g.attributes.position,centres:T.Vector3[]=[];
+   for(let i=0;i<t;i++){const centre=new T.Vector3();for(let j=0;j<r;j++)centre.add(new T.Vector3().fromBufferAttribute(p,j*(t+1)+i));centres.push(centre.divideScalar(r));}
+   const centre=centres.reduce((sum,v)=>sum.add(v),new T.Vector3()).divideScalar(t),radius=centres[0].distanceTo(centre);
+   const plane=new T.Plane().setFromCoplanarPoints(centres[0],centres[Math.floor(t/4)],centres[Math.floor(t/2)]);
+   for(const v of centres){assert.ok(Math.abs(v.distanceTo(centre)-radius)<1e-5,kind+' rim is distorted');assert.ok(Math.abs(plane.distanceToPoint(v))<1e-5,kind+' rim is warped');}
+  });
+  assert.equal(count,2);rig.dispose();
+ }
+ env.dispose();
+});
