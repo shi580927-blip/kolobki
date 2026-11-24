@@ -61,7 +61,7 @@ test('glasses, ninja wrap and knight visor clear the actual V5 eyebrow meshes',a
  const {SketchFace}=await import('../src/face/SketchFace');const env=new T.Texture();
  for(const kind of ['roundGlasses','goggles','ninja','knight'] as const){
   const rig=new AtelierAccessories(kind,env);rig.updateMatrixWorld(true);
-  const surfaces:T.Mesh[]=[];rig.traverse(o=>{if(o instanceof T.Mesh&&['optical-rim','ninja-face-wrap','knight-visor'].includes(o.name))surfaces.push(o);});
+  const surfaces:T.Mesh[]=[];rig.traverse(o=>{if(o instanceof T.Mesh&&['optical-rim','ninja-face-wrap','ninja-headband','knight-visor'].includes(o.name))surfaces.push(o);});
   let overlaps=0;const ray=new T.Raycaster(),v=new T.Vector3();
   for(const style of ['classic','elegant','rounded','bold_short'] as const)for(const pose of ['neutral','sly','angry','curious','surprised','smile']){
    const face=new SketchFace(env);face.browStyle=style;face.updatePose(0,pose,0,false,'#29c7bf',true);face.updateMatrixWorld(true);

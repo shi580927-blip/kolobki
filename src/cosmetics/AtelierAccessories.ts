@@ -127,15 +127,14 @@ export class AtelierAccessories extends T.Group {
   // A real curved front surface, offset beyond the maximum V5 brow relief (.139).
   const faceShell=(shape:T.Shape,depth:number,m:T.Material,name:string)=>{
    let g:T.BufferGeometry=new TessellateModifier(.09,5).modify(new T.ExtrudeGeometry(shape,{depth:.025,bevelEnabled:true,bevelSize:.015,bevelThickness:.012,bevelSegments:3,curveSegments:32}));
-   const p=g.attributes.position;for(let i=0;i<p.count;i++){const x=p.getX(i),y=p.getY(i);p.setZ(i,Math.sqrt(Math.max(.025,1-x*x-y*y))+depth+p.getZ(i));}
+   const p=g.attributes.position;for(let i=0;i<p.count;i++){const x=p.getX(i),y=p.getY(i);p.setZ(i,Math.sqrt(Math.max(.025,(1+depth)**2-x*x-y*y))+p.getZ(i));}
    g.deleteAttribute('normal');g=mergeVertices(g);g.computeVertexNormals();return add(g,m).name=name;
   };
   if(kind==='ninja'){
    const fabric=material('#25283c',0,.86);fabric.clearcoat=.07;
-   const panel=rounded(-.91,-.66,1.82,1.33,.20);
-   // One generous eye opening preserves the whole expression, including the eyebrows.
-   panel.holes.push(new T.Path(rounded(-.77,-.20,1.54,.77,.16).getPoints(40).reverse()));
+   const panel=new T.Shape();panel.moveTo(-.91,-.09);panel.quadraticCurveTo(-.48,-.24,0,-.19);panel.quadraticCurveTo(.48,-.24,.91,-.09);panel.bezierCurveTo(.89,-.43,.70,-.68,.40,-.73);panel.quadraticCurveTo(0,-.82,-.40,-.73);panel.bezierCurveTo(-.70,-.68,-.89,-.43,-.91,-.09);panel.closePath();
    faceShell(panel,.22,fabric,'ninja-face-wrap');
+   const forehead=new T.Shape();forehead.moveTo(-.76,.59);forehead.quadraticCurveTo(0,.64,.76,.59);forehead.lineTo(.69,.74);forehead.quadraticCurveTo(0,.78,-.69,.74);forehead.closePath();faceShell(forehead,.20,fabric,'ninja-headband');
    // Wide cloth band, rear knot and two tapering tails, separate from the eye aperture.
    ring(0,.56,0,.87,.065,fabric);
    ball(.42,.45,-.88,.12,fabric,1.25,.8,.8);
@@ -143,14 +142,14 @@ export class AtelierAccessories extends T.Group {
     const tail=new T.Shape();tail.moveTo(.40,.46);tail.quadraticCurveTo(.48+sign*.16,.10,.52+sign*.18,-.02);tail.lineTo(.61+sign*.18,.06);tail.quadraticCurveTo(.57+sign*.14,.27,.47,.47);tail.closePath();
     add(new T.ExtrudeGeometry(tail,{depth:.035,bevelEnabled:true,bevelSize:.015,bevelThickness:.012,bevelSegments:3,curveSegments:24}).translate(0,0,-.97),fabric);
    }
-   for(const y of [-.37,-.48])tube([[-.65,y,.87],[-.33,y-.025,1.12],[0,y-.035,1.16],[.33,y-.025,1.12],[.65,y,.87]],.009,material('#40465c',0,.9));
+   for(const y of [-.40,-.55]){const pts=[-.70,-.35,0,.35,.70].map(x=>[x,y,Math.sqrt(1.22**2-x*x-y*y)+.032]);tube(pts,.007,material('#40465c',0,.9));}
   }
   if(kind==='knight'){
    const armor=material('#9aa9c0',.78,.30),edge=material('#d8dce6',.7,.25),dark=material('#3c4256',.4,.53);
    add(new T.SphereGeometry(1,64,36,0,Math.PI*2,0,Math.PI/2).scale(.83,.72,.83).translate(0,.65,0),armor).name='knight-crown';
    ring(0,.65,0,.83,.035,edge);ring(0,.65,0,.79,.045,rubber);
    // Raised visor with a broad open eye slot. All metal stays in front of facial relief.
-   const visor=rounded(-.94,-.57,1.88,1.22,.18);
+   const visor=new T.Shape();visor.moveTo(-.82,.65);visor.quadraticCurveTo(0,.71,.82,.65);visor.quadraticCurveTo(1.00,.18,.89,-.27);visor.quadraticCurveTo(.78,-.58,.42,-.64);visor.quadraticCurveTo(0,-.72,-.42,-.64);visor.quadraticCurveTo(-.78,-.58,-.89,-.27);visor.quadraticCurveTo(-1.00,.18,-.82,.65);visor.closePath();
    visor.holes.push(new T.Path(rounded(-.79,-.17,1.58,.72,.12).getPoints(40).reverse()));
    for(const x of [-.48,-.24,0,.24,.48])visor.holes.push(new T.Path(rounded(x-.035,-.46,.07,.20,.028).getPoints(16).reverse()));
    faceShell(visor,.24,armor,'knight-visor');
