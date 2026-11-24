@@ -153,6 +153,16 @@ export class AtelierAccessories extends T.Group {
    visor.holes.push(new T.Path(rounded(-.79,-.17,1.58,.72,.12).getPoints(40).reverse()));
    for(const x of [-.48,-.24,0,.24,.48])visor.holes.push(new T.Path(rounded(x-.035,-.46,.07,.20,.028).getPoints(16).reverse()));
    faceShell(visor,.24,armor,'knight-visor');
+   // Continuous brow plate joins the forward visor to the helmet rim.
+   const browPlate=new T.BufferGeometry(),bp:number[]=[],bi:number[]=[];
+   for(let j=0;j<=4;j++)for(let i=0;i<=48;i++){
+    const x=-.82+i/48*1.64,t=j/4,y=.65+t*.03*(1-(x/.82)**2);
+    const back=Math.sqrt(Math.max(.001,.83**2-x*x)),front=Math.sqrt(1.24**2-x*x-y*y)+.02;
+    bp.push(x,y,T.MathUtils.lerp(back,front,t));
+   }
+   for(let j=0;j<4;j++)for(let i=0;i<48;i++){const a=j*49+i,b=a+49;bi.push(a,b,a+1,b,b+1,a+1);}
+   browPlate.setAttribute('position',new T.Float32BufferAttribute(bp,3));browPlate.setIndex(bi);browPlate.computeVertexNormals();const plateMetal=armor.clone();plateMetal.side=T.DoubleSide;add(browPlate,plateMetal).name='knight-brow-bridge';
+
    // The central reinforcing seam follows the actual dome, with no detached ornaments.
    const seam=[];for(let i=0;i<=48;i++){const a=-Math.PI/2+i/48*Math.PI;seam.push([0,.65+.73*Math.cos(a),.84*Math.sin(a)]);}tube(seam,.022,edge,64);
 
