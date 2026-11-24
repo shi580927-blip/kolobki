@@ -86,15 +86,15 @@ export class AtelierAccessories extends T.Group {
   if(kind==='roundGlasses'){
    const lens=material('#b4e7f6',.02,.08);lens.transparent=true;lens.opacity=.16;lens.depthWrite=false;lens.clearcoat=1;
    for(const sign of [-1,1]){
-    const fit=(g:T.BufferGeometry)=>g.rotateY(sign*.10).translate(sign*.365,.075,1.255);
+    const fit=(g:T.BufferGeometry)=>g.rotateY(sign*.10).translate(sign*.365,.075,1.160);
     add(fit(new T.TorusGeometry(.292,.025,16,80)),gold).name='optical-rim';
     const glass=new T.SphereGeometry(2.5,64,20,0,Math.PI*2,0,Math.asin(.269/2.5)).rotateX(Math.PI/2).translate(0,0,-2.5+.004);
     add(fit(glass),lens);
-    tube([[sign*.67,.13,1.23],[sign*.93,.13,.47],[sign*.99,.08,-.19],[sign*.91,-.03,-.38]],.022,gold);
-    ball(sign*.67,.125,1.23,.033,rubber,.5,.8,.8);
+    tube([[sign*.67,.13,1.135],[sign*.93,.13,.47],[sign*.99,.08,-.19],[sign*.91,-.03,-.38]],.022,gold);
+    ball(sign*.67,.125,1.135,.033,rubber,.5,.8,.8);
    }
-   tube([[-.073,.14,1.285],[0,.18,1.308],[.073,.14,1.285]],.022,gold);
-   for(const sign of [-1,1])ball(sign*.075,.02,1.287,.026,material('#d6c9c3',0,.6),.6,1,.5);
+   tube([[-.073,.14,1.190],[0,.18,1.213],[.073,.14,1.190]],.022,gold);
+   for(const sign of [-1,1])ball(sign*.075,.02,1.192,.026,material('#d6c9c3',0,.6),.6,1,.5);
   }
   if(kind==='goggles'){
    const leather=material('#74432b',0,.68);leather.clearcoat=.12;
@@ -102,14 +102,14 @@ export class AtelierAccessories extends T.Group {
    const glass=material('#1c87ca',.28,.12);glass.clearcoat=1;glass.transparent=true;glass.opacity=.79;
    for(const sign of [-1,1]){
     // Rigid optical cups keep truly circular rims; the padded mount supplies the fit.
-    const fit=(g:T.BufferGeometry)=>g.rotateX(-.65).translate(sign*.31,.92,.80);
+    const fit=(g:T.BufferGeometry)=>g.rotateX(-.65).translate(sign*.31,.87,.72);
     add(fit(new T.TorusGeometry(.237,.058,20,72)),leather);
     add(fit(new T.TorusGeometry(.221,.026,16,72).translate(0,0,.07)),gold).name='optical-rim';
     add(fit(new T.SphereGeometry(2,64,20,0,Math.PI*2,0,Math.asin(.197/2)).rotateX(Math.PI/2).translate(0,0,-2+.08)),glass);
-    for(let k=0;k<10;k++){const a=k/10*Math.PI*2,v=new T.Vector3(Math.cos(a)*.244,Math.sin(a)*.244,.10).applyAxisAngle(new T.Vector3(1,0,0),-.65).add(new T.Vector3(sign*.31,.92,.80));stud(v.x,v.y,v.z,.012);}
-    tube([[sign*.55,.92,.80],[sign*.65,.72,.56],[sign*.68,.65,.43]],.027,gold);
+    for(let k=0;k<10;k++){const a=k/10*Math.PI*2,v=new T.Vector3(Math.cos(a)*.244,Math.sin(a)*.244,.10).applyAxisAngle(new T.Vector3(1,0,0),-.65).add(new T.Vector3(sign*.31,.87,.72));stud(v.x,v.y,v.z,.012);}
+    tube([[sign*.55,.87,.72],[sign*.65,.72,.56],[sign*.68,.65,.43]],.027,gold);
    }
-   tube([[-.095,.95,.87],[0,.98,.90],[.095,.95,.87]],.033,leather);
+   tube([[-.095,.90,.79],[0,.93,.82],[.095,.90,.79]],.033,leather);
    const buckle=rounded(-.11,.59,.22,.14,.025);buckle.holes.push(new T.Path(rounded(-.075,.62,.15,.08,.01).getPoints().reverse()));
    add(new T.ExtrudeGeometry(buckle,{depth:.025,bevelEnabled:true,bevelSize:.007,bevelThickness:.005,bevelSegments:3}).rotateY(Math.PI).translate(0,0,-.86),gold);
    for(const sign of [-1,1])for(let i=0;i<3;i++)stud(sign*.73,.65,-.25-i*.07,.013);
@@ -145,7 +145,7 @@ export class AtelierAccessories extends T.Group {
    for(const y of [-.40,-.55]){const pts=[-.70,-.35,0,.35,.70].map(x=>[x,y,Math.sqrt(1.22**2-x*x-y*y)+.032]);tube(pts,.007,material('#40465c',0,.9));}
   }
   if(kind==='knight'){
-   const armor=material('#9aa9c0',.78,.30),edge=material('#d8dce6',.7,.25),dark=material('#3c4256',.4,.53);
+   const armor=material('#9aa9c0',.78,.30),edge=material('#d8dce6',.7,.25);
    add(new T.SphereGeometry(1,64,36,0,Math.PI*2,0,Math.PI/2).scale(.83,.72,.83).translate(0,.65,0),armor).name='knight-crown';
    ring(0,.65,0,.83,.035,edge);ring(0,.65,0,.79,.045,rubber);
    // Raised visor with a broad open eye slot. All metal stays in front of facial relief.
@@ -153,13 +153,9 @@ export class AtelierAccessories extends T.Group {
    visor.holes.push(new T.Path(rounded(-.79,-.17,1.58,.72,.12).getPoints(40).reverse()));
    for(const x of [-.48,-.24,0,.24,.48])visor.holes.push(new T.Path(rounded(x-.035,-.46,.07,.20,.028).getPoints(16).reverse()));
    faceShell(visor,.24,armor,'knight-visor');
-   for(const sign of [-1,1]){
-    ball(sign*.90,.20,.55,.10,dark,.4,1,1);ball(sign*.94,.20,.55,.068,edge,.42,1,1);
-    for(const y of [-.43,-.05,.53])ball(sign*.83,y,Math.sqrt(Math.max(.02,1-.83**2-y*y))+.29,.027,gold);
-   }
-   tube([[0,.68,.85],[0,1.04,.73],[0,1.36,.20],[0,1.37,-.20],[0,1.02,-.75]],.032,edge);
-   const plume=material('#b32446',0,.72);plume.clearcoat=.10;
-   tube([[0,1.35,-.10],[0,1.48,-.28],[0,1.49,-.52],[0,1.36,-.73]],.105,plume);
+   // The central reinforcing seam follows the actual dome, with no detached ornaments.
+   const seam=[];for(let i=0;i<=48;i++){const a=-Math.PI/2+i/48*Math.PI;seam.push([0,.65+.73*Math.cos(a),.84*Math.sin(a)]);}tube(seam,.022,edge,64);
+
   }
   // Unused materials have no GPU allocation; all instantiated ones are released below.
  }
