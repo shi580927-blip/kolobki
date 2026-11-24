@@ -15,7 +15,7 @@ test('accessory prototypes have finite surfaces, bounded geometry and share the 
   assert.deepEqual(rig.quaternion.toArray(),[0,0,0,1]);
   const bounds=new T.Box3().setFromObject(rig);
   if(kind!=='none'){assert.ok(bounds.max.y<1.7);assert.ok(bounds.min.x>-1.4&&bounds.max.x<1.4);}
-  if(['cap','viking','zorro'].includes(kind)){
+  if(['cap','viking','knight'].includes(kind)){
    let contact=Infinity;const point=new T.Vector3();
    rig.updateMatrixWorld(true);
    rig.traverse(o=>{if(o instanceof T.Mesh){const p=o.geometry.attributes.position;for(let i=0;i<p.count;i++)contact=Math.min(contact,point.fromBufferAttribute(p,i).applyMatrix4(o.matrixWorld).length());}});
@@ -30,7 +30,7 @@ test('curated bold looks retain the canonical saved-design format',()=>{
 });
 test('headwear has a tall independent crown instead of a thin spherical coating',()=>{
  const env=new T.Texture();
- for(const [kind,name]of [['cap','cap-crown'],['viking','helmet-shell'],['zorro','hat-crown']] as const){
+ for(const [kind,name]of [['cap','cap-crown'],['viking','helmet-shell'],['knight','knight-crown']] as const){
   const rig=new AtelierAccessories(kind,env),crown=rig.getObjectByName(name);
   assert.ok(crown,kind+' needs a separate crown');
   const box=new T.Box3().setFromObject(crown);
@@ -53,6 +53,23 @@ test('optical rims remain circular and planar after fitting to the character',()
    for(const v of centres){assert.ok(Math.abs(v.distanceTo(centre)-radius)<1e-5,kind+' rim is distorted');assert.ok(Math.abs(plane.distanceToPoint(v))<1e-5,kind+' rim is warped');}
   });
   assert.equal(count,2);rig.dispose();
+ }
+ env.dispose();
+});
+
+test('glasses, ninja wrap and knight visor clear the actual V5 eyebrow meshes',async()=>{
+ const {SketchFace}=await import('../src/face/SketchFace');const env=new T.Texture();
+ for(const kind of ['roundGlasses','goggles','ninja','knight'] as const){
+  const rig=new AtelierAccessories(kind,env);rig.updateMatrixWorld(true);
+  const surfaces:T.Mesh[]=[];rig.traverse(o=>{if(o instanceof T.Mesh&&['optical-rim','ninja-face-wrap','knight-visor'].includes(o.name))surfaces.push(o);});
+  let overlaps=0;const ray=new T.Raycaster(),v=new T.Vector3();
+  for(const style of ['classic','elegant','rounded','bold_short'] as const)for(const pose of ['neutral','sly','angry','curious','surprised','smile']){
+   const face=new SketchFace(env);face.browStyle=style;face.updatePose(0,pose,0,false,'#29c7bf',true);face.updateMatrixWorld(true);
+   face.traverse(o=>{if(!(o instanceof T.Mesh)||!o.visible||!['sculpted-brow','brow-inner-cap','brow-outer-cap'].includes(o.name))return;
+    const p=o.geometry.attributes.position;for(let i=0;i<p.count;i+=12){v.fromBufferAttribute(p,i).applyMatrix4(o.matrixWorld);ray.set(new T.Vector3(v.x,v.y,3),new T.Vector3(0,0,-1));const hits=ray.intersectObjects(surfaces,false);if(hits.length){overlaps++;assert.ok(hits[0].point.z>v.z+.02,kind+' intersects '+style+' brows in '+pose);}}
+   });face.dispose();
+  }
+  if(kind==='roundGlasses'||kind==='ninja'||kind==='knight')assert.ok(overlaps>0,'clearance check must exercise overlapping silhouettes');rig.dispose();
  }
  env.dispose();
 });

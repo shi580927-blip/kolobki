@@ -2,7 +2,7 @@ import * as T from 'three';
 import {TessellateModifier} from 'three/addons/modifiers/TessellateModifier.js';
 import {mergeVertices} from 'three/addons/utils/BufferGeometryUtils.js';
 
-export const atelierAccessories={none:'Без украшения',cap:'Кепка вперёд',roundGlasses:'Круглые очки',goggles:'Стимпанк-очки',catEars:'Кошачьи ушки',headphones:'Наушники',viking:'Шлем викинга',horns:'Светлые рожки',zorro:'Маска Зорро'} as const;
+export const atelierAccessories={none:'Без украшения',cap:'Кепка вперёд',roundGlasses:'Круглые очки',goggles:'Стимпанк-очки',catEars:'Кошачьи ушки',headphones:'Наушники',viking:'Шлем викинга',horns:'Светлые рожки',ninja:'Маска ниндзя',knight:'Рыцарский шлем'} as const;
 export type AtelierAccessory=keyof typeof atelierAccessories;
 
 /** Author prototypes. No collider, no roll: the whole rig belongs to the face frame. */
@@ -86,15 +86,15 @@ export class AtelierAccessories extends T.Group {
   if(kind==='roundGlasses'){
    const lens=material('#b4e7f6',.02,.08);lens.transparent=true;lens.opacity=.16;lens.depthWrite=false;lens.clearcoat=1;
    for(const sign of [-1,1]){
-    const fit=(g:T.BufferGeometry)=>g.rotateY(sign*.10).translate(sign*.365,.075,1.055);
+    const fit=(g:T.BufferGeometry)=>g.rotateY(sign*.10).translate(sign*.365,.075,1.255);
     add(fit(new T.TorusGeometry(.292,.025,16,80)),gold).name='optical-rim';
     const glass=new T.SphereGeometry(2.5,64,20,0,Math.PI*2,0,Math.asin(.269/2.5)).rotateX(Math.PI/2).translate(0,0,-2.5+.004);
     add(fit(glass),lens);
-    tube([[sign*.67,.13,1.03],[sign*.93,.13,.47],[sign*.99,.08,-.19],[sign*.91,-.03,-.38]],.022,gold);
-    ball(sign*.67,.125,1.03,.033,rubber,.5,.8,.8);
+    tube([[sign*.67,.13,1.23],[sign*.93,.13,.47],[sign*.99,.08,-.19],[sign*.91,-.03,-.38]],.022,gold);
+    ball(sign*.67,.125,1.23,.033,rubber,.5,.8,.8);
    }
-   tube([[-.073,.14,1.085],[0,.18,1.108],[.073,.14,1.085]],.022,gold);
-   for(const sign of [-1,1])ball(sign*.075,.02,1.087,.026,material('#d6c9c3',0,.6),.6,1,.5);
+   tube([[-.073,.14,1.285],[0,.18,1.308],[.073,.14,1.285]],.022,gold);
+   for(const sign of [-1,1])ball(sign*.075,.02,1.287,.026,material('#d6c9c3',0,.6),.6,1,.5);
   }
   if(kind==='goggles'){
    const leather=material('#74432b',0,.68);leather.clearcoat=.12;
@@ -102,14 +102,14 @@ export class AtelierAccessories extends T.Group {
    const glass=material('#1c87ca',.28,.12);glass.clearcoat=1;glass.transparent=true;glass.opacity=.79;
    for(const sign of [-1,1]){
     // Rigid optical cups keep truly circular rims; the padded mount supplies the fit.
-    const fit=(g:T.BufferGeometry)=>g.rotateX(-.65).translate(sign*.31,.78,.67);
+    const fit=(g:T.BufferGeometry)=>g.rotateX(-.65).translate(sign*.31,.92,.80);
     add(fit(new T.TorusGeometry(.237,.058,20,72)),leather);
     add(fit(new T.TorusGeometry(.221,.026,16,72).translate(0,0,.07)),gold).name='optical-rim';
     add(fit(new T.SphereGeometry(2,64,20,0,Math.PI*2,0,Math.asin(.197/2)).rotateX(Math.PI/2).translate(0,0,-2+.08)),glass);
-    for(let k=0;k<10;k++){const a=k/10*Math.PI*2,v=new T.Vector3(Math.cos(a)*.244,Math.sin(a)*.244,.10).applyAxisAngle(new T.Vector3(1,0,0),-.65).add(new T.Vector3(sign*.31,.78,.67));stud(v.x,v.y,v.z,.012);}
-    tube([[sign*.55,.78,.67],[sign*.65,.72,.56],[sign*.68,.65,.43]],.027,gold);
+    for(let k=0;k<10;k++){const a=k/10*Math.PI*2,v=new T.Vector3(Math.cos(a)*.244,Math.sin(a)*.244,.10).applyAxisAngle(new T.Vector3(1,0,0),-.65).add(new T.Vector3(sign*.31,.92,.80));stud(v.x,v.y,v.z,.012);}
+    tube([[sign*.55,.92,.80],[sign*.65,.72,.56],[sign*.68,.65,.43]],.027,gold);
    }
-   tube([[-.095,.81,.74],[0,.84,.77],[.095,.81,.74]],.033,leather);
+   tube([[-.095,.95,.87],[0,.98,.90],[.095,.95,.87]],.033,leather);
    const buckle=rounded(-.11,.59,.22,.14,.025);buckle.holes.push(new T.Path(rounded(-.075,.62,.15,.08,.01).getPoints().reverse()));
    add(new T.ExtrudeGeometry(buckle,{depth:.025,bevelEnabled:true,bevelSize:.007,bevelThickness:.005,bevelSegments:3}).rotateY(Math.PI).translate(0,0,-.86),gold);
    for(const sign of [-1,1])for(let i=0;i<3;i++)stud(sign*.73,.65,-.25-i*.07,.013);
@@ -124,23 +124,43 @@ export class AtelierAccessories extends T.Group {
     const g=new T.ExtrudeGeometry(inset,{depth:.012,bevelEnabled:true,bevelSize:.02,bevelThickness:.02,bevelSegments:4,curveSegments:20});reflect(g,sign).translate(0,0,.154);add(g,inner);
    }
   }
-  if(kind==='zorro'){
-   const mask=new T.Shape();mask.moveTo(-.83,.28);mask.bezierCurveTo(-.50,.44,-.23,.35,0,.28);mask.bezierCurveTo(.23,.35,.50,.44,.83,.28);mask.quadraticCurveTo(.81,-.12,.50,-.19);mask.quadraticCurveTo(.20,-.20,0,-.03);mask.quadraticCurveTo(-.20,-.20,-.50,-.19);mask.quadraticCurveTo(-.81,-.12,-.83,.28);
-   for(const sign of [-1,1]){const hole=new T.Path();hole.absellipse(sign*.365,.075,.235,.18,0,Math.PI*2,true,sign*.14);mask.holes.push(hole);}
-   let maskGeo:T.BufferGeometry=new TessellateModifier(.12,4).modify(new T.ExtrudeGeometry(mask,{depth:.016,bevelEnabled:true,bevelSize:.012,bevelThickness:.012,bevelSegments:4,curveSegments:32}));
-   const mp=maskGeo.attributes.position;for(let i=0;i<mp.count;i++){const x=mp.getX(i),y=mp.getY(i);mp.setZ(i,1.09-.72*x*x-.12*y*y+mp.getZ(i));}
-   maskGeo.deleteAttribute('normal');maskGeo=mergeVertices(maskGeo);maskGeo.computeVertexNormals();
-   const maskMaterial=material('#231d32',0,.52);maskMaterial.clearcoat=.28;add(maskGeo,maskMaterial);
-   for(const sign of [-1,1])tube([[sign*.79,.16,.65],[sign*.98,.15,.28],[sign*.95,.14,-.37],[sign*.51,.13,-.90]],.025,rubber);
-   // A tall hat crown sits on its own brim rather than tracing the ball.
-   const felt=material('#292230',0,.78);felt.clearcoat=.05;
-   const profile=[new T.Vector2(.55,.81),new T.Vector2(.53,.86),new T.Vector2(.49,1.04),new T.Vector2(.46,1.42),new T.Vector2(.41,1.49),new T.Vector2(0,1.50)];
-   add(new T.LatheGeometry(profile,80),felt).name='hat-crown';
-   add(new T.CylinderGeometry(.515,.531,.09,80,1,true).translate(0,.935,0),red);
-   const brim=new T.BufferGeometry(),positions:number[]=[],indices:number[]=[];
-   for(let j=0;j<=6;j++)for(let i=0;i<=96;i++){const a=i/96*Math.PI*2,r=.47+j/6*.69;positions.push(Math.cos(a)*r,.81+.025*Math.pow(j/6,2),Math.sin(a)*r*.87);}
-   for(let j=0;j<6;j++)for(let i=0;i<96;i++){const a=j*97+i,b=a+97;indices.push(a,b,a+1,b,b+1,a+1);}brim.setAttribute('position',new T.Float32BufferAttribute(positions,3));brim.setIndex(indices);brim.computeVertexNormals();const fabric=felt.clone();fabric.side=T.DoubleSide;add(brim,fabric);
-   const edge=[];for(let i=0;i<=64;i++){const a=i/64*Math.PI*2;edge.push([Math.cos(a)*1.16,.835,Math.sin(a)*1.16*.87]);}tube(edge,.014,red,96);
+  // A real curved front surface, offset beyond the maximum V5 brow relief (.139).
+  const faceShell=(shape:T.Shape,depth:number,m:T.Material,name:string)=>{
+   let g:T.BufferGeometry=new TessellateModifier(.09,5).modify(new T.ExtrudeGeometry(shape,{depth:.025,bevelEnabled:true,bevelSize:.015,bevelThickness:.012,bevelSegments:3,curveSegments:32}));
+   const p=g.attributes.position;for(let i=0;i<p.count;i++){const x=p.getX(i),y=p.getY(i);p.setZ(i,Math.sqrt(Math.max(.025,1-x*x-y*y))+depth+p.getZ(i));}
+   g.deleteAttribute('normal');g=mergeVertices(g);g.computeVertexNormals();return add(g,m).name=name;
+  };
+  if(kind==='ninja'){
+   const fabric=material('#25283c',0,.86);fabric.clearcoat=.07;
+   const panel=rounded(-.91,-.66,1.82,1.33,.20);
+   // One generous eye opening preserves the whole expression, including the eyebrows.
+   panel.holes.push(new T.Path(rounded(-.77,-.20,1.54,.77,.16).getPoints(40).reverse()));
+   faceShell(panel,.22,fabric,'ninja-face-wrap');
+   // Wide cloth band, rear knot and two tapering tails, separate from the eye aperture.
+   ring(0,.56,0,.87,.065,fabric);
+   ball(.42,.45,-.88,.12,fabric,1.25,.8,.8);
+   for(const sign of [-1,1]){
+    const tail=new T.Shape();tail.moveTo(.40,.46);tail.quadraticCurveTo(.48+sign*.16,.10,.52+sign*.18,-.02);tail.lineTo(.61+sign*.18,.06);tail.quadraticCurveTo(.57+sign*.14,.27,.47,.47);tail.closePath();
+    add(new T.ExtrudeGeometry(tail,{depth:.035,bevelEnabled:true,bevelSize:.015,bevelThickness:.012,bevelSegments:3,curveSegments:24}).translate(0,0,-.97),fabric);
+   }
+   for(const y of [-.37,-.48])tube([[-.65,y,.87],[-.33,y-.025,1.12],[0,y-.035,1.16],[.33,y-.025,1.12],[.65,y,.87]],.009,material('#40465c',0,.9));
+  }
+  if(kind==='knight'){
+   const armor=material('#9aa9c0',.78,.30),edge=material('#d8dce6',.7,.25),dark=material('#3c4256',.4,.53);
+   add(new T.SphereGeometry(1,64,36,0,Math.PI*2,0,Math.PI/2).scale(.83,.72,.83).translate(0,.65,0),armor).name='knight-crown';
+   ring(0,.65,0,.83,.035,edge);ring(0,.65,0,.79,.045,rubber);
+   // Raised visor with a broad open eye slot. All metal stays in front of facial relief.
+   const visor=rounded(-.94,-.57,1.88,1.22,.18);
+   visor.holes.push(new T.Path(rounded(-.79,-.17,1.58,.72,.12).getPoints(40).reverse()));
+   for(const x of [-.48,-.24,0,.24,.48])visor.holes.push(new T.Path(rounded(x-.035,-.46,.07,.20,.028).getPoints(16).reverse()));
+   faceShell(visor,.24,armor,'knight-visor');
+   for(const sign of [-1,1]){
+    ball(sign*.90,.20,.55,.10,dark,.4,1,1);ball(sign*.94,.20,.55,.068,edge,.42,1,1);
+    for(const y of [-.43,-.05,.53])ball(sign*.83,y,Math.sqrt(Math.max(.02,1-.83**2-y*y))+.29,.027,gold);
+   }
+   tube([[0,.68,.85],[0,1.04,.73],[0,1.36,.20],[0,1.37,-.20],[0,1.02,-.75]],.032,edge);
+   const plume=material('#b32446',0,.72);plume.clearcoat=.10;
+   tube([[0,1.35,-.10],[0,1.48,-.28],[0,1.49,-.52],[0,1.36,-.73]],.105,plume);
   }
   // Unused materials have no GPU allocation; all instantiated ones are released below.
  }
