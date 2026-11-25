@@ -252,8 +252,11 @@ async function start() {
   if(npcs&&train)match=new MatchSession(world,scene,player,npcs,train,trainOptions,resetGame,bus);
   if(standardMode){document.querySelector<HTMLElement>('#help')!.hidden=true;match?.hideChoice();if(hadDuoLink)tell('Сетевой тест отложен. Сейчас доступна одиночная долина.');menu=new GameMenu(()=>match?.showChoice(),()=>{match?.exit();match?.hideChoice();},()=>{powerPanel?.takeRequest();},wardrobe,wear,experimentalFace?{current:()=>currentBrow,select:(style:string)=>{if(!browStyles.some(x=>x===style))return;applyBrows(style as BrowStyle);storage.setItem('sharobesy.browStyle',style);}}:undefined);}
   let fittingAngle=0;addEventListener('sharobesy-fitting-turn',e=>{fittingAngle+=(e as CustomEvent<number>).detail*Math.PI/6;});
+  const cataloguePreviews=new Map<string,string>();
   if(menu)menu.preview=(id:string)=>{
-    const outfit={...wardrobe.outfit},rotation=portraitVisual.quaternion.clone(),faceRotation=portraitVisual.face.quaternion.clone();
+    const cacheable=GOODS.some(g=>g.id===id&&g.slot==='head'),key=currentBrow+':'+id,cached=cacheable?cataloguePreviews.get(key):undefined;if(cached)return cached;
+    const outfit=readOutfit(null),rotation=portraitVisual.quaternion.clone(),faceRotation=portraitVisual.face.quaternion.clone();
+    const cameraPosition=portraitCamera.position.clone(),cameraRotation=portraitCamera.quaternion.clone();
     const size=portraitRenderer.getSize(new T.Vector2());
     try{
       const item=GOODS.find(g=>g.id===id);
@@ -262,10 +265,11 @@ async function start() {
       // Catalogue views face forward, regardless of fitting-room rotation.
       portraitVisual.rotation.set(0,0,0);portraitVisual.face.rotation.set(0,0,0);
       portraitVisual.updateDecorations();portraitRenderer.setSize(384,384,false);
+      portraitCamera.position.set(0,.22,5.1);portraitCamera.lookAt(0,.18,0);
       portraitRenderer.render(portraitScene,portraitCamera);
-      return portraitCanvas.toDataURL('image/png');
+      const image=portraitCanvas.toDataURL('image/png');if(cacheable)cataloguePreviews.set(key,image);return image;
     }finally{
-      wear();portraitVisual.quaternion.copy(rotation);portraitVisual.face.quaternion.copy(faceRotation);
+      portraitVisual.setOutfit(wardrobe.outfit);portraitVisual.setSkull(wardrobe.skull);portraitCamera.position.copy(cameraPosition);portraitCamera.quaternion.copy(cameraRotation);portraitVisual.quaternion.copy(rotation);portraitVisual.face.quaternion.copy(faceRotation);
       portraitVisual.updateDecorations();portraitRenderer.setSize(size.x,size.y,false);
       portraitRenderer.render(portraitScene,portraitCamera);
     }

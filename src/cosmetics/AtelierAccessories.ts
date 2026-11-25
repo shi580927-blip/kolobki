@@ -7,9 +7,9 @@ export type AtelierAccessory=keyof typeof atelierAccessories;
 
 /** Author prototypes. No collider, no roll: the whole rig belongs to the face frame. */
 export class AtelierAccessories extends T.Group {
- constructor(readonly kind:AtelierAccessory,environment:T.Texture){
+ constructor(readonly kind:AtelierAccessory,environment?:T.Texture){
   super();this.name='atelier-accessory';
-  const material=(color:string,metalness=0,roughness=.32)=>new T.MeshPhysicalMaterial({color,metalness,roughness,envMap:environment,envMapIntensity:.85,clearcoat:.7,clearcoatRoughness:.18});
+  const material=(color:string,metalness=0,roughness=.32)=>new T.MeshPhysicalMaterial({color,metalness,roughness,envMap:environment??null,envMapIntensity:.85,clearcoat:.7,clearcoatRoughness:.18});
   const gold=material('#eeb54b',.72,.25),steel=material('#8196af',.8,.33),purple=material('#7138bc',.38,.24),rubber=material('#231d32',0,.72),ivory=material('#e6c99d',.05,.42),red=material('#bd283d',.12,.3);
   const add=(g:T.BufferGeometry,m:T.Material)=>{const mesh=new T.Mesh(g,m);mesh.castShadow=true;this.add(mesh);return mesh;};
   const ball=(x:number,y:number,z:number,r:number,m:T.Material,sx=1,sy=1,sz=1)=>add(new T.SphereGeometry(r,24,16).scale(sx,sy,sz).translate(x,y,z),m);

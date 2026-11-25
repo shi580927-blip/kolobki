@@ -1,4 +1,4 @@
-import {GOODS,Wardrobe} from './Wardrobe';
+import {GOODS,Wardrobe,SHOP_TABS,goodsForCategory,type ShopCategory} from './Wardrobe';
 export class GameMenu {
  preview?:(id:string)=>string;
  private panel:HTMLElement;private title:HTMLElement;private body:HTMLElement;private actions:HTMLElement;private started=false;private settingsButtons:{button:HTMLButtonElement;original:HTMLButtonElement}[]=[];
@@ -18,17 +18,17 @@ export class GameMenu {
   this.action('Настройки',()=>this.settings(),'menu-settings');
   if(this.started)this.action('Как играть',()=>this.help(),'menu-help');else this.action('Магазин',()=>this.shop(),'menu-help');this.action('Мой шаробес',()=>this.profile(),'menu-profile');if(!this.started){this.action('Карта',()=>this.map(),'menu-map');const tournament=this.action('Турнир · скоро',()=>{},'menu-tournament');tournament.disabled=true;}this.changed();dispatchEvent(new Event('sharobesy-controls-change'));
  }
- private shop(slot:'all'|'head'|'mark'='all',selected:string='helmet'){
+ private shop(slot:ShopCategory='all',selected:string='headphones'){
   this.panel.dataset.screen='shop';this.title.textContent='Магазин';this.body.textContent='Монеты: '+this.wardrobe.coins+' · Собирай ягоды в долине';this.actions.replaceChildren();
   const tabs=document.createElement('nav');tabs.className='shop-tabs';tabs.setAttribute('aria-label','Категории магазина');this.actions.append(tabs);
-  const showcase=document.createElement('div');showcase.className='shop-showcase';const showTitle=document.createElement('h3');showTitle.textContent='Образ с характером';const showText=document.createElement('span');showText.textContent='Украшения для твоего шаробеса';showcase.append(showTitle,showText);for(const id of ['helmet','crown','horns']){const url=this.preview?.(id);if(url){const img=document.createElement('img');img.src=url;img.alt=GOODS.find(g=>g.id===id)?.name??'';showcase.append(img);}}this.actions.append(showcase);
-  for(const [value,label] of [['all','Все предметы'],['head','Головные уборы'],['mark','Рисунки']] as const){const button=document.createElement('button');button.textContent=label;button.setAttribute('aria-pressed',String(value===slot));button.onclick=()=>this.shop(value,GOODS.find(g=>value==='all'||g.slot===value)!.id);tabs.append(button);}
+  const showcase=document.createElement('div');showcase.className='shop-showcase';const showTitle=document.createElement('h3');showTitle.textContent='Образ с характером';const showText=document.createElement('span');showText.textContent='Украшения для твоего шаробеса';showcase.append(showTitle,showText);for(const id of ['headphones','viking','knight']){const url=this.preview?.(id);if(url){const img=document.createElement('img');img.src=url;img.alt=GOODS.find(g=>g.id===id)?.name??'';showcase.append(img);}}this.actions.append(showcase);
+  for(const [value,label] of SHOP_TABS){const button=document.createElement('button');button.textContent=label;button.setAttribute('aria-pressed',String(value===slot));button.onclick=()=>this.shop(value,goodsForCategory(value)[0].id);tabs.append(button);}
   const grid=document.createElement('div');grid.className='shop-grid';this.actions.append(grid);
-  const goods=GOODS.filter(g=>slot==='all'||g.slot===slot);const current=goods.find(g=>g.id===selected)??goods[0];
+  const goods=goodsForCategory(slot);const current=goods.find(g=>g.id===selected)??goods[0];
   for(const item of goods){const card=document.createElement('button');card.className='shop-card';card.dataset.item=item.id;card.setAttribute('aria-pressed',String(item.id===current.id));this.thumbnail(card,item.id);const name=document.createElement('strong');name.textContent=item.name;const price=document.createElement('span');price.textContent=this.wardrobe.owned.has(item.id)?'В коллекции':'● '+item.price+' монет';card.append(name,price);card.onclick=()=>this.shop(slot,item.id);grid.append(card);}
   const detail=document.createElement('aside');detail.className='shop-detail';detail.setAttribute('aria-live','polite');this.actions.append(detail);
   const image=this.preview?.(current.id);if(image){const img=document.createElement('img');img.src=image;img.alt='Предпросмотр: '+current.name;detail.append(img);}
-  const title=document.createElement('h3');title.textContent=current.name;const description=document.createElement('p');description.textContent=current.slot==='head'?'Головной убор для твоего шаробеса.':'Рисунок на корпусе твоего шаробеса.';detail.append(title,description);
+  const title=document.createElement('h3');title.textContent=current.name;const description=document.createElement('p');description.textContent=current.category==='headwear'?'Головной убор для твоего шаробеса.':current.category==='glasses'?'Очки для твоего шаробеса.':current.category==='masks'?'Маска для твоего шаробеса.':current.category==='accessories'?'Украшение для твоего шаробеса.':'Рисунок на корпусе твоего шаробеса.';detail.append(title,description);
   const owned=this.wardrobe.owned.has(current.id),worn=this.wardrobe.outfit[current.slot]===current.id;
   const buy=document.createElement('button');buy.id='shop-buy';buy.textContent=worn?'Снять':owned?'Надеть':'Купить · '+current.price+' монет';buy.disabled=!owned&&this.wardrobe.coins<current.price;buy.onclick=()=>{this.wardrobe.choose(current);this.wear();this.shop(slot,current.id);};detail.append(buy);
   if(buy.disabled){const hint=document.createElement('p');hint.className='shop-hint';hint.textContent='Не хватает '+(current.price-this.wardrobe.coins)+' монет. Каждая собранная ягода даёт одну монету.';detail.append(hint);}

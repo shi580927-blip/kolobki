@@ -37,7 +37,7 @@ export class RuntimeFace extends T.Group {
 export class RuntimeVisual extends T.Group {
  readonly sandCoat=new SandCoat();decorations:HeadDecor;
  readonly rollingBody:T.Group;readonly face:RuntimeFace;private sample:SkinSample;private clearanceOrientation=new T.Quaternion();
- constructor(readonly design:SkinDesign,atlas:AnimationAtlas,textures:T.Texture[],mood:Mood,environment?:T.Texture,experimentalFace=true){super();this.decorations=new HeadDecor(design.seed,design.base);this.add(this.decorations);this.design=limitProtrusions(design);design=this.design;this.sample=new SkinSample(textures[0],'sly',environment);this.sample.face.visible=false;this.sample.apply(design);this.rollingBody=this.sample.rollingBody;this.face=new RuntimeFace(atlas,textures,mood,design.base,environment,experimentalFace);if(this.face.experimentalFace)this.face.experimentalFace.browStyle=browStyleForSeed(design.seed);this.add(this.sample,this.face,this.sandCoat);clipFaceToWater(this.face);}
+ constructor(readonly design:SkinDesign,atlas:AnimationAtlas,textures:T.Texture[],mood:Mood,private readonly environment?:T.Texture,experimentalFace=true){super();this.decorations=new HeadDecor(design.seed,design.base,undefined,environment);this.add(this.decorations);this.design=limitProtrusions(design);design=this.design;this.sample=new SkinSample(textures[0],'sly',environment);this.sample.face.visible=false;this.sample.apply(design);this.rollingBody=this.sample.rollingBody;this.face=new RuntimeFace(atlas,textures,mood,design.base,environment,experimentalFace);if(this.face.experimentalFace)this.face.experimentalFace.browStyle=browStyleForSeed(design.seed);this.add(this.sample,this.face,this.sandCoat);clipFaceToWater(this.face);}
  private skullPaint?:BodyDecoration;
  setSkull(enabled:boolean){
   this.face.setSkull(enabled);
@@ -51,7 +51,7 @@ export class RuntimeVisual extends T.Group {
  }
  setOutfit(outfit:HeadDecor['style']){
   this.remove(this.decorations);this.decorations.dispose();
-  this.decorations=new HeadDecor(this.design.seed,this.design.base,outfit);this.add(this.decorations);this.updateDecorations();
+  this.decorations=new HeadDecor(this.design.seed,this.design.base,outfit,this.environment);this.add(this.decorations);this.updateDecorations();
  }
  updateSand(sand:number,wetness:number){this.sandCoat.update(sand,this.rollingBody.quaternion,this.clearanceOrientation,wetness);}
  updateDecorations(){

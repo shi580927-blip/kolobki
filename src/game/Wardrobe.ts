@@ -1,13 +1,24 @@
+export const SHOP_TABS=[['all','Все'],['headwear','Головные уборы'],['glasses','Очки'],['masks','Маски'],['accessories','Украшения'],['marks','Рисунки']] as const;
+export type ShopCategory=typeof SHOP_TABS[number][0];
 export const GOODS = [
- {id:'stripes',slot:'mark',name:'Когтистые шрамы',price:3},
- {id:'star',slot:'mark',name:'Золотые звёзды',price:4},
- {id:'bolt',slot:'mark',name:'Рваная молния',price:5},
- {id:'helmet',slot:'head',name:'Шипованный шлем',price:8},
- {id:'crown',slot:'head',name:'Королевская корона',price:10},
- {id:'horns',slot:'head',name:'Боевые рожки',price:6}
+ {id:'stripes',slot:'mark',category:'marks',name:'Когтистые шрамы',price:3},
+ {id:'star',slot:'mark',category:'marks',name:'Золотые звёзды',price:4},
+ {id:'bolt',slot:'mark',category:'marks',name:'Рваная молния',price:5},
+ {id:'helmet',slot:'head',category:'headwear',name:'Шипованный шлем',price:8},
+ {id:'crown',slot:'head',category:'headwear',name:'Королевская корона',price:10},
+ {id:'horns',slot:'head',category:'accessories',name:'Светлые рожки',price:6},
+ {id:'cap',slot:'head',category:'headwear',name:'Кепка вперёд',price:7},
+ {id:'roundGlasses',slot:'head',category:'glasses',name:'Круглые очки',price:6},
+ {id:'goggles',slot:'head',category:'glasses',name:'Стимпанк-очки',price:9},
+ {id:'catEars',slot:'head',category:'accessories',name:'Кошачьи ушки',price:7},
+ {id:'headphones',slot:'head',category:'accessories',name:'Наушники',price:10},
+ {id:'viking',slot:'head',category:'headwear',name:'Шлем викинга',price:12},
+ {id:'ninja',slot:'head',category:'masks',name:'Маска ниндзя',price:8},
+ {id:'knight',slot:'head',category:'headwear',name:'Рыцарский шлем',price:12}
 ] as const;
-type Item=typeof GOODS[number];
-export type Outfit={head:'none'|'helmet'|'crown'|'horns';mark:'none'|'stripes'|'star'|'bolt'};
+export type Item=typeof GOODS[number];
+export type Outfit={head:'none'|Extract<Item,{slot:'head'}>['id'];mark:'none'|Extract<Item,{slot:'mark'}>['id']};
+export function goodsForCategory(category:ShopCategory){return GOODS.filter(g=>category==='all'||g.category===category);}
 export function readOutfit(value:unknown):Outfit {
  const outfit:Outfit={head:'none',mark:'none'};
  if(!value||typeof value!=='object')return outfit;

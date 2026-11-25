@@ -68,3 +68,16 @@ test('retired straight fur keeps old author seed and colours while showing the c
  assert.equal(visual.design.surface,'shaggy');assert.equal(visual.design.seed,old.seed);assert.equal(visual.design.base,old.base);assert.equal(visual.design.accent,old.accent);
  for(let seed=0;seed<1000;seed++)assert.notEqual(designForGame(skinFrom(seed)).surface,'fuzz');
 });
+
+test('all approved accessories use the exact gallery models in gameplay, follow heading and retain world environment',async()=>{
+ const {AtelierAccessories,atelierAccessories}=await import('../src/cosmetics/AtelierAccessories');
+ const env=new Texture(),visual=new RuntimeVisual({...defaultDesign,surface:'segments',growthCount:0},gameplayAtlas(source),[new Texture(),new Texture(),new Texture()],'sly',env);
+ for(const head of Object.keys(atelierAccessories).filter(id=>id!=='none') as Exclude<keyof typeof atelierAccessories,'none'>[]){
+  visual.setOutfit({head,mark:'none'});const accessory=visual.decorations.getObjectByName('atelier-accessory');assert.ok(accessory instanceof AtelierAccessories);assert.equal(accessory.kind,head);
+  assert.equal(accessory.parent,visual.decorations);assert.notEqual(accessory.parent,visual.rollingBody);
+  visual.face.update(.03,1.4);visual.rollingBody.quaternion.setFromAxisAngle(new Vector3(1,0,0),2.1);visual.updateDecorations();
+  assert.equal(visual.decorations.rotation.y,1.4);assert.deepEqual(accessory.quaternion.toArray(),[0,0,0,1]);
+  accessory.traverse(o=>{if('material' in o){const m=(o as import('three').Mesh).material as import('three').MeshStandardMaterial;assert.equal(m.envMap,env);}});
+ }
+ visual.dispose();env.dispose();
+});

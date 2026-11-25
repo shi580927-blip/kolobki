@@ -227,3 +227,7 @@
 #action-feedback:not([hidden]){animation:combo-pop .32s ease-out;transform:rotate(-3deg);text-shadow:2px 3px #54216f,-1px -1px #54216f,0 0 8px #ffcc4c;font-weight:1000;letter-spacing:.2px}
 #hud[data-racing=true] #action-feedback{font-size:30px;border-radius:28px;border:3px solid #fff296;box-shadow:0 0 0 3px #b968d5,0 0 22px #ffe54b88;background:linear-gradient(#9b42c6,#52216e);padding:14px 20px;color:#fff130}
 @media(prefers-reduced-motion:reduce){#action-feedback:not([hidden]){animation:none;transform:none}}
+
+/* Shop categories only: preserve the approved cards and detail panel. */
+#game-menu[data-screen=shop] .shop-tabs{display:grid;grid-template-columns:.65fr 1.55fr .8fr .8fr 1.2fr 1fr;gap:5px}
+#game-menu[data-screen=shop] .shop-tabs button{min-width:0;padding:8px 4px;font-size:17px;white-space:nowrap}
