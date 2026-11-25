@@ -69,3 +69,6 @@
 #game-menu[data-screen=shop] #shop-wardrobe{right:14px;width:260px;background:linear-gradient(#fffca1,#ffe13a 35%,#ffb914);border-color:#fff5ac;color:#602778;text-shadow:0 1px #fff8;box-shadow:inset 0 4px white,0 4px #b56d36}
 
 #game-menu[data-screen=shop]>h2{border-color:#fff4a2;background:linear-gradient(#fffba2,#ffe233 34%,#ffb70b 88%);color:#62247e;text-shadow:0 2px #fff7;box-shadow:inset 0 4px white,0 4px #bb6c36,0 0 0 2px #d99035}
+/* Reserve space for the insufficient-coins hint, including two-line item names. */
+#game-menu[data-screen=shop] .shop-detail:has(.shop-hint)>img{height:145px}
+#game-menu[data-screen=shop] .shop-detail .shop-hint{margin:7px 0 0;line-height:1.1}
