@@ -17,6 +17,7 @@ const fs=require('node:fs/promises');
   const background=await page.locator('#game-menu').evaluate(async el=>{const url=getComputedStyle(el).backgroundImage.match(/url\(["']?(.*?)["']?\)/)?.[1];if(!url)return '';const im=new Image();im.src=url;await im.decode();return im.naturalWidth>1000?url:'';});
   assert.match(background,/fitting-clearing/);
   await fs.mkdir('dist/deploy-review',{recursive:true});
+  assert.equal(await page.locator('.fitting-cast>div').count(),4,'reference fitting has four smaller mannequins around the live hero');
   await page.screenshot({path:'dist/deploy-review/fitting.png'});
   await page.getByRole('button',{name:'Повернуть вправо',exact:true}).click({clickCount:3});
   await page.getByRole('button',{name:'ϟ Рисунки',exact:true}).click();
@@ -29,6 +30,10 @@ const fs=require('node:fs/promises');
     return [...el.querySelectorAll('img')].every(im=>im.getBoundingClientRect().left>=text.right);
   });
   assert.equal(bannerClear,true,'banner artwork must not cover its heading');
+  const columns=await page.locator('#game-menu').evaluate(el=>{const r=s=>{const b=el.querySelector(s).getBoundingClientRect();return {left:b.left,right:b.right,width:b.width};};return [r('.shop-collection'),r('.shop-grid'),r('.shop-detail')];});
+  assert.ok(columns[0].right<columns[1].left&&columns[1].right<columns[2].left,'reference shop has three separate, non-overlapping columns');
+  assert.ok(columns[0].width>175&&columns[1].width>700&&columns[2].width>245);
+
   assert.equal(await page.locator('.shop-tabs button').count(),6);
   for(const [name,count]of [['Головные уборы',5],['Очки',2],['Маски',1],['Украшения',3],['Рисунки',3],['Все',14]]){
    await page.getByRole('button',{name,exact:true}).click();assert.equal(await page.locator('.shop-card').count(),count);

@@ -2,6 +2,7 @@ import {GARDENS} from './game/FruitGardens';
 import {browStyleForSeed} from './face/BrowStyle';
 import {GOODS,Wardrobe,readOutfit} from './game/Wardrobe';
 import "./style.css";
+import "./game/cosmeticScreens.css";
 import {version as buildVersion} from "../package.json";
 import {RoomEnvironment} from "three/addons/environments/RoomEnvironment.js";
 import {loadAnimationAtlas} from "./face/AnimatedAtlas";

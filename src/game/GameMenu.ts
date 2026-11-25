@@ -21,8 +21,15 @@ export class GameMenu {
  private shop(slot:ShopCategory='all',selected:string='headphones'){
   this.panel.dataset.screen='shop';this.title.textContent='Магазин';this.body.textContent='Монеты: '+this.wardrobe.coins+' · Собирай ягоды в долине';this.actions.replaceChildren();
   const tabs=document.createElement('nav');tabs.className='shop-tabs';tabs.setAttribute('aria-label','Категории магазина');this.actions.append(tabs);
-  const showcase=document.createElement('div');showcase.className='shop-showcase';const showTitle=document.createElement('h3');showTitle.textContent='Образ с характером';const showText=document.createElement('span');showText.textContent='Украшения для твоего шаробеса';showcase.append(showTitle,showText);for(const id of ['headphones','viking','knight']){const url=this.preview?.(id);if(url){const img=document.createElement('img');img.src=url;img.alt=GOODS.find(g=>g.id===id)?.name??'';showcase.append(img);}}this.actions.append(showcase);
+  const showcase=document.createElement('div');showcase.className='shop-showcase';const showTitle=document.createElement('h3');showTitle.textContent='Украшения с характером';const showText=document.createElement('span');showText.textContent='Украшения для твоего шаробеса';showcase.append(showTitle,showText);for(const id of ['headphones','viking','knight']){const url=this.preview?.(id);if(url){const img=document.createElement('img');img.src=url;img.alt=GOODS.find(g=>g.id===id)?.name??'';showcase.append(img);}}this.actions.append(showcase);
   for(const [value,label] of SHOP_TABS){const button=document.createElement('button');button.textContent=label;button.setAttribute('aria-pressed',String(value===slot));button.onclick=()=>this.shop(value,goodsForCategory(value)[0].id);tabs.append(button);}
+  const collection=document.createElement('aside');collection.className='shop-collection';collection.setAttribute('aria-label','Моя коллекция');
+  const collectionTitle=document.createElement('h3');collectionTitle.textContent='КОЛЛЕКЦИЯ';collection.append(collectionTitle);
+  const wornItem=GOODS.find(g=>g.id===this.wardrobe.outfit.head),portrait=this.preview?.(wornItem?.id??'none');
+  if(portrait){const image=document.createElement('img');image.src=portrait;image.alt='Надетое украшение';collection.append(image);}
+  const wornName=document.createElement('strong');wornName.textContent=wornItem?.name??'Твой шаробес';collection.append(wornName);
+  for(const [label,value]of [['Монеты',String(this.wardrobe.coins)],['В коллекции',this.wardrobe.owned.size+' / '+GOODS.length]]){const row=document.createElement('div'),caption=document.createElement('small'),number=document.createElement('b');caption.textContent=label;number.textContent=value;row.append(caption,number);collection.append(row);}
+  const tip=document.createElement('p');tip.textContent='Собирай ягоды в долине и открывай новые украшения!';collection.append(tip);this.actions.append(collection);
   const grid=document.createElement('div');grid.className='shop-grid';this.actions.append(grid);
   const goods=goodsForCategory(slot);const current=goods.find(g=>g.id===selected)??goods[0];
   for(const item of goods){const card=document.createElement('button');card.className='shop-card';card.dataset.item=item.id;card.setAttribute('aria-pressed',String(item.id===current.id));this.thumbnail(card,item.id);const name=document.createElement('strong');name.textContent=item.name;const price=document.createElement('span');price.textContent=this.wardrobe.owned.has(item.id)?'В коллекции':'● '+item.price+' монет';card.append(name,price);card.onclick=()=>this.shop(slot,item.id);grid.append(card);}
@@ -55,22 +62,25 @@ export class GameMenu {
   this.actions.replaceChildren();
   const tabs=document.createElement('nav');tabs.className='fitting-tabs';tabs.setAttribute('aria-label','Категории гардероба');this.actions.append(tabs);
   for(const [id,label] of [['head','♛ Украшения'],['mark','ϟ Рисунки']] as const){const b=document.createElement('button');b.textContent=label;b.setAttribute('aria-pressed',String(slot===id));b.onclick=()=>this.profile(id);tabs.append(b);}
+  const cast=document.createElement('div');cast.className='fitting-cast';cast.setAttribute('aria-hidden','true');
+  for(const id of ['cap','viking','catEars','horns']){const image=this.preview?.(id);if(image){const stand=document.createElement('div'),img=document.createElement('img');img.src=image;img.alt='';stand.append(img);cast.append(stand);}}this.actions.append(cast);
   const summary=document.createElement('aside');summary.className='outfit-summary';const heading=document.createElement('h3');heading.textContent='МОЙ ОБРАЗ';summary.append(heading);
-  for(const [label,id] of [['Украшение',this.wardrobe.outfit.head],['Рисунок',this.wardrobe.outfit.mark],['Скин',this.wardrobe.skull?'skull':undefined]]){const row=document.createElement('div');const name=id==='skull'?'Черепушка':GOODS.find(g=>g.id===id)?.name;const image=id&&this.preview?.(id);if(image){const img=document.createElement('img');img.src=image;img.alt='';row.append(img);}const text=document.createElement('span');const caption=document.createElement('small');caption.textContent=label??'';const value=document.createElement('strong');value.textContent=name??'Без украшения';text.append(caption,value);row.append(text);if(name){const check=document.createElement('b');check.textContent='✓';row.append(check);}summary.append(row);}this.actions.append(summary);
+  for(const [label,id] of [['Украшение',this.wardrobe.outfit.head],['Рисунок',this.wardrobe.outfit.mark],['Скин',this.wardrobe.skull?'skull':undefined]]){const row=document.createElement('div');const name=id==='skull'?'Черепушка':GOODS.find(g=>g.id===id)?.name;const image=id&&id!=='none'&&this.preview?.(id);if(image){const img=document.createElement('img');img.src=image;img.alt='';row.append(img);}const text=document.createElement('span');const caption=document.createElement('small');caption.textContent=label??'';const value=document.createElement('strong');value.textContent=name??(label==='Рисунок'?'Без рисунка':label==='Скин'?'Без скина':'Без украшения');text.append(caption,value);row.append(text);if(name){const check=document.createElement('b');check.textContent='✓';row.append(check);}summary.append(row);}this.actions.append(summary);
   const rail=document.createElement('div');rail.className='fitting-rail';rail.setAttribute('aria-label','Предметы коллекции');this.actions.append(rail);
 
   const preview=document.createElement('div');preview.className='wardrobe-stage';preview.setAttribute('aria-label','Просмотр персонажа');const base=document.createElement('div');base.className='wardrobe-podium';preview.append(base);this.actions.append(preview);for(const [direction,label] of [[-1,'↶'],[1,'↷']] as const){const turn=this.action(label,()=>dispatchEvent(new CustomEvent('sharobesy-fitting-turn',{detail:direction})),'fitting-turn-'+direction);turn.className='fitting-turn';turn.setAttribute('aria-label',direction<0?'Повернуть влево':'Повернуть вправо');}
   const skinButton=this.action('Черепушка · '+(this.wardrobe.skull?'Снять':'Надеть'),()=>{
    this.wardrobe.setSkull(!this.wardrobe.skull);this.wear();this.profile(slot);
   },'wear-skull');
-  skinButton.setAttribute('aria-pressed',String(this.wardrobe.skull));skinButton.className='wardrobe-card';this.thumbnail(skinButton,'skull');rail.append(skinButton);
+  skinButton.setAttribute('aria-pressed',String(this.wardrobe.skull));skinButton.className='wardrobe-card';this.fittingCard(skinButton,'skull','Черепушка',this.wardrobe.skull?'Надето':'Надеть');rail.append(skinButton);
   for(const item of GOODS.filter(x=>x.slot===slot)){
    const owned=this.wardrobe.owned.has(item.id),worn=this.wardrobe.outfit[slot]===item.id;
    const button=this.action(item.name+' · '+(worn?'Снять':owned?'Надеть':item.price+' мон.'),()=>{this.wardrobe.choose(item);this.wear();this.profile(slot);},'wear-'+item.id);
-   button.className='wardrobe-card';button.setAttribute('aria-pressed',String(worn));this.thumbnail(button,item.id);button.disabled=!owned&&this.wardrobe.coins<item.price;rail.append(button);
+   button.className='wardrobe-card';button.setAttribute('aria-pressed',String(worn));this.fittingCard(button,item.id,item.name,worn?'Надето':owned?'Надеть':'● '+item.price+' монет');button.disabled=!owned&&this.wardrobe.coins<item.price;rail.append(button);
   }
   this.action('← Назад',()=>this.show(),'menu-back');this.action('Магазин →',()=>this.shop(),'fitting-shop');
  }
+ private fittingCard(button:HTMLButtonElement,id:string,name:string,status:string){button.replaceChildren();this.thumbnail(button,id);const title=document.createElement('strong'),badge=document.createElement('span');title.textContent=name;badge.textContent=status;button.append(title,badge);}
  private thumbnail(button:HTMLButtonElement,id:string){const url=this.preview?.(id);if(url){const img=document.createElement('img');img.src=url;img.alt='';button.prepend(img);}}
  close(){this.panel.hidden=true;this.changed();dispatchEvent(new Event('sharobesy-controls-change'));}
 }
