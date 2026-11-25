@@ -1,0 +1,13 @@
+const {chromium}=require('playwright'),assert=require('node:assert/strict'),fs=require('node:fs');
+(async()=>{
+ fs.mkdirSync('test-results',{recursive:true});const browser=await chromium.launch({headless:true,executablePath:process.env.CHROMIUM_EXECUTABLE,args:['--no-sandbox','--enable-unsafe-swiftshader','--use-angle=swiftshader']});
+ const page=await browser.newPage({viewport:{width:960,height:540}}),errors=[];page.setDefaultTimeout(120000);page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
+ await page.addInitScript(()=>{localStorage.setItem('sharobesy.skin.v1','4321');Object.defineProperty(crypto,'getRandomValues',{value:array=>{array.fill(4);return array;}});});
+ const url=process.env.GAME_TEST_URL||'http://127.0.0.1:4240';await page.goto(url+'/');await page.waitForFunction(()=>window.__SHAROBESY__?.npcs?.length===5&&document.querySelector('#boot').hidden);
+ const state=()=>page.evaluate(()=>window.__SHAROBESY__),first=await state();assert.equal(new Set(first.npcs.map(n=>n.kind)).size,5);assert.equal(first.skin.seed,4321);assert.equal(first.npcSeed,4);await page.screenshot({path:'test-results/npcs-start.png',timeout:120000});
+ await page.waitForFunction(()=>window.__SHAROBESY__.npcContacts>0,null,{timeout:120000});const moved=await state();const moving=moved.npcs.filter((n,i)=>Math.hypot(n.position[0]-first.npcs[i].position[0],n.position[2]-first.npcs[i].position[2])>.4);assert.ok(moving.length>=3,'several NPCs actually roll');assert.ok(moved.npcs.some((n,i)=>Math.hypot(...n.rotation.map((v,j)=>v-first.npcs[i].rotation[j]))>.05));await page.screenshot({path:'test-results/npcs-contact.png',timeout:120000});
+ await page.getByRole('button',{name:'На старт',exact:true}).click();const reset=await state();assert.deepEqual(reset.npcs.map(n=>n.appearanceSeed),first.npcs.map(n=>n.appearanceSeed));assert.equal(reset.npcSeed,first.npcSeed);assert.equal(reset.skin.seed,4321);assert.equal(reset.npcContacts,0);
+ for(let i=1;i<=4;i++){await page.keyboard.press('Digit'+i);assert.equal((await state()).camera,i-1);}const box=await page.locator('#stage').boundingBox();assert.ok(Math.abs(box.width/box.height-16/9)<.001);
+ await page.goto(url+'/?valley-study');await page.waitForFunction(()=>window.__SHAROBESY__&&document.querySelector('#boot').hidden);assert.equal((await state()).npcs.length,0);assert.equal((await state()).studyActors.length,10);
+ assert.deepEqual(errors,[]);console.log(JSON.stringify({npcs:5,archetypes:5,moving:moving.length,playerContacts:moved.npcContacts,rolling:true,resetSeedPreserved:true,studyIsolated:true,errors}));await browser.close();
+})().catch(e=>{console.error(e);process.exit(1)});
